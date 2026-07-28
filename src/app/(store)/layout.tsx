@@ -1,4 +1,5 @@
 import { CookieConsent } from "@/components/legal/CookieConsent";
+import { BotanicalTattooBackground } from "@/components/store/BotanicalTattooBackground";
 import { Footer } from "@/components/store/Footer";
 import { Header } from "@/components/store/Header";
 import { StoreMobileChrome } from "@/components/store/StoreMobileChrome";
@@ -16,7 +17,10 @@ export default async function StoreLayout({
     <StoreProviders>
       <Header categories={categories} />
       <StoreMobileChrome>
-        <main className="flex-1">{children}</main>
+        <main className="relative isolate flex-1">
+          <BotanicalTattooBackground />
+          <div className="relative z-10">{children}</div>
+        </main>
         <Footer categories={categories} />
       </StoreMobileChrome>
       <CookieConsent />
