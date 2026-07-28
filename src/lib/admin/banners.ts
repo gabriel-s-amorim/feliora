@@ -1,4 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import { deleteStorageImages } from "@/lib/admin/uploads";
 import { bannerToRow, mapBanner, type BannerRow } from "@/shared/lib/bannerMapper";
 import type { BannerSchemaInput } from "@/shared/schemas/banner";
 import type { Banner } from "@/shared/types/banner";
@@ -58,6 +59,8 @@ export async function updateAdminBanner(
   input: BannerSchemaInput
 ): Promise<Banner> {
   const supabase = createAdminClient();
+  const previous = await getAdminBanner(id);
+
   const { data, error } = await supabase
     .from("banners")
     .update(bannerToRow(input))
@@ -66,13 +69,37 @@ export async function updateAdminBanner(
     .single();
 
   if (error) throw new Error(error.message);
-  return mapBanner(data as BannerRow);
+
+  const updated = mapBanner(data as BannerRow);
+
+  // Remove do bucket imagens antigas que foram trocadas
+  if (previous) {
+    const stale: Array<string | null> = [];
+    if (previous.imageUrl && previous.imageUrl !== updated.imageUrl) {
+      stale.push(previous.imageUrl);
+    }
+    if (
+      previous.imageUrlMobile &&
+      previous.imageUrlMobile !== updated.imageUrlMobile
+    ) {
+      stale.push(previous.imageUrlMobile);
+    }
+    await deleteStorageImages(stale);
+  }
+
+  return updated;
 }
 
 export async function deleteAdminBanner(id: string): Promise<void> {
   const supabase = createAdminClient();
+  const existing = await getAdminBanner(id);
+
   const { error } = await supabase.from("banners").delete().eq("id", id);
   if (error) throw new Error(error.message);
+
+  if (existing) {
+    await deleteStorageImages([existing.imageUrl, existing.imageUrlMobile]);
+  }
 }
 
 export async function reorderAdminBanners(

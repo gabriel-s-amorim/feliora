@@ -112,3 +112,42 @@ export async function uploadAdminImage(
 
   return data.publicUrl;
 }
+
+/** Extrai o path interno do bucket a partir da URL pública do Storage. */
+export function storagePathFromPublicUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
+  try {
+    const parsed = new URL(url);
+    const marker = `/storage/v1/object/public/${PRODUCT_IMAGES_BUCKET}/`;
+    const idx = parsed.pathname.indexOf(marker);
+    if (idx === -1) return null;
+    const path = decodeURIComponent(parsed.pathname.slice(idx + marker.length));
+    return path || null;
+  } catch {
+    return null;
+  }
+}
+
+/** Remove arquivos do bucket product-images (ignora URLs externas / inválidas). */
+export async function deleteStorageImages(
+  urls: Array<string | null | undefined>
+): Promise<void> {
+  const paths = [
+    ...new Set(
+      urls
+        .map((url) => storagePathFromPublicUrl(url))
+        .filter((path): path is string => Boolean(path))
+    ),
+  ];
+
+  if (paths.length === 0) return;
+
+  const supabase = createAdminClient();
+  const { error } = await supabase.storage
+    .from(PRODUCT_IMAGES_BUCKET)
+    .remove(paths);
+
+  if (error) {
+    console.error("[storage] deleteStorageImages", error.message, paths);
+  }
+}
