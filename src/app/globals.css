@@ -103,3 +103,117 @@ body::before {
 .animate-delay-3 {
   animation-delay: 0.44s;
 }
+
+/* ── Fundo floral (tatuagem) ─────────────────────────────────────────────── */
+
+@keyframes floral-drift-a {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate3d(10px, -14px, 0) rotate(1.4deg);
+  }
+}
+
+@keyframes floral-drift-b {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate3d(-12px, 10px, 0) rotate(-1.6deg);
+  }
+}
+
+@keyframes floral-drift-c {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  33% {
+    transform: translate3d(8px, 8px, 0) rotate(1deg);
+  }
+  66% {
+    transform: translate3d(-6px, -10px, 0) rotate(-0.8deg);
+  }
+}
+
+@keyframes floral-breathe {
+  0%,
+  100% {
+    transform: scale(1) translate3d(0, 0, 0);
+  }
+  50% {
+    transform: scale(1.035) translate3d(0, -8px, 0);
+  }
+}
+
+@keyframes floral-breathe-slow {
+  0%,
+  100% {
+    transform: scale(1) translate3d(0, 0, 0);
+  }
+  50% {
+    transform: scale(1.045) translate3d(0, -5px, 0);
+  }
+}
+
+@keyframes floral-petal-float {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.15;
+  }
+  40% {
+    opacity: 0.45;
+  }
+  100% {
+    transform: translate3d(18px, -48px, 0) scale(0.7);
+    opacity: 0;
+  }
+}
+
+.floral-drift-a {
+  animation: floral-drift-a 22s ease-in-out infinite;
+}
+
+.floral-drift-b {
+  animation: floral-drift-b 26s ease-in-out infinite;
+}
+
+.floral-drift-c {
+  animation: floral-drift-c 19s ease-in-out infinite;
+}
+
+.floral-breathe {
+  animation: floral-breathe 14s ease-in-out infinite;
+}
+
+.floral-breathe-slow {
+  animation: floral-breathe-slow 18s ease-in-out infinite;
+}
+
+.floral-petal {
+  animation: floral-petal-float 11s ease-in-out infinite;
+}
+
+.floral-petal-delay {
+  animation: floral-petal-float 14s ease-in-out 3.5s infinite;
+}
+
+.floral-petal-slow {
+  animation: floral-petal-float 17s ease-in-out 7s infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .floral-drift-a,
+  .floral-drift-b,
+  .floral-drift-c,
+  .floral-breathe,
+  .floral-breathe-slow,
+  .floral-petal,
+  .floral-petal-delay,
+  .floral-petal-slow {
+    animation: none;
+  }
+}
