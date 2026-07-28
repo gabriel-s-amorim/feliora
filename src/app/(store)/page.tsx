@@ -2,7 +2,6 @@ import Link from "next/link";
 import { SITE_NAME } from "@/shared/const/site";
 import { ProductGrid } from "@/components/store/ProductGrid";
 import { HomeHero } from "@/components/store/HomeHero";
-import { FloralBackground } from "@/components/store/FloralBackground";
 import { listActiveBanners } from "@/lib/banners";
 import { listFeaturedProducts, listActiveProducts } from "@/lib/products";
 import { listActiveCategoryNav } from "@/lib/categories";
@@ -46,26 +45,23 @@ export default async function HomePage() {
       ) : null}
 
       {showcase.length > 0 ? (
-        <section className="relative overflow-hidden">
-          <FloralBackground variant="featured" />
-          <div className="relative z-10 mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
-            <div className="mb-12 text-center sm:mb-14">
-              <p className="font-display text-[0.65rem] uppercase tracking-[0.42em] text-rose-gold">
-                Lookbook
-              </p>
-              <h2 className="mt-4 font-display text-3xl font-light tracking-[0.08em] text-ink sm:text-4xl">
-                {featured.length > 0 ? "Em destaque" : "Novidades"}
-              </h2>
-            </div>
-            <ProductGrid products={showcase} priorityCount={2} />
-            <div className="mt-14 text-center">
-              <Link
-                href="/catalogo"
-                className="inline-flex min-h-11 items-center border border-ink px-8 text-[11px] tracking-[0.22em] text-ink transition-colors hover:border-rose-gold hover:text-rose-gold"
-              >
-                Ver tudo
-              </Link>
-            </div>
+        <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
+          <div className="mb-12 text-center sm:mb-14">
+            <p className="font-display text-[0.65rem] uppercase tracking-[0.42em] text-rose-gold">
+              Lookbook
+            </p>
+            <h2 className="mt-4 font-display text-3xl font-light tracking-[0.08em] text-ink sm:text-4xl">
+              {featured.length > 0 ? "Em destaque" : "Novidades"}
+            </h2>
+          </div>
+          <ProductGrid products={showcase} priorityCount={2} />
+          <div className="mt-14 text-center">
+            <Link
+              href="/catalogo"
+              className="inline-flex min-h-11 items-center border border-ink px-8 text-[11px] tracking-[0.22em] text-ink transition-colors hover:border-rose-gold hover:text-rose-gold"
+            >
+              Ver tudo
+            </Link>
           </div>
         </section>
       ) : null}

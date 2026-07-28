@@ -4,10 +4,13 @@ import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 
 type Side = "left" | "right";
+type Anchor = "top" | "mid" | "bottom";
 type Tone = "rose-gold" | "earth";
 
 export type FloralPlacement = {
   side: Side;
+  /** Posição vertical no container */
+  anchor?: Anchor;
   /** Multiplicador de parallax (0–1) */
   depth?: number;
   tone?: Tone;
@@ -15,39 +18,80 @@ export type FloralPlacement = {
   opacity?: number;
   /** Largura em px */
   size?: number;
+  /** Inverte verticalmente (ramos que sobem a partir da base) */
+  invert?: boolean;
   className?: string;
 };
 
 type Props = {
   className?: string;
-  /** Sobrescreve o par espelhado padrão */
+  /** Sobrescreve o preset */
   placements?: FloralPlacement[];
   /**
-   * featured = um ramo por lateral (espelhado)
-   * corners  = mesmo motivo, cantos superior esquerdo / direito
+   * store   = dois pares espelhados (topo + base) — uso no layout da loja
+   * featured / corners = um par (legado / seções)
    */
-  variant?: "featured" | "corners";
+  variant?: "store" | "featured" | "corners";
 };
 
 const PRESETS: Record<NonNullable<Props["variant"]>, FloralPlacement[]> = {
+  store: [
+    {
+      side: "left",
+      anchor: "top",
+      size: 280,
+      depth: 0.4,
+      tone: "rose-gold",
+      opacity: 0.12,
+    },
+    {
+      side: "right",
+      anchor: "top",
+      size: 280,
+      depth: 0.4,
+      tone: "rose-gold",
+      opacity: 0.12,
+    },
+    {
+      side: "left",
+      anchor: "bottom",
+      size: 300,
+      depth: 0.55,
+      tone: "rose-gold",
+      opacity: 0.12,
+      invert: true,
+    },
+    {
+      side: "right",
+      anchor: "bottom",
+      size: 300,
+      depth: 0.55,
+      tone: "rose-gold",
+      opacity: 0.12,
+      invert: true,
+    },
+  ],
   featured: [
-    { side: "left", depth: 0.55, tone: "rose-gold", opacity: 0.13, size: 340 },
-    { side: "right", depth: 0.55, tone: "rose-gold", opacity: 0.13, size: 340 },
+    { side: "left", anchor: "mid", depth: 0.55, opacity: 0.13, size: 340 },
+    { side: "right", anchor: "mid", depth: 0.55, opacity: 0.13, size: 340 },
   ],
   corners: [
-    { side: "left", depth: 0.4, tone: "rose-gold", opacity: 0.12, size: 260 },
-    { side: "right", depth: 0.4, tone: "rose-gold", opacity: 0.12, size: 260 },
+    { side: "left", anchor: "top", depth: 0.4, opacity: 0.12, size: 260 },
+    { side: "right", anchor: "top", depth: 0.4, opacity: 0.12, size: 260 },
   ],
 };
 
-const SIDE_CLASS: Record<Side, string> = {
-  left: "left-0 top-1/2 -translate-x-[28%] -translate-y-1/2",
-  right: "right-0 top-1/2 translate-x-[28%] -translate-y-1/2",
-};
-
-const CORNER_CLASS: Record<Side, string> = {
-  left: "left-0 top-8 -translate-x-[20%]",
-  right: "right-0 top-8 translate-x-[20%]",
+const ANCHOR_CLASS: Record<Side, Record<Anchor, string>> = {
+  left: {
+    top: "left-0 top-0 -translate-x-[26%] -translate-y-[6%]",
+    mid: "left-0 top-1/2 -translate-x-[32%] -translate-y-1/2",
+    bottom: "left-0 bottom-0 -translate-x-[26%] translate-y-[6%]",
+  },
+  right: {
+    top: "right-0 top-0 translate-x-[26%] -translate-y-[6%]",
+    mid: "right-0 top-1/2 translate-x-[32%] -translate-y-1/2",
+    bottom: "right-0 bottom-0 translate-x-[26%] translate-y-[6%]",
+  },
 };
 
 const TONE_VAR: Record<Tone, string> = {
@@ -60,14 +104,6 @@ const MAX_SHIFT = 10;
 /**
  * Ramo contínuo no espírito da logo Feliora:
  * um só caule → folhas que nascem nele → flor de 5 pétalas com nervuras → botão no ápice.
- *
- * Pontos de junção (sobre o caule):
- *  - Folha 1: (64, 378)
- *  - Folha 2: (74, 318)
- *  - Nó da flor + folha 3: (86, 262)
- *  - Folha 4: (140, 160)
- *  - Folha 5: (174, 68)
- *  - Botão: (164, 12)
  */
 function FloralStemSvg({ tone, opacity }: { tone: Tone; opacity: number }) {
   const stroke = TONE_VAR[tone];
@@ -86,7 +122,6 @@ function FloralStemSvg({ tone, opacity }: { tone: Tone; opacity: number }) {
       aria-hidden
       overflow="visible"
     >
-      {/* Caule — passa exatamente pelos nós das folhas/flor */}
       <path
         {...s}
         strokeWidth={1.4}
@@ -99,7 +134,6 @@ function FloralStemSvg({ tone, opacity }: { tone: Tone; opacity: number }) {
            C178 42 172 24 164 12"
       />
 
-      {/* Folha 1 — nasce em (64,378) */}
       <path
         {...s}
         strokeWidth={1.25}
@@ -109,7 +143,6 @@ function FloralStemSvg({ tone, opacity }: { tone: Tone; opacity: number }) {
       />
       <path {...s} strokeWidth={1} d="M64 378 L34 332" />
 
-      {/* Folha 2 — nasce em (74,318) */}
       <path
         {...s}
         strokeWidth={1.25}
@@ -119,7 +152,6 @@ function FloralStemSvg({ tone, opacity }: { tone: Tone; opacity: number }) {
       />
       <path {...s} strokeWidth={1} d="M74 318 L114 264" />
 
-      {/* Folha 3 — nasce no nó da flor (86,262), lado interno */}
       <path
         {...s}
         strokeWidth={1.25}
@@ -129,23 +161,16 @@ function FloralStemSvg({ tone, opacity }: { tone: Tone; opacity: number }) {
       />
       <path {...s} strokeWidth={1} d="M86 262 L48 208" />
 
-      {/* Haste floral: do nó (86,262) ao centro da flor (38,200) */}
       <path
         {...s}
         strokeWidth={1.3}
         d="M86 262 C68 240 50 218 38 200"
       />
 
-      {/*
-        Flor Feliora — 5 pétalas arredondadas partindo do anel central
-        (não do ponto 0,0), com nervura interna. Menos “clipart”, mais logo.
-      */}
       <g transform="translate(38 200)">
-        {/* anel / miolo */}
         <circle {...s} strokeWidth={1.2} cx="0" cy="0" r="7" />
         <circle {...s} strokeWidth={0.85} cx="0" cy="0" r="2.4" />
 
-        {/* pétala N */}
         <path
           {...s}
           strokeWidth={1.25}
@@ -155,7 +180,6 @@ function FloralStemSvg({ tone, opacity }: { tone: Tone; opacity: number }) {
         />
         <path {...s} strokeWidth={0.9} d="M0 -7 L0 -30" />
 
-        {/* pétala NE */}
         <path
           {...s}
           strokeWidth={1.25}
@@ -165,7 +189,6 @@ function FloralStemSvg({ tone, opacity }: { tone: Tone; opacity: number }) {
         />
         <path {...s} strokeWidth={0.9} d="M6 -3.5 L28 -4" />
 
-        {/* pétala SE */}
         <path
           {...s}
           strokeWidth={1.25}
@@ -175,7 +198,6 @@ function FloralStemSvg({ tone, opacity }: { tone: Tone; opacity: number }) {
         />
         <path {...s} strokeWidth={0.9} d="M5 6 L14 28" />
 
-        {/* pétala SW */}
         <path
           {...s}
           strokeWidth={1.25}
@@ -185,7 +207,6 @@ function FloralStemSvg({ tone, opacity }: { tone: Tone; opacity: number }) {
         />
         <path {...s} strokeWidth={0.9} d="M-5 6 L-14 28" />
 
-        {/* pétala NW */}
         <path
           {...s}
           strokeWidth={1.25}
@@ -196,7 +217,6 @@ function FloralStemSvg({ tone, opacity }: { tone: Tone; opacity: number }) {
         <path {...s} strokeWidth={0.9} d="M-6 -3.5 L-28 -4" />
       </g>
 
-      {/* Folha 4 — nasce em (140,160) */}
       <path
         {...s}
         strokeWidth={1.25}
@@ -206,7 +226,6 @@ function FloralStemSvg({ tone, opacity }: { tone: Tone; opacity: number }) {
       />
       <path {...s} strokeWidth={1} d="M140 160 L176 100" />
 
-      {/* Folha 5 — nasce em (174,68) */}
       <path
         {...s}
         strokeWidth={1.2}
@@ -216,7 +235,6 @@ function FloralStemSvg({ tone, opacity }: { tone: Tone; opacity: number }) {
       />
       <path {...s} strokeWidth={0.95} d="M174 68 L148 24" />
 
-      {/* Botão no ápice (164,12) */}
       <path
         {...s}
         strokeWidth={1.25}
@@ -231,18 +249,17 @@ function FloralStemSvg({ tone, opacity }: { tone: Tone; opacity: number }) {
 
 /**
  * Camada decorativa floral (marca d'água).
- * Um ramo coeso por lado, espelhados. Desktop only + parallax sutil.
+ * Ramos coesos em pares espelhados. Desktop only + parallax sutil.
  */
 export function FloralBackground({
   className,
   placements,
-  variant = "featured",
+  variant = "store",
 }: Props) {
   const rootRef = useRef<HTMLDivElement>(null);
   const layerRefs = useRef<(HTMLDivElement | null)[]>([]);
   const depthsRef = useRef<number[]>([]);
   const items = placements ?? PRESETS[variant];
-  const anchorClass = variant === "corners" ? CORNER_CLASS : SIDE_CLASS;
 
   useEffect(() => {
     depthsRef.current = items.map((m) => m.depth ?? 0.5);
@@ -354,13 +371,22 @@ export function FloralBackground({
       {items.map((item, i) => {
         const size = item.size ?? 320;
         const tone = item.tone ?? "rose-gold";
-        const opacity = item.opacity ?? 0.13;
+        const opacity = item.opacity ?? 0.12;
+        const anchor = item.anchor ?? "mid";
         const mirrored = item.side === "right";
+        const invert = item.invert ?? false;
+
+        const scaleX = mirrored ? -1 : 1;
+        const scaleY = invert ? -1 : 1;
 
         return (
           <div
-            key={`${item.side}-${i}`}
-            className={cn("absolute", anchorClass[item.side], item.className)}
+            key={`${item.side}-${anchor}-${i}`}
+            className={cn(
+              "absolute",
+              ANCHOR_CLASS[item.side][anchor],
+              item.className
+            )}
             style={{ width: size, height: size * (440 / 220) }}
           >
             <div
@@ -372,7 +398,7 @@ export function FloralBackground({
               <div
                 className="h-full w-full"
                 style={{
-                  transform: mirrored ? "scaleX(-1)" : undefined,
+                  transform: `scale(${scaleX}, ${scaleY})`,
                   transformOrigin: "center",
                 }}
               >
