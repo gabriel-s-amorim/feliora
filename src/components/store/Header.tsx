@@ -130,11 +130,11 @@ export function Header({ categories }: HeaderProps) {
   }, [open]);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-cream/90 backdrop-blur-md">
-      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4 sm:h-16 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-40 border-b border-line bg-cream/90 backdrop-blur-md pt-[env(safe-area-inset-top)]">
+      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-2 px-4 sm:h-16 sm:px-6 lg:px-8">
         <button
           type="button"
-          className="flex size-11 items-center justify-center text-ink md:hidden"
+          className="flex size-11 shrink-0 items-center justify-center text-ink md:hidden"
           aria-expanded={open}
           aria-controls="mobile-nav"
           aria-label={open ? "Fechar menu" : "Abrir menu"}
@@ -174,6 +174,7 @@ export function Header({ categories }: HeaderProps) {
           ))}
         </nav>
 
+        {/* Mobile: só busca + sacola (conta/favoritos vão no menu / bottom nav) */}
         <div className="ml-auto flex items-center gap-0.5 md:ml-0">
           <Link
             href="/busca"
@@ -184,14 +185,14 @@ export function Header({ categories }: HeaderProps) {
           </Link>
           <Link
             href={user ? "/conta" : "/conta/entrar"}
-            className="flex size-11 items-center justify-center text-ink transition-colors hover:text-rose-gold"
+            className="hidden size-11 items-center justify-center text-ink transition-colors hover:text-rose-gold md:flex"
             aria-label={user ? "Minha conta" : "Entrar"}
           >
             <IconUser className="size-5" />
           </Link>
           <Link
             href="/favoritos"
-            className="relative flex size-11 items-center justify-center text-ink transition-colors hover:text-rose-gold"
+            className="relative hidden size-11 items-center justify-center text-ink transition-colors hover:text-rose-gold md:flex"
             aria-label="Favoritos"
           >
             <IconHeart className="size-5" />
@@ -217,33 +218,64 @@ export function Header({ categories }: HeaderProps) {
         </div>
       </div>
 
+      {/* Full-screen mobile menu overlay */}
       {open ? (
         <div
           id="mobile-nav"
-          className="animate-fade-in border-t border-line bg-cream md:hidden"
+          className="fixed inset-0 top-[calc(3.5rem+env(safe-area-inset-top))] z-50 flex flex-col bg-cream md:hidden"
         >
           <nav
-            className="mx-auto flex max-w-6xl flex-col px-4 py-4"
+            className="flex flex-1 flex-col overflow-y-auto px-6 py-6"
             aria-label="Mobile"
           >
+            <p className="mb-4 text-[11px] uppercase tracking-[0.18em] text-earth">
+              Explorar
+            </p>
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="border-b border-line/60 py-3.5 font-display text-lg tracking-[0.14em] text-ink transition-colors hover:text-rose-gold"
+                className="border-b border-line/60 py-4 font-display text-2xl tracking-[0.1em] text-ink transition-colors active:text-rose-gold"
                 onClick={() => setOpen(false)}
               >
                 {link.label}
               </Link>
             ))}
+            <p className="mb-3 mt-8 text-[11px] uppercase tracking-[0.18em] text-earth">
+              Conta
+            </p>
             <Link
               href="/favoritos"
-              className="border-b border-line/60 py-3.5 font-display text-lg tracking-[0.14em] text-ink"
+              className="border-b border-line/60 py-3.5 font-display text-lg tracking-[0.12em] text-ink"
               onClick={() => setOpen(false)}
             >
               Favoritos
+              {wishCount > 0 ? ` (${wishCount})` : ""}
+            </Link>
+            <Link
+              href={user ? "/conta" : "/conta/entrar"}
+              className="border-b border-line/60 py-3.5 font-display text-lg tracking-[0.12em] text-ink"
+              onClick={() => setOpen(false)}
+            >
+              {user ? "Minha conta" : "Entrar"}
             </Link>
           </nav>
+          <div
+            className="border-t border-line px-6 py-4"
+            style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
+          >
+            <button
+              type="button"
+              onClick={() => {
+                setOpen(false);
+                openDrawer();
+              }}
+              className="flex w-full min-h-12 items-center justify-center border border-rose-gold bg-rose-gold text-sm tracking-[0.16em] text-cream"
+            >
+              Ver sacola
+              {cart.itemCount > 0 ? ` · ${cart.itemCount}` : ""}
+            </button>
+          </div>
         </div>
       ) : null}
     </header>

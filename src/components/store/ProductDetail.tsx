@@ -46,8 +46,14 @@ export function ProductDetail({ product }: ProductDetailProps) {
     setMessage(ok ? "Adicionado ao carrinho" : null);
   }
 
+  const ctaLabel = pending
+    ? "Adicionando…"
+    : available
+      ? "Adicionar ao carrinho"
+      : "Esgotado";
+
   return (
-    <div className="mx-auto grid max-w-6xl gap-8 px-4 py-8 sm:px-6 lg:grid-cols-2 lg:gap-14 lg:px-8 lg:py-14">
+    <div className="mx-auto grid max-w-6xl gap-8 px-4 py-8 pb-28 sm:px-6 lg:grid-cols-2 lg:gap-14 lg:px-8 lg:py-14 lg:pb-14">
       <ProductGallery name={product.name} images={gallery} />
 
       <div>
@@ -103,14 +109,15 @@ export function ProductDetail({ product }: ProductDetailProps) {
           <p className="mt-1 text-[11px] text-ink-muted">SKU {selected.sku}</p>
         ) : null}
 
-        <div className="mt-8 flex flex-col gap-2 sm:flex-row">
+        {/* Desktop CTAs */}
+        <div className="mt-8 hidden flex-col gap-2 sm:flex sm:flex-row">
           <button
             type="button"
             disabled={!available || pending}
             onClick={() => void handleAdd()}
             className="inline-flex min-h-12 flex-1 items-center justify-center border border-rose-gold bg-rose-gold text-sm tracking-[0.16em] text-cream transition-colors hover:bg-rose-gold-light disabled:cursor-not-allowed disabled:opacity-40 sm:flex-none sm:px-10"
           >
-            {pending ? "Adicionando…" : "Adicionar ao carrinho"}
+            {ctaLabel}
           </button>
           <button
             type="button"
@@ -137,7 +144,7 @@ export function ProductDetail({ product }: ProductDetailProps) {
         {(message || cartError) && (
           <p
             className={cn(
-              "mt-3 text-xs",
+              "mt-3 hidden text-xs sm:block",
               message ? "text-earth" : "text-rose-gold"
             )}
           >
@@ -166,6 +173,70 @@ export function ProductDetail({ product }: ProductDetailProps) {
             ))}
           </ul>
         ) : null}
+      </div>
+
+      {/* Mobile sticky buy bar */}
+      <div
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-cream/95 px-4 pt-3 backdrop-blur-xl sm:hidden"
+        style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
+      >
+        {(message || cartError) && (
+          <p
+            className={cn(
+              "mb-2 text-center text-xs",
+              message ? "text-earth" : "text-rose-gold"
+            )}
+          >
+            {message ?? cartError}
+          </p>
+        )}
+        <div className="flex items-center gap-2">
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-xs text-ink-muted">{product.name}</p>
+            <p className="font-medium text-ink">{formatPrice(product.price)}</p>
+          </div>
+          <button
+            type="button"
+            onClick={() =>
+              toggle({
+                productId: product.id,
+                slug: product.slug,
+                name: product.name,
+                image: product.image,
+                price: product.price,
+              })
+            }
+            className={cn(
+              "flex size-12 shrink-0 items-center justify-center border text-sm transition-colors",
+              wished
+                ? "border-rose-gold text-rose-gold"
+                : "border-line text-ink-muted"
+            )}
+            aria-label={wished ? "Remover dos favoritos" : "Favoritar"}
+          >
+            <svg
+              className="size-5"
+              viewBox="0 0 24 24"
+              fill={wished ? "currentColor" : "none"}
+              stroke="currentColor"
+              strokeWidth="1.5"
+              aria-hidden
+            >
+              <path
+                d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+          <button
+            type="button"
+            disabled={!available || pending}
+            onClick={() => void handleAdd()}
+            className="inline-flex min-h-12 min-w-[9.5rem] flex-[1.4] items-center justify-center border border-rose-gold bg-rose-gold px-3 text-xs tracking-[0.12em] text-cream disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {ctaLabel}
+          </button>
+        </div>
       </div>
     </div>
   );

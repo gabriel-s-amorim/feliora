@@ -376,7 +376,9 @@ export function ProductForm({ mode, initial }: Props) {
 
       {error ? <AdminAlert>{error}</AdminAlert> : null}
 
-      <div className="sticky bottom-3 z-20 -mx-1 flex flex-col gap-2 rounded-2xl border border-[var(--admin-line)] bg-white/95 p-2.5 shadow-[var(--admin-shadow)] backdrop-blur sm:bottom-4 sm:mx-0 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3 sm:p-3">
+      <div className="sticky bottom-3 z-20 -mx-1 flex flex-col gap-2 rounded-2xl border border-[var(--admin-line)] bg-white/95 p-2.5 shadow-[var(--admin-shadow)] backdrop-blur sm:bottom-4 sm:mx-0 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3 sm:p-3"
+        style={{ marginBottom: "env(safe-area-inset-bottom)" }}
+      >
         <AdminButton type="submit" disabled={saving} className="w-full sm:w-auto">
           {saving ? <AdminSpinner /> : <Save className="size-4" />}
           {saving

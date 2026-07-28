@@ -33,7 +33,7 @@ export function CartPageClient() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
+    <div className="mx-auto max-w-6xl px-4 py-10 pb-28 sm:px-6 lg:px-8 lg:py-14 lg:pb-14">
       <header className="mb-8">
         <p className="font-display text-xs uppercase tracking-[0.35em] text-rose-gold">
           Sacola
@@ -123,7 +123,7 @@ export function CartPageClient() {
           ))}
         </ul>
 
-        <aside className="h-fit border border-line bg-ivory/40 p-5 lg:sticky lg:top-24">
+        <aside className="hidden h-fit border border-line bg-ivory/40 p-5 lg:sticky lg:top-24 lg:block">
           <h2 className="font-display text-lg tracking-[0.06em] text-ink">
             Resumo
           </h2>
@@ -147,6 +147,25 @@ export function CartPageClient() {
             Continuar comprando
           </Link>
         </aside>
+      </div>
+
+      {/* Mobile sticky checkout */}
+      <div
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-cream/95 px-4 pt-3 backdrop-blur-xl lg:hidden"
+        style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
+      >
+        <div className="mb-2 flex items-center justify-between text-sm">
+          <span className="text-ink-muted">Subtotal</span>
+          <span className="font-medium text-ink">
+            {formatPrice(cart.subtotal)}
+          </span>
+        </div>
+        <Link
+          href="/checkout"
+          className="inline-flex min-h-12 w-full items-center justify-center border border-rose-gold bg-rose-gold text-sm tracking-[0.14em] text-cream"
+        >
+          Finalizar compra
+        </Link>
       </div>
     </div>
   );

@@ -1,5 +1,6 @@
 import { Footer } from "@/components/store/Footer";
 import { Header } from "@/components/store/Header";
+import { StoreMobileChrome } from "@/components/store/StoreMobileChrome";
 import { StoreProviders } from "@/components/store/StoreProviders";
 import { listActiveCategoryNav } from "@/lib/categories";
 
@@ -13,8 +14,10 @@ export default async function StoreLayout({
   return (
     <StoreProviders>
       <Header categories={categories} />
-      <main className="flex-1">{children}</main>
-      <Footer categories={categories} />
+      <StoreMobileChrome>
+        <main className="flex-1">{children}</main>
+        <Footer categories={categories} />
+      </StoreMobileChrome>
     </StoreProviders>
   );
 }

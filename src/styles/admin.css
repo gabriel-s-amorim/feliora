@@ -256,3 +256,46 @@ body:has(.admin-app)::before {
 .admin-enter-delay-3 {
   animation-delay: 0.15s;
 }
+
+.admin-tabbar {
+  box-shadow: 0 -8px 28px rgba(9, 9, 11, 0.06);
+}
+
+.admin-sheet {
+  animation: admin-sheet-up 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes admin-sheet-up {
+  from {
+    opacity: 0.6;
+    transform: translateY(18%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.admin-stat-card {
+  border: 1px solid var(--admin-line);
+  border-radius: 1.15rem;
+  background: var(--admin-surface);
+  box-shadow: var(--admin-shadow);
+}
+
+.admin-quick-action {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.65rem;
+  border-radius: 1.1rem;
+  border: 1px solid var(--admin-line);
+  background: var(--admin-surface);
+  padding: 0.95rem 1rem;
+  box-shadow: var(--admin-shadow);
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.admin-quick-action:active {
+  background: var(--admin-surface-2);
+}
