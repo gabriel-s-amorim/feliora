@@ -24,9 +24,8 @@ export default async function HomePage() {
       <HomeHero banners={banners} />
 
       {categories.length > 0 ? (
-        <section className="relative overflow-hidden border-t border-line/60">
-          <FloralBackground variant="section" />
-          <div className="relative z-10 mx-auto max-w-4xl px-4 py-16 text-center sm:px-6 lg:px-8 lg:py-20">
+        <section className="border-t border-line/60">
+          <div className="mx-auto max-w-4xl px-4 py-16 text-center sm:px-6 lg:px-8 lg:py-20">
             <p className="font-display text-[0.65rem] uppercase tracking-[0.42em] text-rose-gold">
               Explorar
             </p>

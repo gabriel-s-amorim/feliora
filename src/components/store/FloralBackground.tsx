@@ -3,156 +3,51 @@
 import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 
-type Motif = "branch" | "flower" | "sprig" | "arc";
-type Anchor =
-  | "top-left"
-  | "top-right"
-  | "bottom-left"
-  | "bottom-right"
-  | "mid-left"
-  | "mid-right";
+type Side = "left" | "right";
 type Tone = "rose-gold" | "earth";
 
-export type FloralItem = {
-  motif: Motif;
-  position: Anchor;
-  /** Largura visual em px */
-  size?: number;
-  rotate?: number;
-  flipX?: boolean;
-  flipY?: boolean;
+export type FloralPlacement = {
+  side: Side;
   /** Multiplicador de parallax (0–1) */
   depth?: number;
   tone?: Tone;
   /** Opacidade 0–1 */
   opacity?: number;
+  /** Largura em px */
+  size?: number;
   className?: string;
 };
 
 type Props = {
   className?: string;
-  items?: FloralItem[];
-  /** Layouts prontos para seções comuns */
-  variant?: "featured" | "section" | "corners";
+  /** Sobrescreve o par espelhado padrão */
+  placements?: FloralPlacement[];
+  /**
+   * featured = um ramo por lateral (espelhado)
+   * corners  = mesmo motivo, cantos superior esquerdo / direito
+   */
+  variant?: "featured" | "corners";
 };
 
-const PRESETS: Record<NonNullable<Props["variant"]>, FloralItem[]> = {
+const PRESETS: Record<NonNullable<Props["variant"]>, FloralPlacement[]> = {
   featured: [
-    {
-      motif: "branch",
-      position: "top-left",
-      size: 300,
-      rotate: -6,
-      depth: 0.55,
-      tone: "rose-gold",
-      opacity: 0.12,
-    },
-    {
-      motif: "flower",
-      position: "top-right",
-      size: 150,
-      rotate: 14,
-      depth: 0.32,
-      tone: "earth",
-      opacity: 0.1,
-    },
-    {
-      motif: "sprig",
-      position: "mid-left",
-      size: 210,
-      rotate: -22,
-      flipX: true,
-      depth: 0.7,
-      tone: "earth",
-      opacity: 0.11,
-    },
-    {
-      motif: "arc",
-      position: "mid-right",
-      size: 240,
-      rotate: 4,
-      depth: 0.4,
-      tone: "rose-gold",
-      opacity: 0.1,
-    },
-    {
-      motif: "branch",
-      position: "bottom-right",
-      size: 280,
-      rotate: 172,
-      depth: 0.6,
-      tone: "rose-gold",
-      opacity: 0.11,
-    },
-    {
-      motif: "flower",
-      position: "bottom-left",
-      size: 130,
-      rotate: -24,
-      flipX: true,
-      depth: 0.28,
-      tone: "earth",
-      opacity: 0.09,
-    },
-  ],
-  section: [
-    {
-      motif: "sprig",
-      position: "top-left",
-      size: 190,
-      rotate: -14,
-      depth: 0.45,
-      tone: "rose-gold",
-      opacity: 0.1,
-    },
-    {
-      motif: "arc",
-      position: "top-right",
-      size: 170,
-      rotate: 10,
-      depth: 0.35,
-      tone: "earth",
-      opacity: 0.09,
-    },
-    {
-      motif: "branch",
-      position: "bottom-right",
-      size: 210,
-      rotate: 178,
-      depth: 0.5,
-      tone: "rose-gold",
-      opacity: 0.1,
-    },
+    { side: "left", depth: 0.55, tone: "rose-gold", opacity: 0.13, size: 340 },
+    { side: "right", depth: 0.55, tone: "rose-gold", opacity: 0.13, size: 340 },
   ],
   corners: [
-    {
-      motif: "flower",
-      position: "top-left",
-      size: 130,
-      rotate: -16,
-      depth: 0.4,
-      tone: "rose-gold",
-      opacity: 0.1,
-    },
-    {
-      motif: "branch",
-      position: "bottom-right",
-      size: 220,
-      rotate: 170,
-      depth: 0.55,
-      tone: "earth",
-      opacity: 0.11,
-    },
+    { side: "left", depth: 0.4, tone: "rose-gold", opacity: 0.12, size: 260 },
+    { side: "right", depth: 0.4, tone: "rose-gold", opacity: 0.12, size: 260 },
   ],
 };
 
-const ANCHOR_CLASS: Record<Anchor, string> = {
-  "top-left": "left-0 top-0 -translate-x-[18%] -translate-y-[12%]",
-  "top-right": "right-0 top-0 translate-x-[18%] -translate-y-[10%]",
-  "bottom-left": "bottom-0 left-0 -translate-x-[15%] translate-y-[18%]",
-  "bottom-right": "bottom-0 right-0 translate-x-[18%] translate-y-[12%]",
-  "mid-left": "left-0 top-1/2 -translate-x-[42%] -translate-y-1/2",
-  "mid-right": "right-0 top-1/2 translate-x-[40%] -translate-y-1/2",
+const SIDE_CLASS: Record<Side, string> = {
+  left: "left-0 top-1/2 -translate-x-[28%] -translate-y-1/2",
+  right: "right-0 top-1/2 translate-x-[28%] -translate-y-1/2",
+};
+
+const CORNER_CLASS: Record<Side, string> = {
+  left: "left-0 top-8 -translate-x-[20%]",
+  right: "right-0 top-8 translate-x-[20%]",
 };
 
 const TONE_VAR: Record<Tone, string> = {
@@ -160,133 +55,198 @@ const TONE_VAR: Record<Tone, string> = {
   earth: "var(--color-earth)",
 };
 
-const MAX_SHIFT = 12;
+const MAX_SHIFT = 10;
 
-function strokeProps(tone: Tone, opacity: number, width = 1.25) {
-  return {
+/**
+ * Ramo contínuo no espírito da logo Feliora:
+ * um só caule → folhas que nascem nele → flor de 5 pétalas com nervuras → botão no ápice.
+ *
+ * Pontos de junção (sobre o caule):
+ *  - Folha 1: (64, 378)
+ *  - Folha 2: (74, 318)
+ *  - Nó da flor + folha 3: (86, 262)
+ *  - Folha 4: (140, 160)
+ *  - Folha 5: (174, 68)
+ *  - Botão: (164, 12)
+ */
+function FloralStemSvg({ tone, opacity }: { tone: Tone; opacity: number }) {
+  const stroke = TONE_VAR[tone];
+  const s = {
     fill: "none" as const,
-    stroke: TONE_VAR[tone],
-    strokeWidth: width,
+    stroke,
     strokeLinecap: "round" as const,
     strokeLinejoin: "round" as const,
     opacity,
   };
-}
 
-function MotifSvg({
-  motif,
-  tone,
-  opacity,
-}: {
-  motif: Motif;
-  tone: Tone;
-  opacity: number;
-}) {
-  const s = strokeProps(tone, opacity);
-  const sThin = strokeProps(tone, opacity, 1);
-
-  if (motif === "flower") {
-    return (
-      <svg viewBox="0 0 100 100" className="h-full w-full" aria-hidden>
-        <path
-          {...s}
-          d="M50 18c5 7 7 14 0 23-7-9-5-16 0-23Z"
-        />
-        <path
-          {...s}
-          d="M72 32c-2 8-7 14-16 12 9-1 14-7 16-12Z"
-        />
-        <path
-          {...s}
-          d="M68 60c-8 2-14 7-12 16 1-9 7-14 12-16Z"
-        />
-        <path
-          {...s}
-          d="M32 60c5 2 11 7 12 16-1-9-7-14-12-16Z"
-        />
-        <path
-          {...s}
-          d="M28 32c2 5 7 11 16 12-9 1-14-4-16-12Z"
-        />
-        <circle {...s} cx="50" cy="48" r="6.5" />
-        <circle {...sThin} cx="50" cy="48" r="2.2" />
-      </svg>
-    );
-  }
-
-  if (motif === "sprig") {
-    return (
-      <svg viewBox="0 0 90 150" className="h-full w-full" aria-hidden>
-        <path {...s} d="M42 142C40 112 46 84 52 54 56 36 64 20 74 8" />
-        <path {...s} d="M50 66c-12-2-21 5-24 15 9-3 19-2 24-7Z" />
-        <path {...s} d="M54 48c-10-5-14-16-10-25 3 11 8 18 10 25Z" />
-        <path {...s} d="M56 88c12-3 19 4 21 14-10-2-19 0-21-5Z" />
-        <path {...s} d="M46 110c-10 2-17 10-15 21 7-5 14-9 15-14Z" />
-        <path {...s} d="M60 30c9-7 11-18 5-27 0 11-2 20-5 27Z" />
-        <path {...s} d="M74 8c3 2 7 5 5 11-3-2-7-4-9-7 2-2 3-3 4-4Z" />
-      </svg>
-    );
-  }
-
-  if (motif === "arc") {
-    return (
-      <svg viewBox="0 0 150 150" className="h-full w-full" aria-hidden>
-        <path
-          {...s}
-          d="M28 104C20 84 22 56 40 36c18-20 48-24 70-12 22 12 36 42 30 70-4 18-16 32-32 40"
-        />
-        <path {...s} d="M92 30c7-13 5-26-4-35 2 13 0 24 4 35Z" />
-        <path {...s} d="M112 44c13-5 24-1 31 10-11-2-22 0-31 3Z" />
-        <path {...s} d="M120 72c11 7 13 20 5 31-1-11-7-20-12-25Z" />
-        <path {...sThin} d="M100 48c9 5 16 16 14 28" />
-      </svg>
-    );
-  }
-
-  // branch
   return (
-    <svg viewBox="0 0 180 220" className="h-full w-full" aria-hidden>
+    <svg
+      viewBox="0 0 220 440"
+      className="h-full w-full"
+      aria-hidden
+      overflow="visible"
+    >
+      {/* Caule — passa exatamente pelos nós das folhas/flor */}
       <path
         {...s}
-        d="M36 204C42 166 52 128 70 98c18-28 42-48 70-62 14-7 28-13 38-18"
+        strokeWidth={1.4}
+        d="M62 420
+           C63 400 63 388 64 378
+           C68 350 72 330 74 318
+           C78 292 82 274 86 262
+           C100 220 122 186 140 160
+           C156 136 168 104 174 68
+           C178 42 172 24 164 12"
       />
-      <path {...s} d="M64 138c-16-3-28 7-32 21 12-5 25-3 32-9Z" />
-      <path {...s} d="M78 110c-14-9-19-25-12-39 5 16 10 28 12 39Z" />
-      <path {...s} d="M96 86c14-7 23 2 27 16-12 0-23 2-27-4Z" />
-      <path {...s} d="M52 164c-12 3-19 16-16 28 9-7 16-12 16-19Z" />
-      <path {...s} d="M114 64c-10-12-9-28 2-39-2 14 2 26 7 35Z" />
-      <path {...s} d="M134 48c11-9 12-23 5-34 2 12 0 23-5 34Z" />
-      <path {...s} d="M104 80c5-2 11 0 12 5-5 0-10 2-14 0 1-2 1-4 2-5Z" />
-      {/* Flor no extremo */}
-      <g transform="translate(148 22)">
-        <path {...s} d="M0-12c3 4 4 8 0 13-4-5-3-9 0-13Z" />
-        <path {...s} d="M10-5c-1 5-4 8-9 7 5-1 8-4 9-7Z" />
-        <path {...s} d="M7 8c-5 1-8 4-7 9 1-5 4-8 7-9Z" />
-        <path {...s} d="M-7 8c3 1 6 4 7 9-1-5-4-8-7-9Z" />
-        <path {...s} d="M-10-5c1 3 4 6 9 7-5 1-8-2-9-7Z" />
-        <circle {...s} cx="0" cy="0" r="3.8" />
+
+      {/* Folha 1 — nasce em (64,378) */}
+      <path
+        {...s}
+        strokeWidth={1.25}
+        d="M64 378
+           C44 370 24 346 22 318
+           C40 344 54 366 64 378"
+      />
+      <path {...s} strokeWidth={1} d="M64 378 L34 332" />
+
+      {/* Folha 2 — nasce em (74,318) */}
+      <path
+        {...s}
+        strokeWidth={1.25}
+        d="M74 318
+           C96 308 118 282 122 252
+           C106 280 88 304 74 318"
+      />
+      <path {...s} strokeWidth={1} d="M74 318 L114 264" />
+
+      {/* Folha 3 — nasce no nó da flor (86,262), lado interno */}
+      <path
+        {...s}
+        strokeWidth={1.25}
+        d="M86 262
+           C64 252 44 226 42 196
+           C58 222 74 246 86 262"
+      />
+      <path {...s} strokeWidth={1} d="M86 262 L48 208" />
+
+      {/* Haste floral: do nó (86,262) ao centro da flor (38,200) */}
+      <path
+        {...s}
+        strokeWidth={1.3}
+        d="M86 262 C68 240 50 218 38 200"
+      />
+
+      {/*
+        Flor Feliora — 5 pétalas arredondadas partindo do anel central
+        (não do ponto 0,0), com nervura interna. Menos “clipart”, mais logo.
+      */}
+      <g transform="translate(38 200)">
+        {/* anel / miolo */}
+        <circle {...s} strokeWidth={1.2} cx="0" cy="0" r="7" />
+        <circle {...s} strokeWidth={0.85} cx="0" cy="0" r="2.4" />
+
+        {/* pétala N */}
+        <path
+          {...s}
+          strokeWidth={1.25}
+          d="M-3.5 -6.2
+             C-10 -14 -8 -28 0 -34
+             C8 -28 10 -14 3.5 -6.2"
+        />
+        <path {...s} strokeWidth={0.9} d="M0 -7 L0 -30" />
+
+        {/* pétala NE */}
+        <path
+          {...s}
+          strokeWidth={1.25}
+          d="M5.2 -4.5
+             C14 -12 28 -10 34 -2
+             C28 4 16 4 6.2 -2.5"
+        />
+        <path {...s} strokeWidth={0.9} d="M6 -3.5 L28 -4" />
+
+        {/* pétala SE */}
+        <path
+          {...s}
+          strokeWidth={1.25}
+          d="M5.5 4
+             C14 10 22 24 16 34
+             C8 36 2 24 3.2 8"
+        />
+        <path {...s} strokeWidth={0.9} d="M5 6 L14 28" />
+
+        {/* pétala SW */}
+        <path
+          {...s}
+          strokeWidth={1.25}
+          d="M-5.5 4
+             C-14 10 -22 24 -16 34
+             C-8 36 -2 24 -3.2 8"
+        />
+        <path {...s} strokeWidth={0.9} d="M-5 6 L-14 28" />
+
+        {/* pétala NW */}
+        <path
+          {...s}
+          strokeWidth={1.25}
+          d="M-5.2 -4.5
+             C-14 -12 -28 -10 -34 -2
+             C-28 4 -16 4 -6.2 -2.5"
+        />
+        <path {...s} strokeWidth={0.9} d="M-6 -3.5 L-28 -4" />
       </g>
+
+      {/* Folha 4 — nasce em (140,160) */}
+      <path
+        {...s}
+        strokeWidth={1.25}
+        d="M140 160
+           C162 148 182 120 184 88
+           C168 116 152 142 140 160"
+      />
+      <path {...s} strokeWidth={1} d="M140 160 L176 100" />
+
+      {/* Folha 5 — nasce em (174,68) */}
+      <path
+        {...s}
+        strokeWidth={1.2}
+        d="M174 68
+           C156 58 142 36 142 12
+           C154 34 166 54 174 68"
+      />
+      <path {...s} strokeWidth={0.95} d="M174 68 L148 24" />
+
+      {/* Botão no ápice (164,12) */}
+      <path
+        {...s}
+        strokeWidth={1.25}
+        d="M164 12
+           C174 2 182 -4 180 -14
+           C176 -4 170 4 164 12"
+      />
+      <path {...s} strokeWidth={0.95} d="M164 12 L176 -8" />
     </svg>
   );
 }
 
 /**
- * Camada decorativa de line art floral (marca d'água).
- * Parallax sutil ao cursor em desktop; oculto no mobile.
+ * Camada decorativa floral (marca d'água).
+ * Um ramo coeso por lado, espelhados. Desktop only + parallax sutil.
  */
 export function FloralBackground({
   className,
-  items,
-  variant = "section",
+  placements,
+  variant = "featured",
 }: Props) {
   const rootRef = useRef<HTMLDivElement>(null);
   const layerRefs = useRef<(HTMLDivElement | null)[]>([]);
   const depthsRef = useRef<number[]>([]);
-  const motifs = items ?? PRESETS[variant];
+  const items = placements ?? PRESETS[variant];
+  const anchorClass = variant === "corners" ? CORNER_CLASS : SIDE_CLASS;
 
   useEffect(() => {
-    depthsRef.current = motifs.map((m) => m.depth ?? 0.5);
-  }, [motifs]);
+    depthsRef.current = items.map((m) => m.depth ?? 0.5);
+  }, [items]);
 
   useEffect(() => {
     if (!rootRef.current) return;
@@ -391,25 +351,18 @@ export function FloralBackground({
       )}
       aria-hidden
     >
-      {motifs.map((item, i) => {
-        const size = item.size ?? 200;
+      {items.map((item, i) => {
+        const size = item.size ?? 320;
         const tone = item.tone ?? "rose-gold";
-        const opacity = item.opacity ?? 0.12;
-        const scaleX = item.flipX ? -1 : 1;
-        const scaleY = item.flipY ? -1 : 1;
-        const rotate = item.rotate ?? 0;
+        const opacity = item.opacity ?? 0.13;
+        const mirrored = item.side === "right";
 
         return (
           <div
-            key={`${item.motif}-${item.position}-${i}`}
-            className={cn(
-              "absolute",
-              ANCHOR_CLASS[item.position],
-              item.className
-            )}
-            style={{ width: size, height: size }}
+            key={`${item.side}-${i}`}
+            className={cn("absolute", anchorClass[item.side], item.className)}
+            style={{ width: size, height: size * (440 / 220) }}
           >
-            {/* Camada só de parallax — não mistura com o translate de âncora */}
             <div
               ref={(el) => {
                 layerRefs.current[i] = el;
@@ -419,11 +372,11 @@ export function FloralBackground({
               <div
                 className="h-full w-full"
                 style={{
-                  transform: `scale(${scaleX}, ${scaleY}) rotate(${rotate}deg)`,
+                  transform: mirrored ? "scaleX(-1)" : undefined,
                   transformOrigin: "center",
                 }}
               >
-                <MotifSvg motif={item.motif} tone={tone} opacity={opacity} />
+                <FloralStemSvg tone={tone} opacity={opacity} />
               </div>
             </div>
           </div>
