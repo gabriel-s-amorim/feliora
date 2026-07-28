@@ -95,6 +95,8 @@ export default function AdminOrdersPage() {
                         <span>
                           {new Date(order.createdAt).toLocaleDateString("pt-BR")}
                         </span>
+                        <span>·</span>
+                        <span>{order.fulfillmentStatus}</span>
                       </div>
                     </div>
                     <ChevronRight className="size-5 shrink-0 text-zinc-300" />
@@ -111,6 +113,7 @@ export default function AdminOrdersPage() {
                     <th>Pedido</th>
                     <th>Cliente</th>
                     <th>Pagamento</th>
+                    <th>Envio</th>
                     <th>Total</th>
                     <th>Data</th>
                   </tr>
@@ -143,6 +146,9 @@ export default function AdminOrdersPage() {
                         <p className="text-xs capitalize text-zinc-500">
                           {order.paymentMethod?.replace("_", " ")}
                         </p>
+                      </td>
+                      <td className="text-xs capitalize text-zinc-600">
+                        {order.fulfillmentStatus}
                       </td>
                       <td className="font-medium">
                         {formatPrice(order.totalAmount)}

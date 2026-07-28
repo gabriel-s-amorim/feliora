@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { Product } from "@/shared/types/product";
 import type { CategoryNavItem } from "@/shared/types/category";
-import { ProductCard } from "@/components/store/ProductCard";
+import { ProductGrid } from "@/components/store/ProductGrid";
 import { QuickView } from "@/components/store/QuickView";
 import {
   FilterSheet,
@@ -32,7 +32,7 @@ export function CatalogView({
 
   return (
     <div>
-      <div className="mb-8">
+      <div className="mb-10 sm:mb-12">
         <FilterSheet
           categories={categories}
           facets={facets}
@@ -48,16 +48,7 @@ export function CatalogView({
           actionLabel="Voltar à home"
         />
       ) : (
-        <div className="grid grid-cols-2 gap-x-3 gap-y-8 sm:gap-x-4 md:grid-cols-3 lg:grid-cols-4 lg:gap-x-6">
-          {products.map((product, i) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              priority={i < 4}
-              onQuickView={setQuickView}
-            />
-          ))}
-        </div>
+        <ProductGrid products={products} onQuickView={setQuickView} />
       )}
 
       <QuickView

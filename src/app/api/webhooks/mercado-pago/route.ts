@@ -6,6 +6,7 @@ import {
   mercadoPagoOrderIdentity,
   verifyMercadoPagoSignature,
 } from "@/lib/mercadoPago/service";
+import { dispatchPaymentStatusEmail } from "@/lib/brevo/orderEmails";
 import { ensurePaidOrderInMelhorEnvioCart } from "@/lib/melhorEnvio/service";
 
 export async function POST(request: Request) {
@@ -61,12 +62,23 @@ export async function POST(request: Request) {
     );
     if (error) throw new Error(error.message);
 
-    if (identity.status === "approved" && reconciledOrderId) {
-      try {
-        await ensurePaidOrderInMelhorEnvioCart(String(reconciledOrderId));
-      } catch (shippingError) {
-        console.error("Erro ao preparar etiqueta Melhor Envio:", shippingError);
+    if (reconciledOrderId) {
+      if (identity.status === "approved") {
+        try {
+          await ensurePaidOrderInMelhorEnvioCart(String(reconciledOrderId));
+        } catch (shippingError) {
+          console.error(
+            "Erro ao preparar etiqueta Melhor Envio:",
+            shippingError
+          );
+        }
       }
+      void dispatchPaymentStatusEmail(
+        String(reconciledOrderId),
+        identity.status
+      ).catch((emailError) =>
+        console.error("Erro ao enviar e-mail de pagamento:", emailError)
+      );
     }
     if (identity.instructions) {
       const { error: instructionsError } = await createAdminClient()

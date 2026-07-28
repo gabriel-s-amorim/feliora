@@ -6,13 +6,32 @@ import { useEffect, useState } from "react";
 import { AdminShell, RequireAdmin } from "@/components/admin/AdminShell";
 import { AdminSpinner } from "@/components/admin/ui";
 import { formatPrice } from "@/lib/utils";
-import type { AdminOrderDetail } from "@/shared/types/order";
+import type {
+  AdminOrderDetail,
+  FulfillmentStatus,
+} from "@/shared/types/order";
+
+const FULFILLMENT_OPTIONS: { value: FulfillmentStatus; label: string }[] = [
+  { value: "unfulfilled", label: "Não iniciado" },
+  { value: "processing", label: "Em preparação" },
+  { value: "shipped", label: "Enviado" },
+  { value: "delivered", label: "Entregue" },
+  { value: "canceled", label: "Cancelado" },
+];
 
 export default function AdminOrderDetailPage() {
   const params = useParams<{ id: string }>();
   const [order, setOrder] = useState<AdminOrderDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [fulfillmentStatus, setFulfillmentStatus] =
+    useState<FulfillmentStatus>("unfulfilled");
+  const [trackingCode, setTrackingCode] = useState("");
+  const [trackingUrl, setTrackingUrl] = useState("");
+  const [savingFulfillment, setSavingFulfillment] = useState(false);
+  const [fulfillmentMessage, setFulfillmentMessage] = useState<string | null>(
+    null
+  );
 
   useEffect(() => {
     if (!params.id) return;
@@ -21,12 +40,48 @@ export default function AdminOrderDetailPage() {
         const data = await res.json();
         if (!res.ok) throw new Error(data.error ?? "Erro ao carregar");
         setOrder(data);
+        setFulfillmentStatus(data.fulfillmentStatus);
+        setTrackingCode(data.trackingCode ?? "");
+        setTrackingUrl(data.trackingUrl ?? "");
       })
       .catch((err) =>
         setError(err instanceof Error ? err.message : "Erro ao carregar")
       )
       .finally(() => setLoading(false));
   }, [params.id]);
+
+  async function saveFulfillment() {
+    if (!params.id) return;
+    setSavingFulfillment(true);
+    setFulfillmentMessage(null);
+    try {
+      const res = await fetch(`/api/admin/orders/${params.id}/fulfillment`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          status: fulfillmentStatus,
+          trackingCode: trackingCode.trim() || null,
+          trackingUrl: trackingUrl.trim() || null,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        const issue = data.issues?.[0]?.message;
+        throw new Error(issue ?? data.error ?? "Erro ao salvar");
+      }
+      setOrder(data);
+      setFulfillmentStatus(data.fulfillmentStatus);
+      setTrackingCode(data.trackingCode ?? "");
+      setTrackingUrl(data.trackingUrl ?? "");
+      setFulfillmentMessage("Fulfillment atualizado. E-mail disparado se aplicável.");
+    } catch (err) {
+      setFulfillmentMessage(
+        err instanceof Error ? err.message : "Erro ao salvar"
+      );
+    } finally {
+      setSavingFulfillment(false);
+    }
+  }
 
   return (
     <RequireAdmin>
@@ -36,7 +91,7 @@ export default function AdminOrderDetailPage() {
             ? `Pedido #${order.id.slice(0, 8).toUpperCase()}`
             : "Pedido"
         }
-        description="Detalhes do pedido do site"
+        description="Detalhes, fulfillment e rastreio do pedido do site"
         actions={
           <Link
             href="/admin/pedidos"
@@ -114,6 +169,85 @@ export default function AdminOrderDetailPage() {
                   </li>
                 ))}
               </ul>
+            </section>
+
+            <section className="rounded-xl border border-zinc-200 bg-white p-5 lg:col-span-2">
+              <h2 className="text-sm font-semibold text-zinc-900">
+                Fulfillment e rastreio
+              </h2>
+              <p className="mt-1 text-sm text-zinc-500">
+                Ao marcar como enviado/entregue, o cliente recebe e-mail via
+                Brevo (se a integração estiver ativa).
+              </p>
+              <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                <label className="text-sm">
+                  Status
+                  <select
+                    value={fulfillmentStatus}
+                    onChange={(e) =>
+                      setFulfillmentStatus(e.target.value as FulfillmentStatus)
+                    }
+                    className="mt-1 w-full rounded-lg border border-zinc-200 px-3 py-2"
+                  >
+                    {FULFILLMENT_OPTIONS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="text-sm">
+                  Código de rastreio
+                  <input
+                    value={trackingCode}
+                    onChange={(e) => setTrackingCode(e.target.value)}
+                    className="mt-1 w-full rounded-lg border border-zinc-200 px-3 py-2"
+                    placeholder="obrigatório se enviado"
+                  />
+                </label>
+                <label className="text-sm">
+                  URL de rastreio
+                  <input
+                    value={trackingUrl}
+                    onChange={(e) => setTrackingUrl(e.target.value)}
+                    className="mt-1 w-full rounded-lg border border-zinc-200 px-3 py-2"
+                    placeholder="https://…"
+                  />
+                </label>
+              </div>
+              {(order.processingAt || order.shippedAt || order.deliveredAt) && (
+                <dl className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-zinc-500">
+                  {order.processingAt ? (
+                    <div>
+                      Preparação:{" "}
+                      {new Date(order.processingAt).toLocaleString("pt-BR")}
+                    </div>
+                  ) : null}
+                  {order.shippedAt ? (
+                    <div>
+                      Enviado:{" "}
+                      {new Date(order.shippedAt).toLocaleString("pt-BR")}
+                    </div>
+                  ) : null}
+                  {order.deliveredAt ? (
+                    <div>
+                      Entregue:{" "}
+                      {new Date(order.deliveredAt).toLocaleString("pt-BR")}
+                    </div>
+                  ) : null}
+                </dl>
+              )}
+              {fulfillmentMessage ? (
+                <p className="mt-3 text-sm text-zinc-600">{fulfillmentMessage}</p>
+              ) : null}
+              <button
+                type="button"
+                disabled={savingFulfillment}
+                onClick={() => void saveFulfillment()}
+                className="mt-4 rounded-lg bg-zinc-900 px-4 py-2 text-sm text-white hover:bg-zinc-800 disabled:opacity-50"
+              >
+                {savingFulfillment ? "Salvando…" : "Atualizar fulfillment"}
+              </button>
             </section>
           </div>
         )}

@@ -175,6 +175,22 @@ export async function listFeaturedProducts(limit = 8): Promise<Product[]> {
   return listActiveProducts({ featured: true, sort: "newest", limit });
 }
 
+/** Peças da mesma categoria (ou destaques) para a PDP — exclui o produto atual. */
+export async function listRelatedProducts(
+  product: Product,
+  limit = 4
+): Promise<Product[]> {
+  const candidates = product.category?.slug
+    ? await listActiveProducts({
+        categorySlug: product.category.slug,
+        sort: "newest",
+        limit: limit + 4,
+      })
+    : await listFeaturedProducts(limit + 4);
+
+  return candidates.filter((item) => item.id !== product.id).slice(0, limit);
+}
+
 export async function searchProducts(
   q: string,
   limit = 24

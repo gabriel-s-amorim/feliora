@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ProductDetail } from "@/components/store/ProductDetail";
-import { getProductBySlug } from "@/lib/products";
+import { getProductBySlug, listRelatedProducts } from "@/lib/products";
 import { SITE_NAME, SITE_ORIGIN } from "@/shared/const/site";
 import { formatPrice } from "@/lib/utils";
 
@@ -42,7 +42,9 @@ export async function generateMetadata({
   };
 }
 
-function productJsonLd(product: NonNullable<Awaited<ReturnType<typeof getProductBySlug>>>) {
+function productJsonLd(
+  product: NonNullable<Awaited<ReturnType<typeof getProductBySlug>>>
+) {
   return {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -77,6 +79,8 @@ export default async function ProdutoPage({ params }: PageProps) {
   const product = await getProductBySlug(slug);
   if (!product) notFound();
 
+  const related = await listRelatedProducts(product, 4);
+
   return (
     <>
       <script
@@ -85,7 +89,7 @@ export default async function ProdutoPage({ params }: PageProps) {
           __html: JSON.stringify(productJsonLd(product)),
         }}
       />
-      <ProductDetail product={product} />
+      <ProductDetail product={product} related={related} />
     </>
   );
 }

@@ -110,19 +110,19 @@ export function ProductCard({
         ) : null}
       </div>
 
-      <div className="mt-3 space-y-1 px-0.5">
+      <div className="mt-4 space-y-1.5 px-0.5 sm:mt-5">
         {product.category ? (
-          <p className="text-[10px] uppercase tracking-[0.16em] text-earth">
+          <p className="text-[10px] uppercase tracking-[0.18em] text-earth">
             {product.category.name}
           </p>
         ) : null}
         <Link
           href={`/produto/${product.slug}`}
-          className="block font-display text-base tracking-[0.04em] text-ink transition-colors hover:text-rose-gold sm:text-lg"
+          className="block font-display text-[0.95rem] tracking-[0.04em] text-ink transition-colors hover:text-rose-gold sm:text-lg"
         >
           {product.name}
         </Link>
-        <div className="flex items-baseline gap-2">
+        <div className="flex items-baseline gap-2 pt-0.5">
           <p className="text-sm text-ink">{formatPrice(product.price)}</p>
           {product.originalPrice != null &&
           product.originalPrice > product.price ? (

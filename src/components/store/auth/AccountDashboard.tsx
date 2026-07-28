@@ -31,6 +31,9 @@ type OrderRow = {
   id: string;
   status: string;
   payment_status: string;
+  fulfillment_status: string;
+  tracking_code: string | null;
+  tracking_url: string | null;
   total_amount: number | string;
   created_at: string;
 };
@@ -114,7 +117,9 @@ export function AccountDashboard() {
           .order("created_at", { ascending: false }),
         supabase
           .from("orders")
-          .select("id, status, payment_status, total_amount, created_at")
+          .select(
+            "id, status, payment_status, fulfillment_status, tracking_code, tracking_url, total_amount, created_at"
+          )
           .eq("customer_id", user.id)
           .order("created_at", { ascending: false })
           .limit(20),
@@ -615,7 +620,7 @@ export function AccountDashboard() {
               {orders.map((o) => (
                 <li
                   key={o.id}
-                  className="flex items-center justify-between gap-3 py-3 text-sm"
+                  className="flex items-start justify-between gap-3 py-3 text-sm"
                 >
                   <div>
                     <p className="text-ink">
@@ -623,8 +628,26 @@ export function AccountDashboard() {
                       {new Date(o.created_at).toLocaleDateString("pt-BR")}
                     </p>
                     <p className="text-xs text-ink-muted">
-                      {o.payment_status} · {o.status}
+                      Pagamento: {o.payment_status} · Envio:{" "}
+                      {o.fulfillment_status}
                     </p>
+                    {o.tracking_code ? (
+                      <p className="mt-1 text-xs text-ink-muted">
+                        Rastreio:{" "}
+                        {o.tracking_url ? (
+                          <a
+                            href={o.tracking_url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-rose-gold underline-offset-2 hover:underline"
+                          >
+                            {o.tracking_code}
+                          </a>
+                        ) : (
+                          o.tracking_code
+                        )}
+                      </p>
+                    ) : null}
                   </div>
                   <p className="text-ink">
                     {formatPrice(Number(o.total_amount))}

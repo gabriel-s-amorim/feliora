@@ -14,6 +14,9 @@ Execute os arquivos **na ordem numérica** no SQL Editor do projeto Supabase da 
 | `07_content_reviews_admin.sql` | Banners, settings, pages, reviews, marketing, admin_users |
 | `08_stock_rpc.sql` | RPC atômica `decrement_variant_stock` |
 | `09_seed_demo_optional.sql` | **Opcional** — categorias + 2 produtos demo (rode só se quiser ver o catálogo preenchido) |
+| `10_storage_and_rate_limit.sql` | Storage + rate limit admin |
+| `11_checkout_integrations.sql` | Mercado Pago + Melhor Envio + RPCs checkout |
+| `12_brevo_fulfillment.sql` | Brevo (settings, deliveries, templates) + sync newsletter + índice fulfillment |
 
 ## Categorias
 

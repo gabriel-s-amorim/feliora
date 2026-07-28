@@ -4,10 +4,17 @@ import { useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useState } from "react";
 import { AdminShell, RequireAdmin } from "@/components/admin/AdminShell";
 import { AdminSpinner } from "@/components/admin/ui";
+import type { BrevoAdminStatus, StoreEmailEvent } from "@/shared/types/brevo";
 import type { MercadoPagoAdminStatus } from "@/shared/types/mercadoPago";
 import type { MelhorEnvioStatus } from "@/shared/types/melhorEnvio";
 
 type MeStatus = MelhorEnvioStatus & { suggestedRedirectUri?: string };
+
+const STORE_TEMPLATE_LABELS: Record<StoreEmailEvent, string> = {
+  order_received: "Pedido criado (cliente)",
+  order_received_merchant: "Pedido criado (loja)",
+  payment_approved: "Pagamento aprovado",
+};
 
 function MercadoPagoCard() {
   const [environment, setEnvironment] = useState<"test" | "production">(
@@ -439,11 +446,350 @@ function MelhorEnvioCard() {
   );
 }
 
+function BrevoCard() {
+  const [status, setStatus] = useState<BrevoAdminStatus | null>(null);
+  const [enabled, setEnabled] = useState(false);
+  const [apiKey, setApiKey] = useState("");
+  const [webhookToken, setWebhookToken] = useState("");
+  const [senderEmail, setSenderEmail] = useState("");
+  const [senderName, setSenderName] = useState("");
+  const [replyTo, setReplyTo] = useState("");
+  const [merchantEmail, setMerchantEmail] = useState("");
+  const [listId, setListId] = useState("");
+  const [templateShipped, setTemplateShipped] = useState("");
+  const [templateProcessing, setTemplateProcessing] = useState("");
+  const [templateDelivered, setTemplateDelivered] = useState("");
+  const [testEmail, setTestEmail] = useState("");
+  const [testEvent, setTestEvent] =
+    useState<StoreEmailEvent>("order_received");
+  const [message, setMessage] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/admin/brevo");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Erro");
+      setStatus(data);
+      setEnabled(Boolean(data.enabled));
+      setSenderEmail(data.defaultSenderEmail ?? "");
+      setSenderName(data.defaultSenderName ?? "");
+      setReplyTo(data.replyTo ?? "");
+      setMerchantEmail(data.merchantNotifyEmail ?? "");
+      setListId(data.defaultListId ? String(data.defaultListId) : "");
+      setTemplateProcessing(
+        data.templateOrderProcessing
+          ? String(data.templateOrderProcessing)
+          : ""
+      );
+      setTemplateShipped(
+        data.templateOrderShipped ? String(data.templateOrderShipped) : ""
+      );
+      setTemplateDelivered(
+        data.templateOrderDelivered ? String(data.templateOrderDelivered) : ""
+      );
+      setApiKey("");
+      setWebhookToken("");
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "Erro ao carregar Brevo");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  async function save() {
+    setSaving(true);
+    setMessage(null);
+    try {
+      const res = await fetch("/api/admin/brevo", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          enabled,
+          apiKey: apiKey || undefined,
+          webhookToken: webhookToken || undefined,
+          defaultSenderEmail: senderEmail,
+          defaultSenderName: senderName,
+          replyTo,
+          merchantNotifyEmail: merchantEmail,
+          defaultListId: listId ? Number(listId) : null,
+          templateOrderProcessing: templateProcessing
+            ? Number(templateProcessing)
+            : null,
+          templateOrderShipped: templateShipped
+            ? Number(templateShipped)
+            : null,
+          templateOrderDelivered: templateDelivered
+            ? Number(templateDelivered)
+            : null,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Erro ao salvar");
+      setStatus(data);
+      setMessage("Brevo salvo.");
+      setApiKey("");
+      setWebhookToken("");
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "Erro ao salvar");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function testCredentials() {
+    setMessage(null);
+    const res = await fetch("/api/admin/brevo", { method: "POST" });
+    const data = await res.json();
+    setMessage(
+      res.ok
+        ? `Credenciais OK${data.accountEmail ? ` (${data.accountEmail})` : ""}.`
+        : (data.error ?? "Falha no teste")
+    );
+    if (res.ok) void load();
+  }
+
+  async function configureWebhook() {
+    setMessage(null);
+    const res = await fetch("/api/admin/brevo/webhook", { method: "POST" });
+    const data = await res.json();
+    setMessage(
+      res.ok
+        ? `Webhook configurado: ${data.webhookUrl}`
+        : (data.error ?? "Falha no webhook")
+    );
+  }
+
+  async function sendTestTemplate() {
+    if (!testEmail.trim()) {
+      setMessage("Informe um e-mail para o teste.");
+      return;
+    }
+    setMessage(null);
+    const res = await fetch("/api/admin/brevo/test-template", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ event: testEvent, email: testEmail.trim() }),
+    });
+    const data = await res.json();
+    setMessage(
+      res.ok
+        ? "E-mail de teste enviado."
+        : (data.error ?? "Falha no envio de teste")
+    );
+  }
+
+  return (
+    <section className="rounded-xl border border-zinc-200 bg-white p-5">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="text-base font-semibold text-zinc-900">Brevo</h2>
+          <p className="mt-1 text-sm text-zinc-500">
+            E-mails transacionais, tracking de envio e newsletter.
+          </p>
+        </div>
+        {status ? (
+          <span
+            className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+              status.enabled && status.configured
+                ? "bg-emerald-50 text-emerald-700"
+                : "bg-zinc-100 text-zinc-600"
+            }`}
+          >
+            {status.enabled && status.configured ? "Ativo" : "Inativo"}
+          </span>
+        ) : null}
+      </div>
+
+      {loading ? (
+        <div className="mt-4 flex items-center gap-2 text-sm text-zinc-500">
+          <AdminSpinner /> Carregando…
+        </div>
+      ) : (
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <label className="flex items-center gap-2 text-sm sm:col-span-2">
+            <input
+              type="checkbox"
+              checked={enabled}
+              onChange={(e) => setEnabled(e.target.checked)}
+            />
+            Habilitado
+          </label>
+          <label className="sm:col-span-2 text-sm">
+            API key {status?.hasApiKey ? "(já salva — deixe em branco para manter)" : ""}
+            <input
+              type="password"
+              value={apiKey}
+              onChange={(e) => setApiKey(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-zinc-200 px-3 py-2"
+              placeholder="xkeysib-…"
+              autoComplete="off"
+            />
+          </label>
+          <label className="text-sm">
+            Remetente (e-mail)
+            <input
+              value={senderEmail}
+              onChange={(e) => setSenderEmail(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-zinc-200 px-3 py-2"
+            />
+          </label>
+          <label className="text-sm">
+            Remetente (nome)
+            <input
+              value={senderName}
+              onChange={(e) => setSenderName(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-zinc-200 px-3 py-2"
+            />
+          </label>
+          <label className="text-sm">
+            Reply-to
+            <input
+              value={replyTo}
+              onChange={(e) => setReplyTo(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-zinc-200 px-3 py-2"
+            />
+          </label>
+          <label className="text-sm">
+            E-mail da loja (novos pedidos)
+            <input
+              value={merchantEmail}
+              onChange={(e) => setMerchantEmail(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-zinc-200 px-3 py-2"
+            />
+          </label>
+          <label className="text-sm">
+            List ID newsletter
+            <input
+              value={listId}
+              onChange={(e) => setListId(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-zinc-200 px-3 py-2"
+              placeholder="opcional"
+            />
+          </label>
+          <label className="text-sm">
+            Webhook token (≥32 chars)
+            <input
+              type="password"
+              value={webhookToken}
+              onChange={(e) => setWebhookToken(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-zinc-200 px-3 py-2"
+              placeholder={
+                status?.hasWebhookToken ? "já salvo" : "token Bearer"
+              }
+              autoComplete="off"
+            />
+          </label>
+          <label className="text-sm">
+            Template ID — em preparação
+            <input
+              value={templateProcessing}
+              onChange={(e) => setTemplateProcessing(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-zinc-200 px-3 py-2"
+              placeholder="opcional (fallback HTML)"
+            />
+          </label>
+          <label className="text-sm">
+            Template ID — enviado
+            <input
+              value={templateShipped}
+              onChange={(e) => setTemplateShipped(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-zinc-200 px-3 py-2"
+              placeholder="opcional (fallback HTML)"
+            />
+          </label>
+          <label className="text-sm">
+            Template ID — entregue
+            <input
+              value={templateDelivered}
+              onChange={(e) => setTemplateDelivered(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-zinc-200 px-3 py-2"
+              placeholder="opcional (fallback HTML)"
+            />
+          </label>
+          {status?.webhookUrl ? (
+            <p className="sm:col-span-2 text-xs text-zinc-500">
+              Webhook URL:{" "}
+              <code className="rounded bg-zinc-100 px-1">{status.webhookUrl}</code>
+            </p>
+          ) : null}
+          <div className="sm:col-span-2 grid gap-2 rounded-lg border border-zinc-100 bg-zinc-50 p-3 sm:grid-cols-[1fr_1fr_auto]">
+            <select
+              value={testEvent}
+              onChange={(e) =>
+                setTestEvent(e.target.value as StoreEmailEvent)
+              }
+              className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm"
+            >
+              {(Object.keys(STORE_TEMPLATE_LABELS) as StoreEmailEvent[]).map(
+                (event) => (
+                  <option key={event} value={event}>
+                    {STORE_TEMPLATE_LABELS[event]}
+                  </option>
+                )
+              )}
+            </select>
+            <input
+              value={testEmail}
+              onChange={(e) => setTestEmail(e.target.value)}
+              className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm"
+              placeholder="e-mail para teste"
+            />
+            <button
+              type="button"
+              onClick={() => void sendTestTemplate()}
+              className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm hover:bg-zinc-50"
+            >
+              Testar template
+            </button>
+          </div>
+        </div>
+      )}
+
+      {message ? (
+        <p className="mt-3 text-sm text-zinc-600">{message}</p>
+      ) : null}
+
+      <div className="mt-4 flex flex-wrap gap-2">
+        <button
+          type="button"
+          disabled={saving}
+          onClick={() => void save()}
+          className="rounded-lg bg-zinc-900 px-4 py-2 text-sm text-white hover:bg-zinc-800 disabled:opacity-50"
+        >
+          {saving ? "Salvando…" : "Salvar"}
+        </button>
+        <button
+          type="button"
+          onClick={() => void testCredentials()}
+          className="rounded-lg border border-zinc-200 px-4 py-2 text-sm hover:bg-zinc-50"
+        >
+          Testar API
+        </button>
+        <button
+          type="button"
+          onClick={() => void configureWebhook()}
+          className="rounded-lg border border-zinc-200 px-4 py-2 text-sm hover:bg-zinc-50"
+        >
+          Configurar webhook
+        </button>
+      </div>
+    </section>
+  );
+}
+
 function IntegracoesContent() {
   return (
     <div className="space-y-6">
       <MercadoPagoCard />
       <MelhorEnvioCard />
+      <BrevoCard />
     </div>
   );
 }
@@ -453,7 +799,7 @@ export default function AdminIntegracoesPage() {
     <RequireAdmin>
       <AdminShell
         title="Integrações"
-        description="Mercado Pago e Melhor Envio — credenciais criptografadas no banco."
+        description="Mercado Pago, Melhor Envio e Brevo — credenciais criptografadas no banco."
       >
         <Suspense
           fallback={

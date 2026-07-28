@@ -2,7 +2,9 @@
 
 import { useMemo, useState } from "react";
 import type { Product } from "@/shared/types/product";
+import { Breadcrumb } from "@/components/store/Breadcrumb";
 import { ProductGallery } from "@/components/store/ProductGallery";
+import { ProductGrid } from "@/components/store/ProductGrid";
 import { VariantSelector } from "@/components/store/VariantSelector";
 import { useCart } from "@/contexts/CartContext";
 import { useWishlist } from "@/contexts/WishlistContext";
@@ -10,9 +12,10 @@ import { cn, formatPrice } from "@/lib/utils";
 
 type ProductDetailProps = {
   product: Product;
+  related?: Product[];
 };
 
-export function ProductDetail({ product }: ProductDetailProps) {
+export function ProductDetail({ product, related = [] }: ProductDetailProps) {
   const variants = useMemo(
     () => (product.variants ?? []).filter((v) => v.isActive),
     [product.variants]
@@ -52,130 +55,168 @@ export function ProductDetail({ product }: ProductDetailProps) {
       ? "Adicionar ao carrinho"
       : "Esgotado";
 
+  const crumbs = [
+    { label: "Home", href: "/" },
+    ...(product.category
+      ? [
+          {
+            label: product.category.name,
+            href: `/categoria/${product.category.slug}`,
+          },
+        ]
+      : [{ label: "Catálogo", href: "/catalogo" }]),
+    { label: product.name },
+  ];
+
   return (
-    <div className="mx-auto grid max-w-6xl gap-8 px-4 py-8 pb-28 sm:px-6 lg:grid-cols-2 lg:gap-14 lg:px-8 lg:py-14 lg:pb-14">
-      <ProductGallery name={product.name} images={gallery} />
-
-      <div>
-        {product.category ? (
-          <p className="text-[11px] uppercase tracking-[0.18em] text-earth">
-            {product.category.name}
-          </p>
-        ) : null}
-        <h1 className="mt-2 font-display text-3xl font-light tracking-[0.04em] text-ink sm:text-4xl">
-          {product.name}
-        </h1>
-
-        <div className="mt-4 flex items-baseline gap-3">
-          <p className="text-lg text-ink">{formatPrice(product.price)}</p>
-          {product.originalPrice != null &&
-          product.originalPrice > product.price ? (
-            <p className="text-sm text-ink-muted line-through">
-              {formatPrice(product.originalPrice)}
-            </p>
-          ) : null}
-        </div>
-
-        {product.shortDescription ? (
-          <p className="mt-4 text-sm leading-relaxed text-ink-muted">
-            {product.shortDescription}
-          </p>
-        ) : null}
-
-        <div className="mt-8">
-          <VariantSelector
-            product={product}
-            size={size}
-            color={color}
-            onSizeChange={setSize}
-            onColorChange={setColor}
-          />
-        </div>
-
-        <p
-          className={cn(
-            "mt-4 text-xs tracking-wide",
-            available ? "text-earth" : "text-rose-gold"
-          )}
-        >
-          {available
-            ? selected && selected.stockCount <= 3
-              ? `Restam apenas ${selected.stockCount}`
-              : "Em estoque"
-            : "Essa combinação está esgotada"}
-        </p>
-
-        {selected?.sku ? (
-          <p className="mt-1 text-[11px] text-ink-muted">SKU {selected.sku}</p>
-        ) : null}
-
-        {/* Desktop CTAs */}
-        <div className="mt-8 hidden flex-col gap-2 sm:flex sm:flex-row">
-          <button
-            type="button"
-            disabled={!available || pending}
-            onClick={() => void handleAdd()}
-            className="inline-flex min-h-12 flex-1 items-center justify-center border border-rose-gold bg-rose-gold text-sm tracking-[0.16em] text-cream transition-colors hover:bg-rose-gold-light disabled:cursor-not-allowed disabled:opacity-40 sm:flex-none sm:px-10"
-          >
-            {ctaLabel}
-          </button>
-          <button
-            type="button"
-            onClick={() =>
-              toggle({
-                productId: product.id,
-                slug: product.slug,
-                name: product.name,
-                image: product.image,
-                price: product.price,
-              })
-            }
-            className={cn(
-              "inline-flex min-h-12 items-center justify-center border px-5 text-sm tracking-[0.12em] transition-colors",
-              wished
-                ? "border-rose-gold text-rose-gold"
-                : "border-line text-ink-muted hover:border-rose-gold hover:text-rose-gold"
-            )}
-          >
-            {wished ? "Nos favoritos" : "Favoritar"}
-          </button>
-        </div>
-
-        {(message || cartError) && (
-          <p
-            className={cn(
-              "mt-3 hidden text-xs sm:block",
-              message ? "text-earth" : "text-rose-gold"
-            )}
-          >
-            {message ?? cartError}
-          </p>
-        )}
-
-        {product.description ? (
-          <div className="mt-10 border-t border-line pt-8">
-            <h2 className="font-display text-lg tracking-[0.06em] text-ink">
-              Detalhes
-            </h2>
-            <div className="mt-3 whitespace-pre-line text-sm leading-relaxed text-ink-muted">
-              {product.description}
-            </div>
-          </div>
-        ) : null}
-
-        {product.highlights.length > 0 ? (
-          <ul className="mt-6 space-y-2 text-sm text-ink-muted">
-            {product.highlights.map((item) => (
-              <li key={item} className="flex gap-2">
-                <span className="text-rose-gold">·</span>
-                {item}
-              </li>
-            ))}
-          </ul>
-        ) : null}
+    <div className="pb-28 lg:pb-0">
+      <div className="mx-auto max-w-6xl px-4 pt-6 sm:px-6 lg:px-8 lg:pt-10">
+        <Breadcrumb items={crumbs} />
       </div>
 
-      {/* Mobile sticky buy bar */}
+      <div className="mx-auto grid max-w-6xl gap-10 px-4 pt-6 sm:px-6 lg:grid-cols-2 lg:gap-16 lg:px-8 lg:pt-10 lg:pb-8">
+        <ProductGallery name={product.name} images={gallery} />
+
+        <div className="lg:pt-2">
+          <h1 className="font-display text-3xl font-light tracking-[0.05em] text-ink sm:text-4xl lg:text-[2.65rem] lg:leading-tight">
+            {product.name}
+          </h1>
+
+          <div className="mt-6 flex items-baseline gap-3 border-b border-line/70 pb-8">
+            <p className="text-lg tracking-wide text-ink">
+              {formatPrice(product.price)}
+            </p>
+            {product.originalPrice != null &&
+            product.originalPrice > product.price ? (
+              <p className="text-sm text-ink-muted line-through">
+                {formatPrice(product.originalPrice)}
+              </p>
+            ) : null}
+          </div>
+
+          {product.shortDescription ? (
+            <p className="mt-8 max-w-md font-display text-[0.95rem] font-light leading-relaxed tracking-[0.02em] text-ink-muted sm:text-base">
+              {product.shortDescription}
+            </p>
+          ) : null}
+
+          <div className="mt-10 space-y-8">
+            <VariantSelector
+              product={product}
+              size={size}
+              color={color}
+              onSizeChange={setSize}
+              onColorChange={setColor}
+            />
+          </div>
+
+          <p
+            className={cn(
+              "mt-6 text-xs tracking-[0.12em]",
+              available ? "text-earth" : "text-rose-gold"
+            )}
+          >
+            {available
+              ? selected && selected.stockCount <= 3
+                ? `Restam apenas ${selected.stockCount}`
+                : "Em estoque"
+              : "Essa combinação está esgotada"}
+          </p>
+
+          {selected?.sku ? (
+            <p className="mt-2 text-[11px] tracking-wide text-ink-muted">
+              SKU {selected.sku}
+            </p>
+          ) : null}
+
+          <div className="mt-10 hidden flex-col gap-3 sm:flex sm:flex-row">
+            <button
+              type="button"
+              disabled={!available || pending}
+              onClick={() => void handleAdd()}
+              className="inline-flex min-h-12 flex-1 items-center justify-center border border-rose-gold bg-rose-gold text-xs tracking-[0.18em] text-cream transition-colors hover:bg-rose-gold-light disabled:cursor-not-allowed disabled:opacity-40 sm:flex-none sm:min-w-[14rem] sm:px-10"
+            >
+              {ctaLabel}
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                toggle({
+                  productId: product.id,
+                  slug: product.slug,
+                  name: product.name,
+                  image: product.image,
+                  price: product.price,
+                })
+              }
+              className={cn(
+                "inline-flex min-h-12 items-center justify-center border px-5 text-xs tracking-[0.14em] transition-colors",
+                wished
+                  ? "border-rose-gold text-rose-gold"
+                  : "border-line text-ink-muted hover:border-rose-gold hover:text-rose-gold"
+              )}
+            >
+              {wished ? "Nos favoritos" : "Favoritar"}
+            </button>
+          </div>
+
+          {(message || cartError) && (
+            <p
+              className={cn(
+                "mt-4 hidden text-xs sm:block",
+                message ? "text-earth" : "text-rose-gold"
+              )}
+            >
+              {message ?? cartError}
+            </p>
+          )}
+
+          {(product.description || product.highlights.length > 0) && (
+            <section className="mt-14 border-t border-line pt-10 sm:mt-16">
+              <p className="font-display text-[0.65rem] uppercase tracking-[0.35em] text-rose-gold">
+                Detalhes & cuidados
+              </p>
+              {product.description ? (
+                <div className="mt-5 whitespace-pre-line font-display text-[0.95rem] font-light leading-[1.75] tracking-[0.01em] text-ink-muted sm:text-base">
+                  {product.description}
+                </div>
+              ) : null}
+              {product.highlights.length > 0 ? (
+                <ul className="mt-8 space-y-3 border-t border-line/60 pt-8">
+                  {product.highlights.map((item) => (
+                    <li
+                      key={item}
+                      className="flex gap-3 text-sm leading-relaxed text-ink-muted"
+                    >
+                      <span className="mt-2 size-1 shrink-0 rounded-full bg-rose-gold/70" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </section>
+          )}
+        </div>
+      </div>
+
+      <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
+        <div className="mb-10 text-center sm:mb-12">
+          <p className="font-display text-[0.65rem] uppercase tracking-[0.42em] text-rose-gold">
+            Continuar olhando
+          </p>
+          <h2 className="mt-4 font-display text-2xl font-light tracking-[0.08em] text-ink sm:text-3xl">
+            Você também pode gostar
+          </h2>
+        </div>
+        {related.length > 0 ? (
+          <ProductGrid products={related} priorityCount={0} />
+        ) : (
+          <p className="mx-auto max-w-sm text-center text-sm leading-relaxed text-ink-muted">
+            Em breve, outras peças da coleção aparecem aqui.
+          </p>
+        )}
+      </section>
+
       <div
         className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-cream/95 px-4 pt-3 backdrop-blur-xl sm:hidden"
         style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}

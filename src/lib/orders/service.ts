@@ -9,7 +9,10 @@ import {
   type OrderRow,
 } from "@/shared/lib/orderMapper";
 import { CouponEvalError } from "@/shared/lib/coupons";
-import type { CheckoutInput } from "@/shared/schemas/order";
+import type {
+  CheckoutInput,
+  FulfillmentUpdateInput,
+} from "@/shared/schemas/order";
 import type { CheckoutPaymentResult } from "@/shared/types/mercadoPago";
 import type {
   AdminOrderDetail,
@@ -18,6 +21,11 @@ import type {
   Order,
   OrderSummary,
 } from "@/shared/types/order";
+import {
+  dispatchOrderCreatedEmails,
+  dispatchOrderEmail,
+  dispatchPaymentStatusEmail,
+} from "@/lib/brevo/orderEmails";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
   assertCouponApplicable,
@@ -251,6 +259,10 @@ export async function getCustomerOrder(
               shippingError
             );
           }
+          void dispatchPaymentStatusEmail(orderId, "approved").catch(
+            (emailError) =>
+              console.error("Erro ao enviar e-mail de pagamento:", emailError)
+          );
         }
         if (identity.instructions) {
           await createAdminClient()
@@ -455,6 +467,10 @@ export async function createOrderFromCheckout(
       );
       if (acceptError) throw new Error(acceptError.message);
 
+      void dispatchOrderCreatedEmails(order.id).catch((emailError) =>
+        console.error("Erro ao enviar e-mails de pedido criado:", emailError)
+      );
+
       if (identity.status === "approved") {
         const { error: reconcileError } = await createAdminClient().rpc(
           "reconcile_mercado_pago_payment",
@@ -475,6 +491,10 @@ export async function createOrderFromCheckout(
             shippingError
           );
         }
+        void dispatchPaymentStatusEmail(order.id, "approved").catch(
+          (emailError) =>
+            console.error("Erro ao enviar e-mail de pagamento:", emailError)
+        );
       }
     }
 
@@ -619,4 +639,50 @@ export async function getOrderById(orderId: string): Promise<AdminOrderDetail> {
       attemptCount: Number(shipment.attempt_count),
     })),
   };
+}
+
+export async function updateOrderFulfillment(
+  orderId: string,
+  input: FulfillmentUpdateInput
+): Promise<AdminOrderDetail> {
+  const now = new Date().toISOString();
+  const patch: Record<string, unknown> = {
+    fulfillment_status: input.status,
+  };
+
+  if (input.trackingCode !== undefined) {
+    patch.tracking_code = input.trackingCode?.trim() || null;
+  }
+  if (input.trackingUrl !== undefined) {
+    patch.tracking_url = input.trackingUrl?.trim() || null;
+  }
+  if (input.status === "processing") patch.processing_at = now;
+  if (input.status === "shipped") patch.shipped_at = now;
+  if (input.status === "delivered") patch.delivered_at = now;
+
+  const { data, error } = await createAdminClient()
+    .from("orders")
+    .update(patch)
+    .eq("id", orderId)
+    .select("id")
+    .maybeSingle();
+
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error("Pedido não encontrado");
+
+  const event =
+    input.status === "processing"
+      ? "order_processing"
+      : input.status === "shipped"
+        ? "order_shipped"
+        : input.status === "delivered"
+          ? "order_delivered"
+          : null;
+  if (event) {
+    void dispatchOrderEmail(orderId, event).catch((emailError) =>
+      console.error("Erro ao enviar e-mail de fulfillment:", emailError)
+    );
+  }
+
+  return getOrderById(orderId);
 }

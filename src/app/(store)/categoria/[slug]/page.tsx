@@ -58,19 +58,24 @@ export default async function CategoriaPage({
   });
 
   return (
-    <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
-      <header className="mb-10 max-w-xl">
-        <p className="font-display text-xs uppercase tracking-[0.35em] text-rose-gold">
+    <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8 lg:py-20">
+      <header className="mb-12 text-center sm:mb-16">
+        <p className="font-display text-[0.65rem] uppercase tracking-[0.42em] text-rose-gold sm:text-xs">
           Categoria
         </p>
-        <h1 className="mt-3 font-display text-3xl font-light tracking-[0.06em] text-ink sm:text-4xl">
+        <h1 className="mt-4 font-display text-4xl font-light tracking-[0.08em] text-ink sm:text-5xl md:text-[3.25rem]">
           {category.name}
         </h1>
         {category.description ? (
-          <p className="mt-3 text-sm leading-relaxed text-ink-muted">
+          <p className="mx-auto mt-5 max-w-lg text-sm leading-relaxed text-ink-muted sm:text-base">
             {category.description}
           </p>
-        ) : null}
+        ) : (
+          <p className="mx-auto mt-5 max-w-md text-sm leading-relaxed text-ink-muted">
+            {products.length}{" "}
+            {products.length === 1 ? "peça" : "peças"} nesta seleção
+          </p>
+        )}
       </header>
 
       <Suspense fallback={<ProductGridSkeleton />}>
