@@ -19,6 +19,7 @@ import {
   AdminSpinner,
   AdminTextarea,
 } from "@/components/admin/ui";
+import { ProductChannelsPanel } from "@/components/admin/ProductChannelsPanel";
 import {
   AdminApiError,
   adminCreateProduct,
@@ -373,6 +374,10 @@ export function ProductForm({ mode, initial }: Props) {
           onChange={setVariants}
         />
       </AdminPanel>
+
+      {mode === "edit" && initial?.id ? (
+        <ProductChannelsPanel productId={initial.id} />
+      ) : null}
 
       {error ? <AdminAlert>{error}</AdminAlert> : null}
 

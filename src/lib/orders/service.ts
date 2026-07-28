@@ -41,6 +41,7 @@ import {
   ensurePaidOrderInMelhorEnvioCart,
   validateShippingSelection,
 } from "@/lib/melhorEnvio/service";
+import { afterSiteStockDecrement } from "@/lib/marketplace/onMarketplacePaidOrder";
 
 type CartRow = {
   id: string;
@@ -259,6 +260,12 @@ export async function getCustomerOrder(
               shippingError
             );
           }
+          void afterSiteStockDecrement(orderId).catch((mktError) =>
+            console.error(
+              "Erro ao sincronizar estoque marketplace:",
+              mktError
+            )
+          );
           void dispatchPaymentStatusEmail(orderId, "approved").catch(
             (emailError) =>
               console.error("Erro ao enviar e-mail de pagamento:", emailError)
@@ -491,6 +498,12 @@ export async function createOrderFromCheckout(
             shippingError
           );
         }
+        void afterSiteStockDecrement(order.id).catch((mktError) =>
+          console.error(
+            "Erro ao sincronizar estoque marketplace:",
+            mktError
+          )
+        );
         void dispatchPaymentStatusEmail(order.id, "approved").catch(
           (emailError) =>
             console.error("Erro ao enviar e-mail de pagamento:", emailError)

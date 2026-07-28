@@ -7,6 +7,7 @@ import { AdminSpinner } from "@/components/admin/ui";
 import type { BrevoAdminStatus, StoreEmailEvent } from "@/shared/types/brevo";
 import type { MercadoPagoAdminStatus } from "@/shared/types/mercadoPago";
 import type { MelhorEnvioStatus } from "@/shared/types/melhorEnvio";
+import { MarketplaceChannelCard } from "@/components/admin/MarketplaceChannelCard";
 
 type MeStatus = MelhorEnvioStatus & { suggestedRedirectUri?: string };
 
@@ -785,11 +786,28 @@ function BrevoCard() {
 }
 
 function IntegracoesContent() {
+  const searchParams = useSearchParams();
+  const mktError = searchParams.get("mkt_error");
+  const mktConnected = searchParams.get("mkt_connected");
+
   return (
     <div className="space-y-6">
+      {mktConnected ? (
+        <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+          {mktConnected === "shopee" ? "Shopee" : "TikTok Shop"} conectado com
+          sucesso.
+        </p>
+      ) : null}
+      {mktError ? (
+        <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+          {mktError}
+        </p>
+      ) : null}
       <MercadoPagoCard />
       <MelhorEnvioCard />
       <BrevoCard />
+      <MarketplaceChannelCard channel="shopee" />
+      <MarketplaceChannelCard channel="tiktok" />
     </div>
   );
 }
@@ -799,7 +817,7 @@ export default function AdminIntegracoesPage() {
     <RequireAdmin>
       <AdminShell
         title="Integrações"
-        description="Mercado Pago, Melhor Envio e Brevo — credenciais criptografadas no banco."
+        description="Mercado Pago, Melhor Envio, Brevo, Shopee e TikTok Shop — credenciais criptografadas no banco."
       >
         <Suspense
           fallback={

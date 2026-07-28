@@ -8,6 +8,7 @@ import {
 } from "@/lib/mercadoPago/service";
 import { dispatchPaymentStatusEmail } from "@/lib/brevo/orderEmails";
 import { ensurePaidOrderInMelhorEnvioCart } from "@/lib/melhorEnvio/service";
+import { afterSiteStockDecrement } from "@/lib/marketplace/onMarketplacePaidOrder";
 
 export async function POST(request: Request) {
   const url = new URL(request.url);
@@ -72,6 +73,13 @@ export async function POST(request: Request) {
             shippingError
           );
         }
+        void afterSiteStockDecrement(String(reconciledOrderId)).catch(
+          (mktError) =>
+            console.error(
+              "Erro ao sincronizar estoque marketplace:",
+              mktError
+            )
+        );
       }
       void dispatchPaymentStatusEmail(
         String(reconciledOrderId),

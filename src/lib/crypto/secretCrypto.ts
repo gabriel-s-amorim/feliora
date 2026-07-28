@@ -8,7 +8,9 @@ import {
 export type SecretEncryptionKey =
   | "MERCADO_PAGO_ENCRYPTION_KEY"
   | "BREVO_ENCRYPTION_KEY"
-  | "MELHOR_ENVIO_ENCRYPTION_KEY";
+  | "MELHOR_ENVIO_ENCRYPTION_KEY"
+  | "SHOPEE_ENCRYPTION_KEY"
+  | "TIKTOK_ENCRYPTION_KEY";
 
 function encryptionKey(keyName: SecretEncryptionKey): Buffer {
   const source = process.env[keyName]?.trim();
