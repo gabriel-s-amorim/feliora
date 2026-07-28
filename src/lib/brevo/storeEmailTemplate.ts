@@ -1,11 +1,14 @@
+export type OrderEmailItem = {
+  name?: string;
+  quantity?: number;
+  price?: string;
+  size?: string;
+  color?: string;
+  image?: string | null;
+};
+
 export type OrderEmailParams = Record<string, unknown> & {
-  ITEMS?: Array<{
-    name?: string;
-    quantity?: number;
-    price?: string;
-    size?: string;
-    color?: string;
-  }>;
+  ITEMS?: OrderEmailItem[];
 };
 
 function escapeHtml(value: string): string {
@@ -16,7 +19,11 @@ function escapeHtml(value: string): string {
     .replaceAll('"', "&quot;");
 }
 
-/** Linhas de itens para e-mail (tabela compatível com clientes de e-mail). */
+function escapeAttr(value: string): string {
+  return escapeHtml(value).replaceAll("'", "&#39;");
+}
+
+/** Linhas de itens para e-mail (tabela + miniatura, compatível com clientes de e-mail). */
 export function buildItemsHtml(items: OrderEmailParams["ITEMS"]): string {
   if (!items?.length) {
     return `<tr><td style="padding:14px 0;font-family:Georgia,'Times New Roman',serif;font-size:14px;color:#6B5E52;">Nenhum item</td></tr>`;
@@ -35,9 +42,18 @@ export function buildItemsHtml(items: OrderEmailParams["ITEMS"]): string {
         index === items.length - 1
           ? "border-bottom:none;"
           : "border-bottom:1px solid rgba(183,110,121,0.18);";
+      const imageUrl = item.image?.trim();
+      const imageCell = imageUrl
+        ? `<td width="72" style="padding:14px 12px 14px 0;${border}vertical-align:top;">
+    <img src="${escapeAttr(imageUrl)}" alt="${name}" width="64" height="85" style="display:block;width:64px;height:85px;object-fit:cover;border:0;background:#F7F0E8;" />
+  </td>`
+        : `<td width="72" style="padding:14px 12px 14px 0;${border}vertical-align:top;">
+    <div style="width:64px;height:85px;background:#F7F0E8;border:1px solid rgba(183,110,121,0.15);"></div>
+  </td>`;
 
       return `<tr>
-  <td style="padding:14px 0;${border}vertical-align:top;">
+  ${imageCell}
+  <td style="padding:14px 0;${border}vertical-align:middle;">
     <p style="margin:0;font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.4;color:#2C241B;">${name}</p>
     ${
       meta
@@ -45,7 +61,7 @@ export function buildItemsHtml(items: OrderEmailParams["ITEMS"]): string {
         : ""
     }
   </td>
-  <td style="padding:14px 0 14px 16px;${border}vertical-align:top;text-align:right;white-space:nowrap;">
+  <td style="padding:14px 0 14px 16px;${border}vertical-align:middle;text-align:right;white-space:nowrap;">
     <p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#6B5E52;">${qty}×</p>
     <p style="margin:4px 0 0;font-family:Georgia,'Times New Roman',serif;font-size:14px;color:#2C241B;">${price}</p>
   </td>

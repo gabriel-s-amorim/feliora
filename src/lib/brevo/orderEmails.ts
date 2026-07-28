@@ -35,6 +35,14 @@ function paymentMethodLabel(value: string | null): string {
   return value ?? "";
 }
 
+function absoluteImageUrl(src: string | null | undefined): string | null {
+  const value = src?.trim();
+  if (!value) return null;
+  if (/^https?:\/\//i.test(value)) return value;
+  const base = getPublicAppUrl();
+  return `${base}${value.startsWith("/") ? "" : "/"}${value}`;
+}
+
 export function sampleOrderEmailParams() {
   const shortId = "TESTE001";
   return {
@@ -54,6 +62,7 @@ export function sampleOrderEmailParams() {
         price: money(159.9),
         size: "M",
         color: "Rose",
+        image: `${getPublicAppUrl()}/images/logo-feliora.jpg`,
       },
     ],
     SHIPPING_COMPANY: "Correios",
@@ -71,7 +80,7 @@ async function loadOrderEmailContext(orderId: string) {
       supabase.from("orders").select("*").eq("id", orderId).maybeSingle(),
       supabase
         .from("order_items")
-        .select("product_name, quantity, price, size_label, color_name")
+        .select("product_name, quantity, price, size_label, color_name, image")
         .eq("order_id", orderId)
         .order("created_at", { ascending: true }),
     ]);
@@ -103,6 +112,7 @@ async function loadOrderEmailContext(orderId: string) {
     price: money(item.price),
     size: item.size_label,
     color: item.color_name,
+    image: absoluteImageUrl(item.image),
   }));
   const shortId = String(order.id).slice(0, 8).toUpperCase();
   const subtotal =
