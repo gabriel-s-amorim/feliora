@@ -376,8 +376,8 @@ export function ProductForm({ mode, initial }: Props) {
 
       {error ? <AdminAlert>{error}</AdminAlert> : null}
 
-      <div className="sticky bottom-4 z-20 flex flex-wrap items-center gap-3 rounded-2xl border border-[var(--admin-line)] bg-[color-mix(in_srgb,var(--admin-surface)_90%,white)] p-3 shadow-[var(--admin-shadow)] backdrop-blur">
-        <AdminButton type="submit" disabled={saving}>
+      <div className="sticky bottom-3 z-20 -mx-1 flex flex-col gap-2 rounded-2xl border border-[var(--admin-line)] bg-white/95 p-2.5 shadow-[var(--admin-shadow)] backdrop-blur sm:bottom-4 sm:mx-0 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3 sm:p-3">
+        <AdminButton type="submit" disabled={saving} className="w-full sm:w-auto">
           {saving ? <AdminSpinner /> : <Save className="size-4" />}
           {saving
             ? "Salvando…"
@@ -385,8 +385,8 @@ export function ProductForm({ mode, initial }: Props) {
               ? "Criar produto"
               : "Salvar alterações"}
         </AdminButton>
-        <Link href="/admin/produtos">
-          <AdminButton type="button" variant="ghost">
+        <Link href="/admin/produtos" className="w-full sm:w-auto">
+          <AdminButton type="button" variant="ghost" className="w-full sm:w-auto">
             <ArrowLeft className="size-4" />
             Voltar
           </AdminButton>

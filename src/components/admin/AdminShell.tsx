@@ -221,40 +221,47 @@ export function AdminShell({
         ) : null}
 
         <div className="flex min-w-0 flex-1 flex-col bg-white">
-          <header className="sticky top-0 z-30 border-b border-zinc-200 bg-white/90 px-4 py-4 backdrop-blur-md sm:px-6 lg:px-8">
-            <div className="flex items-start justify-between gap-3">
+          <header className="sticky top-0 z-30 border-b border-zinc-200 bg-white/90 px-4 py-3.5 backdrop-blur-md sm:px-6 sm:py-4 lg:px-8">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div className="flex min-w-0 items-start gap-3">
                 <button
                   type="button"
-                  className="mt-0.5 rounded-lg border border-zinc-200 bg-white p-2 text-zinc-700 lg:hidden"
+                  className="mt-0.5 shrink-0 rounded-lg border border-zinc-200 bg-white p-2 text-zinc-700 lg:hidden"
                   onClick={() => setMobileOpen(true)}
                   aria-label="Abrir menu"
                 >
                   <Menu className="size-5" />
                 </button>
-                <div className="min-w-0 admin-enter">
+                <div className="min-w-0 flex-1 admin-enter">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
                     {SITE_NAME} · Admin
                   </p>
-                  <h1 className="mt-0.5 text-2xl font-semibold tracking-tight text-zinc-950 sm:text-3xl">
-                    {title}
-                  </h1>
+                  <div className="mt-0.5 flex items-center justify-between gap-2">
+                    <h1 className="text-xl font-semibold tracking-tight text-zinc-950 sm:text-3xl">
+                      {title}
+                    </h1>
+                    {actions ? (
+                      <div className="flex shrink-0 items-center gap-2 sm:hidden admin-enter">
+                        {actions}
+                      </div>
+                    ) : null}
+                  </div>
                   {description ? (
-                    <p className="mt-1 max-w-2xl text-sm text-zinc-500">
+                    <p className="mt-1 max-w-2xl text-sm text-zinc-500 line-clamp-2 sm:line-clamp-none">
                       {description}
                     </p>
                   ) : null}
                 </div>
               </div>
               {actions ? (
-                <div className="flex shrink-0 flex-wrap items-center justify-end gap-2 admin-enter">
+                <div className="hidden shrink-0 flex-wrap items-center justify-end gap-2 sm:flex admin-enter">
                   {actions}
                 </div>
               ) : null}
             </div>
           </header>
 
-          <main className="flex-1 bg-zinc-50/80 px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
+          <main className="flex-1 bg-zinc-50/80 px-3 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
             <div className="admin-enter admin-enter-delay-1">{children}</div>
           </main>
         </div>

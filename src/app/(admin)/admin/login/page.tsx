@@ -92,7 +92,7 @@ export default function AdminLoginPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <AdminField label="E-mail">
               <div className="relative">
-                <Mail className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-zinc-400" />
+                <Mail className="admin-input-icon" aria-hidden />
                 <AdminInput
                   type="email"
                   autoFocus
@@ -101,14 +101,14 @@ export default function AdminLoginPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={submitting}
                   placeholder="voce@email.com"
-                  className="pl-10"
+                  className="admin-input-icon-left"
                 />
               </div>
             </AdminField>
 
             <AdminField label="Senha">
               <div className="relative">
-                <Lock className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-zinc-400" />
+                <Lock className="admin-input-icon" aria-hidden />
                 <AdminInput
                   type={showPassword ? "text" : "password"}
                   required
@@ -116,12 +116,12 @@ export default function AdminLoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={submitting}
                   placeholder="••••••••"
-                  className="px-10"
+                  className="admin-input-icon-both"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-zinc-400 hover:text-zinc-700"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-zinc-400 hover:text-zinc-700"
                   aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
                 >
                   {showPassword ? (

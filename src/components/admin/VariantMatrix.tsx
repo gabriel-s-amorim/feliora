@@ -117,17 +117,100 @@ export function VariantMatrix({
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
         <p className="text-sm text-[var(--admin-muted)]">
           {combos.length} combinação(ões) tamanho × cor
         </p>
-        <AdminButton type="button" variant="secondary" onClick={generateMatrix}>
+        <AdminButton
+          type="button"
+          variant="secondary"
+          onClick={generateMatrix}
+          className="w-full sm:w-auto"
+        >
           <RefreshCw className="size-4" />
-          Gerar / sincronizar matriz
+          Gerar / sincronizar
         </AdminButton>
       </div>
 
-      <div className="admin-table-wrap overflow-x-auto">
+      {/* Mobile cards */}
+      <ul className="space-y-2.5 md:hidden">
+        {combos.map(({ sizeLabel, colorName }) => {
+          const row = findVariant(sizeLabel, colorName);
+          return (
+            <li
+              key={`${sizeLabel}-${colorName}`}
+              className="rounded-xl border border-[var(--admin-line)] bg-white p-3"
+            >
+              <div className="mb-3 flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="font-medium text-[var(--admin-ink)]">
+                    {sizeLabel}
+                    {colorName ? (
+                      <span className="text-[var(--admin-muted)]">
+                        {" "}
+                        · {colorName}
+                      </span>
+                    ) : null}
+                  </p>
+                </div>
+                <label className="inline-flex shrink-0 items-center gap-2 text-xs text-[var(--admin-muted)]">
+                  <input
+                    type="checkbox"
+                    className="size-4 accent-[var(--admin-accent)]"
+                    checked={row?.isActive ?? true}
+                    onChange={(e) =>
+                      upsert(sizeLabel, colorName, {
+                        isActive: e.target.checked,
+                      })
+                    }
+                    onFocus={() => {
+                      if (!row) upsert(sizeLabel, colorName, {});
+                    }}
+                  />
+                  Ativa
+                </label>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <label className="col-span-2 block">
+                  <span className="admin-label">SKU</span>
+                  <AdminInput
+                    className="!px-2.5 !py-2 text-xs"
+                    value={
+                      row?.sku ?? skuFor(productSlug, sizeLabel, colorName)
+                    }
+                    onChange={(e) =>
+                      upsert(sizeLabel, colorName, { sku: e.target.value })
+                    }
+                    onFocus={() => {
+                      if (!row) upsert(sizeLabel, colorName, {});
+                    }}
+                  />
+                </label>
+                <label className="block">
+                  <span className="admin-label">Estoque</span>
+                  <AdminInput
+                    type="number"
+                    min={0}
+                    className="!px-2.5 !py-2"
+                    value={row?.stockCount ?? 0}
+                    onChange={(e) =>
+                      upsert(sizeLabel, colorName, {
+                        stockCount: Math.max(0, Number(e.target.value) || 0),
+                      })
+                    }
+                    onFocus={() => {
+                      if (!row) upsert(sizeLabel, colorName, {});
+                    }}
+                  />
+                </label>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+
+      {/* Desktop table */}
+      <div className="admin-table-wrap hidden overflow-x-auto md:block">
         <table className="admin-table min-w-[640px]">
           <thead>
             <tr>

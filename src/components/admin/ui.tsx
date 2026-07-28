@@ -17,10 +17,10 @@ export function AdminPanel({
   return (
     <section className={cn("admin-panel overflow-hidden", className)}>
       {(title || actions) && (
-        <header className="flex flex-wrap items-start justify-between gap-3 border-b border-[var(--admin-line)] px-5 py-4">
+        <header className="flex flex-wrap items-start justify-between gap-3 border-b border-[var(--admin-line)] px-4 py-3.5 sm:px-5 sm:py-4">
           <div className="min-w-0">
             {title ? (
-              <h2 className="text-lg font-semibold tracking-tight text-[var(--admin-ink)] sm:text-xl">
+              <h2 className="text-base font-semibold tracking-tight text-[var(--admin-ink)] sm:text-xl">
                 {title}
               </h2>
             ) : null}
@@ -31,7 +31,7 @@ export function AdminPanel({
           {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
         </header>
       )}
-      <div className="p-5">{children}</div>
+      <div className="p-4 sm:p-5">{children}</div>
     </section>
   );
 }
