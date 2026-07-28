@@ -8,16 +8,18 @@ export function CheckoutOrderSummary({
   cart,
   shippingAmount,
   discountAmount = 0,
+  shippingPending = false,
 }: {
   cart: Cart;
   shippingAmount: number | null;
   discountAmount?: number;
+  shippingPending?: boolean;
 }) {
   const shipping = shippingAmount ?? 0;
   const total = Math.max(0, cart.subtotal - discountAmount + shipping);
 
   return (
-    <aside className="border border-line bg-ivory/40 p-5 sm:p-6">
+    <aside className="border border-line bg-ivory/40 p-5 sm:p-6 lg:sticky lg:top-24">
       <h2 className="font-display text-xl font-light tracking-[0.06em] text-ink">
         Resumo
       </h2>
@@ -63,7 +65,7 @@ export function CheckoutOrderSummary({
           <dt>Frete</dt>
           <dd>
             {shippingAmount == null
-              ? "—"
+              ? "Calcule o frete"
               : shippingAmount === 0
                 ? "Grátis"
                 : formatPrice(shippingAmount)}
@@ -72,10 +74,18 @@ export function CheckoutOrderSummary({
         <div className="flex justify-between border-t border-line pt-3 font-medium text-ink">
           <dt>Total</dt>
           <dd className="font-display text-lg tracking-[0.04em]">
-            {formatPrice(total)}
+            {shippingAmount == null
+              ? formatPrice(Math.max(0, cart.subtotal - discountAmount))
+              : formatPrice(total)}
           </dd>
         </div>
       </dl>
+      {shippingPending ? (
+        <p className="mt-4 border border-rose-gold/25 bg-rose-gold/5 px-3 py-2 text-xs leading-relaxed text-rose-gold">
+          Informe o CEP na etapa de entrega para calcular o frete e liberar o
+          pagamento.
+        </p>
+      ) : null}
     </aside>
   );
 }

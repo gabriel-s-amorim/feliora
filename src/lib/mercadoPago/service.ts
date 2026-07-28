@@ -61,7 +61,7 @@ async function getSettingsRow(
   return data as SettingsRow;
 }
 
-async function getActiveSettings(): Promise<ActiveSettings> {
+async function getActiveSettingsRow(): Promise<SettingsRow> {
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("mercado_pago_settings")
@@ -72,18 +72,20 @@ async function getActiveSettings(): Promise<ActiveSettings> {
     .maybeSingle();
   if (error) throw new Error(error.message);
   if (!data) throw new Error("Mercado Pago não está habilitado");
-  const row = data as SettingsRow;
-  if (
-    !row.public_key ||
-    !row.access_token_encrypted ||
-    !row.webhook_secret_encrypted
-  ) {
+  return data as SettingsRow;
+}
+
+async function getActiveSettings(): Promise<ActiveSettings> {
+  const row = await getActiveSettingsRow();
+  if (!row.public_key || !row.access_token_encrypted) {
     throw new Error("Credenciais do Mercado Pago incompletas");
   }
   return {
     ...row,
     accessToken: decryptSecret(row.access_token_encrypted),
-    webhookSecret: decryptSecret(row.webhook_secret_encrypted),
+    webhookSecret: row.webhook_secret_encrypted
+      ? decryptSecret(row.webhook_secret_encrypted)
+      : "",
   };
 }
 
@@ -91,7 +93,7 @@ async function getEnvironmentSettings(
   environment: MercadoPagoEnvironment
 ): Promise<ActiveSettings> {
   const row = await getSettingsRow(environment);
-  if (!row.access_token_encrypted || !row.webhook_secret_encrypted) {
+  if (!row.access_token_encrypted) {
     throw new Error(
       `Credenciais do Mercado Pago incompletas em ${environment}`
     );
@@ -99,7 +101,9 @@ async function getEnvironmentSettings(
   return {
     ...row,
     accessToken: decryptSecret(row.access_token_encrypted),
-    webhookSecret: decryptSecret(row.webhook_secret_encrypted),
+    webhookSecret: row.webhook_secret_encrypted
+      ? decryptSecret(row.webhook_secret_encrypted)
+      : "",
   };
 }
 
@@ -119,11 +123,7 @@ function toAdminStatus(row: SettingsRow): MercadoPagoAdminStatus {
     boletoExpirationDays: row.boleto_expiration_days,
     hasAccessToken: Boolean(row.access_token_encrypted),
     hasWebhookSecret: Boolean(row.webhook_secret_encrypted),
-    configured: Boolean(
-      row.public_key &&
-        row.access_token_encrypted &&
-        row.webhook_secret_encrypted
-    ),
+    configured: Boolean(row.public_key && row.access_token_encrypted),
     webhookUrl: getMercadoPagoWebhookUrl(),
   };
 }
@@ -177,16 +177,19 @@ export async function updateMercadoPagoSettings(
 }
 
 export async function getMercadoPagoPublicConfig(): Promise<MercadoPagoPublicConfig> {
-  const settings = await getActiveSettings();
+  const row = await getActiveSettingsRow();
+  if (!row.public_key || !row.access_token_encrypted) {
+    throw new Error("Credenciais do Mercado Pago incompletas");
+  }
   const methods: MercadoPagoPublicConfig["methods"] = [];
-  if (settings.pix_enabled) methods.push("pix");
-  if (settings.credit_card_enabled) methods.push("credit_card");
-  if (settings.boleto_enabled) methods.push("boleto");
+  if (row.pix_enabled) methods.push("pix");
+  if (row.credit_card_enabled) methods.push("credit_card");
+  if (row.boleto_enabled) methods.push("boleto");
   return {
     enabled: true,
-    publicKey: settings.public_key,
+    publicKey: row.public_key,
     methods,
-    maxInstallments: settings.max_installments,
+    maxInstallments: row.max_installments,
   };
 }
 

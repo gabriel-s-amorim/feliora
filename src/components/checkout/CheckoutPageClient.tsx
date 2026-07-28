@@ -3,7 +3,7 @@
 import { CardPayment, initMercadoPago } from "@mercadopago/sdk-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CheckoutOrderSummary } from "@/components/checkout/CheckoutOrderSummary";
 import { CheckoutProcessingOverlay } from "@/components/checkout/CheckoutProcessingOverlay";
 import { CheckoutSuccessView } from "@/components/checkout/CheckoutSuccessView";
@@ -94,6 +94,8 @@ export function CheckoutPageClient() {
   const [error, setError] = useState<string | null>(null);
   const [completedOrder, setCompletedOrder] = useState<Order | null>(null);
   const [polling, setPolling] = useState(false);
+  const shippingSectionRef = useRef<HTMLElement | null>(null);
+  const lastQuotedCep = useRef<string>("");
 
   const selectedShipping: ShippingQuoteOption | null = useMemo(() => {
     if (!shippingQuote || !selectedShippingId) return null;
@@ -101,6 +103,10 @@ export function CheckoutPageClient() {
       shippingQuote.options.find((o) => o.id === selectedShippingId) ?? null
     );
   }, [shippingQuote, selectedShippingId]);
+
+  const cepDigits = normalizeCep(addressForm.cep);
+  const hasShipping = Boolean(shippingQuote?.quoteId && selectedShippingId);
+  const canFinish = hasShipping && Boolean(mpConfig?.enabled);
 
   useEffect(() => {
     if (authLoading) return;
@@ -231,7 +237,12 @@ export function CheckoutPageClient() {
     }
   }
 
-  async function quoteShipping() {
+  const quoteShipping = useCallback(async (cepOverride?: string) => {
+    const toPostalCode = normalizeCep(cepOverride ?? addressForm.cep);
+    if (toPostalCode.length !== 8) {
+      setError("Informe um CEP válido para calcular o frete");
+      return;
+    }
     setError(null);
     setShippingLoading(true);
     setShippingQuote(null);
@@ -240,27 +251,45 @@ export function CheckoutPageClient() {
       const res = await fetch("/api/shipping/checkout-quote", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          toPostalCode: normalizeCep(addressForm.cep),
-        }),
+        body: JSON.stringify({ toPostalCode }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Erro ao calcular frete");
+      lastQuotedCep.current = toPostalCode;
       setShippingQuote(data);
       if (data.options?.[0]) {
         setSelectedShippingId(data.options[0].id);
       }
     } catch (err) {
+      lastQuotedCep.current = "";
       setError(err instanceof Error ? err.message : "Erro ao calcular frete");
     } finally {
       setShippingLoading(false);
     }
-  }
+  }, [addressForm.cep]);
+
+  // Calcula frete automaticamente ao CEP completo (evita o usuário “esquecer” o botão)
+  useEffect(() => {
+    if (cepDigits.length !== 8) return;
+    if (cepDigits === lastQuotedCep.current) return;
+    if (shippingLoading) return;
+    const timer = window.setTimeout(() => {
+      void quoteShipping(cepDigits);
+    }, 550);
+    return () => window.clearTimeout(timer);
+  }, [cepDigits, quoteShipping, shippingLoading]);
 
   async function submitCheckout(card?: CardPaymentData) {
     setError(null);
     if (!shippingQuote?.quoteId || !selectedShippingId) {
-      setError("Calcule e selecione o frete");
+      setError(
+        "Escolha uma opção de frete abaixo para continuar. O frete é calculado automaticamente pelo CEP."
+      );
+      shippingSectionRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+      if (cepDigits.length === 8) void quoteShipping(cepDigits);
       return;
     }
     if (!mpConfig?.enabled) {
@@ -380,6 +409,7 @@ export function CheckoutPageClient() {
                             cidade: address.cidade,
                             estado: address.estado,
                           });
+                          lastQuotedCep.current = "";
                           setShippingQuote(null);
                           setSelectedShippingId(null);
                         }}
@@ -401,10 +431,27 @@ export function CheckoutPageClient() {
               </section>
             ) : null}
 
-            <section>
-              <h2 className="font-display text-xl font-light tracking-[0.06em] text-ink">
-                Entrega
-              </h2>
+            <section ref={shippingSectionRef}>
+              <div className="flex flex-wrap items-end justify-between gap-3">
+                <div>
+                  <h2 className="font-display text-xl font-light tracking-[0.06em] text-ink">
+                    1. Entrega
+                  </h2>
+                  <p className="mt-1 text-sm text-ink-muted">
+                    Informe o CEP — o frete é calculado automaticamente.
+                  </p>
+                </div>
+                {hasShipping ? (
+                  <span className="text-xs font-medium uppercase tracking-[0.12em] text-emerald-700">
+                    Frete selecionado
+                  </span>
+                ) : (
+                  <span className="text-xs font-medium uppercase tracking-[0.12em] text-rose-gold">
+                    Obrigatório para finalizar
+                  </span>
+                )}
+              </div>
+
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 <label className="sm:col-span-1">
                   <span className="text-xs uppercase tracking-[0.14em] text-ink-muted">
@@ -414,11 +461,18 @@ export function CheckoutPageClient() {
                     value={addressForm.cep}
                     onChange={(e) => {
                       const next = formatCepInput(e.target.value);
+                      const digits = normalizeCep(next);
                       setAddressForm((p) => ({ ...p, cep: next }));
-                      if (normalizeCep(next).length === 8) void lookupCep(next);
+                      if (digits !== lastQuotedCep.current) {
+                        lastQuotedCep.current = "";
+                        setShippingQuote(null);
+                        setSelectedShippingId(null);
+                      }
+                      if (digits.length === 8) void lookupCep(next);
                     }}
                     className="mt-1 w-full border border-line bg-cream px-3 py-2.5 text-sm outline-none focus:border-rose-gold"
                     inputMode="numeric"
+                    placeholder="00000-000"
                   />
                 </label>
                 <label>
@@ -502,21 +556,46 @@ export function CheckoutPageClient() {
                 </label>
               </div>
 
-              <button
-                type="button"
-                onClick={() => void quoteShipping()}
-                disabled={shippingLoading || normalizeCep(addressForm.cep).length !== 8}
-                className="mt-4 inline-flex min-h-11 items-center justify-center border border-rose-gold px-5 text-sm tracking-[0.12em] text-rose-gold transition-colors hover:bg-rose-gold hover:text-cream disabled:opacity-40"
-              >
-                {shippingLoading ? "Calculando…" : "Calcular frete"}
-              </button>
+              <div className="mt-4 flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => void quoteShipping()}
+                  disabled={shippingLoading || cepDigits.length !== 8}
+                  className="inline-flex min-h-11 items-center justify-center border border-rose-gold bg-rose-gold px-5 text-sm tracking-[0.12em] text-cream transition-colors hover:bg-rose-gold-light disabled:opacity-40"
+                >
+                  {shippingLoading
+                    ? "Calculando frete…"
+                    : hasShipping
+                      ? "Recalcular frete"
+                      : "Calcular frete"}
+                </button>
+                {cepDigits.length < 8 ? (
+                  <p className="text-sm text-ink-muted">
+                    Digite o CEP completo para ver as opções de entrega.
+                  </p>
+                ) : shippingLoading ? (
+                  <p className="text-sm text-ink-muted">
+                    Buscando transportadoras…
+                  </p>
+                ) : null}
+              </div>
+
+              {!hasShipping && !shippingLoading && cepDigits.length === 8 ? (
+                <p className="mt-3 border border-rose-gold/30 bg-rose-gold/5 px-4 py-3 text-sm text-rose-gold">
+                  Ainda sem frete selecionado. Aguarde o cálculo ou clique em
+                  “Calcular frete” para continuar o pedido.
+                </p>
+              ) : null}
 
               {shippingQuote?.options?.length ? (
                 <div className="mt-4 space-y-2">
+                  <p className="text-xs uppercase tracking-[0.14em] text-ink-muted">
+                    Escolha a entrega
+                  </p>
                   {shippingQuote.options.map((option) => (
                     <label
                       key={option.id}
-                      className="flex cursor-pointer items-center justify-between gap-3 border border-line px-4 py-3 text-sm has-[:checked]:border-rose-gold"
+                      className="flex cursor-pointer items-center justify-between gap-3 border border-line px-4 py-3 text-sm has-[:checked]:border-rose-gold has-[:checked]:bg-rose-gold/5"
                     >
                       <span className="flex items-center gap-3">
                         <input
@@ -549,7 +628,7 @@ export function CheckoutPageClient() {
 
             <section>
               <h2 className="font-display text-xl font-light tracking-[0.06em] text-ink">
-                Destinatário
+                2. Destinatário
               </h2>
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 <label className="sm:col-span-2">
@@ -602,8 +681,14 @@ export function CheckoutPageClient() {
 
             <section>
               <h2 className="font-display text-xl font-light tracking-[0.06em] text-ink">
-                Pagamento
+                3. Pagamento
               </h2>
+              {!hasShipping ? (
+                <p className="mt-3 border border-line bg-ivory/60 px-4 py-3 text-sm text-ink-muted">
+                  Complete a etapa de entrega (CEP + frete) para liberar o
+                  pagamento.
+                </p>
+              ) : null}
               {!mpConfig?.enabled ? (
                 <p className="mt-3 text-sm text-ink-muted">
                   Configure o Mercado Pago em{" "}
@@ -613,7 +698,9 @@ export function CheckoutPageClient() {
                   .
                 </p>
               ) : (
-                <div className="mt-4 flex flex-wrap gap-2">
+                <div
+                  className={`mt-4 flex flex-wrap gap-2 ${!hasShipping ? "pointer-events-none opacity-40" : ""}`}
+                >
                   {mpConfig.methods.map((method) => (
                     <button
                       key={method}
@@ -635,7 +722,9 @@ export function CheckoutPageClient() {
                 </div>
               )}
 
-              {paymentMethod === "credit_card" && mpConfig?.enabled ? (
+              {paymentMethod === "credit_card" &&
+              mpConfig?.enabled &&
+              hasShipping ? (
                 <div className="mt-6">
                   <CardPayment
                     initialization={{
@@ -658,14 +747,26 @@ export function CheckoutPageClient() {
               ) : null}
 
               {paymentMethod !== "credit_card" ? (
-                <button
-                  type="button"
-                  disabled={submitting || !selectedShippingId || !mpConfig?.enabled}
-                  onClick={() => void submitCheckout()}
-                  className="mt-6 inline-flex min-h-12 w-full items-center justify-center bg-rose-gold px-7 text-sm tracking-[0.14em] text-cream transition-colors hover:bg-rose-gold-light disabled:opacity-40 sm:w-auto"
-                >
-                  {submitting ? "Processando…" : "Finalizar pedido"}
-                </button>
+                <div className="mt-6 space-y-2">
+                  <button
+                    type="button"
+                    disabled={submitting || !canFinish}
+                    onClick={() => void submitCheckout()}
+                    className="inline-flex min-h-12 w-full items-center justify-center bg-rose-gold px-7 text-sm tracking-[0.14em] text-cream transition-colors hover:bg-rose-gold-light disabled:opacity-40 sm:w-auto"
+                  >
+                    {submitting
+                      ? "Processando…"
+                      : !hasShipping
+                        ? "Calcule o frete para finalizar"
+                        : "Finalizar pedido"}
+                  </button>
+                  {!hasShipping ? (
+                    <p className="text-xs text-ink-muted">
+                      O botão libera assim que uma opção de frete estiver
+                      selecionada.
+                    </p>
+                  ) : null}
+                </div>
               ) : null}
             </section>
           </div>
@@ -675,6 +776,7 @@ export function CheckoutPageClient() {
             shippingAmount={
               selectedShipping ? selectedShipping.customPrice : null
             }
+            shippingPending={!hasShipping}
           />
         </div>
       </div>
