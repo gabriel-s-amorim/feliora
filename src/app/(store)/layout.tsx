@@ -18,10 +18,7 @@ export default async function StoreLayout({
       <Header categories={categories} />
       <StoreMobileChrome>
         <main className="relative isolate flex-1">
-          <FloralBackground
-            variant="store"
-            className="!fixed inset-0 z-[2]"
-          />
+          <FloralBackground variant="store" />
           <div className="relative z-10">{children}</div>
         </main>
         <Footer categories={categories} />
