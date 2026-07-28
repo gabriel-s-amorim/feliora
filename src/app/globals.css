@@ -205,6 +205,48 @@ body::before {
   animation: floral-petal-float 17s ease-in-out 7s infinite;
 }
 
+@keyframes floral-field-pan-a {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate3d(16px, -12px, 0) rotate(1deg);
+  }
+}
+
+@keyframes floral-field-pan-b {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate3d(-14px, 14px, 0) rotate(-1.2deg);
+  }
+}
+
+@keyframes floral-field-pan-c {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(10px, 10px, 0) scale(1.02);
+  }
+}
+
+.floral-field-pan-a {
+  animation: floral-field-pan-a 32s ease-in-out infinite;
+}
+
+.floral-field-pan-b {
+  animation: floral-field-pan-b 38s ease-in-out infinite;
+}
+
+.floral-field-pan-c {
+  animation: floral-field-pan-c 28s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .floral-drift-a,
   .floral-drift-b,
@@ -213,7 +255,10 @@ body::before {
   .floral-breathe-slow,
   .floral-petal,
   .floral-petal-delay,
-  .floral-petal-slow {
+  .floral-petal-slow,
+  .floral-field-pan-a,
+  .floral-field-pan-b,
+  .floral-field-pan-c {
     animation: none;
   }
 }
