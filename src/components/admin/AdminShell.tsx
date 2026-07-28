@@ -6,7 +6,9 @@ import {
   LogOut,
   Menu,
   Package,
+  Plug,
   Settings2,
+  ShoppingBag,
   Store,
   Tags,
   X,
@@ -28,8 +30,10 @@ const NAV = [
     icon: LayoutDashboard,
   },
   { href: "/admin/produtos", label: "Produtos", icon: Package },
+  { href: "/admin/pedidos", label: "Pedidos", icon: ShoppingBag },
   { href: "/admin/categorias", label: "Categorias", icon: Tags },
   { href: "/admin/banners", label: "Banners", icon: ImageIcon },
+  { href: "/admin/integracoes", label: "Integrações", icon: Plug },
   { href: "/admin/settings", label: "Settings", icon: Settings2 },
 ] as const;
 
