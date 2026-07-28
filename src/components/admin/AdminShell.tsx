@@ -13,6 +13,7 @@ import {
   Tags,
   X,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
@@ -310,9 +311,13 @@ export function AdminShell({
         {/* Desktop sidebar */}
         <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col bg-zinc-950 px-3 py-5 text-zinc-100 lg:flex xl:w-64">
           <Link href="/admin" className="mb-8 flex items-center gap-3 px-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white text-sm font-bold tracking-tight text-zinc-950">
-              F
-            </div>
+            <Image
+              src="/apple-icon.png"
+              alt={SITE_NAME}
+              width={36}
+              height={36}
+              className="h-9 w-9 rounded-lg object-cover"
+            />
             <div className="min-w-0">
               <p className="text-sm font-semibold tracking-tight">{SITE_NAME}</p>
               <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-zinc-500">

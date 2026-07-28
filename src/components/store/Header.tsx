@@ -95,9 +95,9 @@ export function Header({ categories }: HeaderProps) {
           <Image
             src={SITE_LOGO_PATH}
             alt={SITE_NAME}
-            width={140}
-            height={48}
-            className="h-9 w-auto object-contain sm:h-10"
+            width={160}
+            height={160}
+            className="h-11 w-auto object-contain sm:h-12"
             priority
           />
         </Link>

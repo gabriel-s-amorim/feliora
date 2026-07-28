@@ -1,8 +1,14 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
-import { CATALOG_NAV, SITE_NAME, SITE_TAGLINE } from "@/shared/const/site";
+import {
+  CATALOG_NAV,
+  SITE_LOGO_PATH,
+  SITE_NAME,
+  SITE_TAGLINE,
+} from "@/shared/const/site";
 import type { CategoryNavItem } from "@/shared/types/category";
 
 type FooterProps = {
@@ -64,9 +70,15 @@ export function Footer({ categories }: FooterProps) {
     <footer className="mt-auto border-t border-line bg-ivory">
       <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-2 lg:grid-cols-4 lg:px-8">
         <div>
-          <p className="font-display text-2xl tracking-[0.28em] text-rose-gold">
-            {SITE_NAME.toUpperCase()}
-          </p>
+          <Link href="/" className="inline-block">
+            <Image
+              src={SITE_LOGO_PATH}
+              alt={SITE_NAME}
+              width={160}
+              height={120}
+              className="h-14 w-auto object-contain"
+            />
+          </Link>
           <p className="mt-3 max-w-xs text-sm leading-relaxed text-ink-muted">
             {SITE_TAGLINE}. Peças com presença, espaço e acabamento cuidadoso.
           </p>

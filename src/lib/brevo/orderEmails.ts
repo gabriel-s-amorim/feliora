@@ -62,7 +62,7 @@ export function sampleOrderEmailParams() {
         price: money(159.9),
         size: "M",
         color: "Rose",
-        image: `${getPublicAppUrl()}/images/logo-feliora.jpg`,
+        image: `${getPublicAppUrl()}/images/logo-feliora.png`,
       },
     ],
     SHIPPING_COMPANY: "Correios",

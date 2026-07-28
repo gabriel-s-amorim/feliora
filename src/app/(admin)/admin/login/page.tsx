@@ -1,6 +1,7 @@
 "use client";
 
 import { Eye, EyeOff, Lock, Mail } from "lucide-react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
@@ -59,9 +60,13 @@ export default function AdminLoginPage() {
     <div className="admin-app flex min-h-dvh w-full">
       <section className="relative hidden w-[42%] flex-col justify-between bg-zinc-950 p-10 text-zinc-100 lg:flex xl:p-14">
         <div>
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white text-sm font-bold text-zinc-950">
-            F
-          </div>
+          <Image
+            src="/apple-icon.png"
+            alt={SITE_NAME}
+            width={40}
+            height={40}
+            className="h-10 w-10 rounded-lg object-cover"
+          />
           <p className="mt-4 text-sm font-medium text-zinc-400">{SITE_NAME}</p>
         </div>
         <div className="max-w-sm">
@@ -78,9 +83,13 @@ export default function AdminLoginPage() {
       <section className="flex flex-1 items-center justify-center bg-white px-5 py-10">
         <div className="w-full max-w-sm admin-enter">
           <div className="mb-8">
-            <div className="mb-5 flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-950 text-sm font-bold text-white lg:hidden">
-              F
-            </div>
+            <Image
+              src="/apple-icon.png"
+              alt={SITE_NAME}
+              width={40}
+              height={40}
+              className="mb-5 h-10 w-10 rounded-lg object-cover lg:hidden"
+            />
             <h2 className="text-2xl font-semibold tracking-tight text-zinc-950">
               Entrar
             </h2>

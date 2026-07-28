@@ -10,8 +10,8 @@ export const SITE_KEYWORDS =
 export const SITE_LOCALE = "pt_BR";
 export const SITE_THEME_COLOR = "#B76E79";
 export const SITE_BG_COLOR = "#FDF8F4";
-export const SITE_LOGO_PATH = "/images/logo-feliora.jpg";
-export const SITE_OG_IMAGE_PATH = "/images/logo-feliora.jpg";
+export const SITE_LOGO_PATH = "/images/logo-feliora.png";
+export const SITE_OG_IMAGE_PATH = "/images/og-feliora.png";
 /** Domínio canônico público (sem barra final). Placeholder até o domínio definitivo. */
 export const SITE_ORIGIN = "https://feliora.com.br";
 
