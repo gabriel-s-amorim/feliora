@@ -1,5 +1,4 @@
 import { CookieConsent } from "@/components/legal/CookieConsent";
-import { FloralBackground } from "@/components/store/FloralBackground";
 import { Footer } from "@/components/store/Footer";
 import { Header } from "@/components/store/Header";
 import { StoreMobileChrome } from "@/components/store/StoreMobileChrome";
@@ -17,10 +16,7 @@ export default async function StoreLayout({
     <StoreProviders>
       <Header categories={categories} />
       <StoreMobileChrome>
-        <main className="relative isolate flex-1">
-          <FloralBackground variant="store" />
-          <div className="relative z-10">{children}</div>
-        </main>
+        <main className="flex-1">{children}</main>
         <Footer categories={categories} />
       </StoreMobileChrome>
       <CookieConsent />

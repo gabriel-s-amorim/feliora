@@ -103,3 +103,30 @@ body::before {
 .animate-delay-3 {
   animation-delay: 0.44s;
 }
+
+/* Blobs de luz difusa — movimento ambiente muito lento */
+@keyframes blob-drift {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(14px, -18px) scale(1.05);
+  }
+  66% {
+    transform: translate(-10px, 12px) scale(0.97);
+  }
+}
+
+.gradient-blob {
+  will-change: transform;
+  animation-name: blob-drift;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gradient-blob {
+    animation: none !important;
+  }
+}
