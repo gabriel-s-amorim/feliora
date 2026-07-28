@@ -29,7 +29,7 @@ async function toOptimizedWebp(
   folder: UploadFolder
 ): Promise<Buffer> {
   const maxSide = MAX_DIMENSION_BY_FOLDER[folder];
-  return sharp(buffer, { failOn: "none" })
+  const out = await sharp(buffer, { failOn: "none" })
     .rotate()
     .resize({
       width: maxSide,
@@ -39,6 +39,24 @@ async function toOptimizedWebp(
     })
     .webp({ quality: WEBP_QUALITY, effort: 4 })
     .toBuffer();
+
+  // Garante WebP válido antes de subir (evita gravar arquivo corrompido)
+  const meta = await sharp(out).metadata();
+  if (meta.format !== "webp" || !meta.width || !meta.height) {
+    throw new Error("Falha ao gerar WebP válido");
+  }
+
+  return out;
+}
+
+/**
+ * Evita corrupção UTF-8 no Storage: em algumas versões do supabase-js,
+ * enviar Buffer Node faz o binário passar por string UTF-8 (bytes viram U+FFFD).
+ */
+function toUploadBody(buffer: Buffer, contentType: string): Blob {
+  const bytes = new Uint8Array(buffer.byteLength);
+  bytes.set(buffer);
+  return new Blob([bytes], { type: contentType });
 }
 
 export async function uploadAdminImage(
@@ -78,7 +96,7 @@ export async function uploadAdminImage(
 
   const { error } = await supabase.storage
     .from(PRODUCT_IMAGES_BUCKET)
-    .upload(path, body, {
+    .upload(path, toUploadBody(body, contentType), {
       contentType,
       cacheControl: "31536000",
       upsert: false,

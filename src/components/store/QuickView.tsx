@@ -40,10 +40,11 @@ export function QuickView({ product, open, onClose }: QuickViewProps) {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
+    const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     window.addEventListener("keydown", onKey);
     return () => {
-      document.body.style.overflow = "";
+      document.body.style.overflow = prev;
       window.removeEventListener("keydown", onKey);
     };
   }, [open, onClose]);
@@ -67,91 +68,123 @@ export function QuickView({ product, open, onClose }: QuickViewProps) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
+    <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center sm:p-4">
       <button
         type="button"
-        className="absolute inset-0 bg-ink/40"
+        className="absolute inset-0 bg-ink/45 backdrop-blur-[1px]"
         aria-label="Fechar"
         onClick={onClose}
       />
+
       <div
         role="dialog"
         aria-modal
         aria-label={product.name}
-        className="relative z-10 flex max-h-[92dvh] w-full max-w-3xl flex-col overflow-hidden rounded-t-md border border-line bg-cream sm:mx-4 sm:max-h-[85vh] sm:flex-row sm:rounded-md"
+        className="relative z-10 flex max-h-[88dvh] w-full max-w-3xl flex-col overflow-hidden rounded-t-2xl border border-line bg-cream shadow-2xl sm:max-h-[min(85vh,640px)] sm:flex-row sm:rounded-xl"
       >
-        <div className="relative aspect-[3/4] w-full shrink-0 bg-ivory sm:aspect-auto sm:w-1/2">
+        {/* Mobile drag handle */}
+        <div className="flex justify-center pt-2.5 sm:hidden" aria-hidden>
+          <span className="h-1 w-10 rounded-full bg-line" />
+        </div>
+
+        {/* Image — capped height on mobile so content stays visible */}
+        <div className="relative mx-4 mt-2 h-[min(34dvh,240px)] shrink-0 overflow-hidden rounded-xl bg-ivory sm:mx-0 sm:mt-0 sm:h-auto sm:w-[42%] sm:rounded-none">
           {product.image ? (
             <Image
               src={product.image}
               alt={product.name}
               fill
-              className="object-cover"
-              sizes="(max-width: 640px) 100vw, 50vw"
+              className="object-cover object-top"
+              sizes="(max-width: 640px) 100vw, 42vw"
+              priority
             />
           ) : null}
-        </div>
-
-        <div className="flex flex-1 flex-col overflow-y-auto p-5 sm:p-7">
           <button
             type="button"
             onClick={onClose}
-            className="absolute right-3 top-3 flex size-10 items-center justify-center text-ink-muted hover:text-ink"
+            className="absolute right-2 top-2 flex size-9 items-center justify-center rounded-full bg-cream/90 text-ink shadow-sm backdrop-blur-sm sm:right-3 sm:top-3"
             aria-label="Fechar"
           >
             ✕
           </button>
+        </div>
 
-          <p className="text-[10px] uppercase tracking-[0.18em] text-earth">
-            {product.category?.name}
-          </p>
-          <h2 className="mt-2 font-display text-2xl font-light tracking-[0.04em] text-ink">
-            {product.name}
-          </h2>
-          <p className="mt-2 text-sm text-ink">{formatPrice(product.price)}</p>
+        {/* Details + sticky CTA */}
+        <div className="flex min-h-0 flex-1 flex-col">
+          <div className="flex-1 overflow-y-auto px-4 pb-3 pt-4 sm:px-7 sm:pb-4 sm:pt-7">
+            <p className="text-[10px] uppercase tracking-[0.18em] text-earth">
+              {product.category?.name}
+            </p>
+            <h2 className="mt-1.5 font-display text-[1.65rem] font-light leading-tight tracking-[0.04em] text-ink sm:text-2xl">
+              {product.name}
+            </h2>
 
-          <div className="mt-6">
-            <VariantSelector
-              product={product}
-              size={size}
-              color={color}
-              onSizeChange={setSize}
-              onColorChange={setColor}
-            />
-          </div>
+            <div className="mt-2 flex items-baseline gap-2.5">
+              <p className="text-base font-medium text-ink">
+                {formatPrice(product.price)}
+              </p>
+              {product.originalPrice != null &&
+              product.originalPrice > product.price ? (
+                <p className="text-sm text-ink-muted line-through">
+                  {formatPrice(product.originalPrice)}
+                </p>
+              ) : null}
+            </div>
 
-          <p
-            className={cn(
-              "mt-4 text-xs tracking-wide",
-              available ? "text-earth" : "text-rose-gold"
-            )}
-          >
-            {available ? "Em estoque" : "Combinação indisponível"}
-          </p>
+            {product.shortDescription ? (
+              <p className="mt-3 line-clamp-2 text-sm leading-relaxed text-ink-muted">
+                {product.shortDescription}
+              </p>
+            ) : null}
 
-          {(message || error) && (
+            <div className="mt-5">
+              <VariantSelector
+                product={product}
+                size={size}
+                color={color}
+                onSizeChange={setSize}
+                onColorChange={setColor}
+              />
+            </div>
+
             <p
               className={cn(
-                "mt-2 text-xs",
-                message ? "text-earth" : "text-rose-gold"
+                "mt-3 text-xs tracking-wide",
+                available ? "text-earth" : "text-rose-gold"
               )}
             >
-              {message ?? error}
+              {available ? "Em estoque" : "Combinação indisponível"}
             </p>
-          )}
 
-          <div className="mt-auto flex flex-col gap-2 pt-8">
+            {(message || error) && (
+              <p
+                className={cn(
+                  "mt-2 text-xs",
+                  message ? "text-earth" : "text-rose-gold"
+                )}
+              >
+                {message ?? error}
+              </p>
+            )}
+          </div>
+
+          <div
+            className="shrink-0 border-t border-line bg-cream px-4 pt-3 sm:px-7"
+            style={{
+              paddingBottom: "max(0.85rem, env(safe-area-inset-bottom))",
+            }}
+          >
             <button
               type="button"
               disabled={!available || pending}
               onClick={() => void handleAdd()}
-              className="inline-flex min-h-12 items-center justify-center border border-rose-gold bg-rose-gold text-sm tracking-[0.14em] text-cream transition-colors hover:bg-rose-gold-light disabled:opacity-40"
+              className="inline-flex min-h-12 w-full items-center justify-center border border-rose-gold bg-rose-gold text-sm tracking-[0.14em] text-cream transition-colors hover:bg-rose-gold-light disabled:opacity-40"
             >
               {pending ? "Adicionando…" : "Adicionar ao carrinho"}
             </button>
             <Link
               href={`/produto/${product.slug}`}
-              className="inline-flex min-h-11 items-center justify-center text-sm tracking-[0.12em] text-ink-muted hover:text-rose-gold"
+              className="mt-2 inline-flex min-h-10 w-full items-center justify-center text-sm tracking-[0.12em] text-ink-muted hover:text-rose-gold"
               onClick={onClose}
             >
               Ver produto completo

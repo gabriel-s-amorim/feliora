@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useCart } from "@/contexts/CartContext";
 import { useCustomerAuth } from "@/contexts/CustomerAuthContext";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { cn } from "@/lib/utils";
@@ -46,15 +45,6 @@ function IconUser({ className }: { className?: string }) {
   );
 }
 
-function IconBag({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
-      <path d="M6 8h12l-1 11H7L6 8z" strokeLinejoin="round" />
-      <path d="M9 8V7a3 3 0 0 1 6 0v1" strokeLinecap="round" />
-    </svg>
-  );
-}
-
 const TABS = [
   { href: "/", label: "Início", icon: IconHome, exact: true },
   { href: "/catalogo", label: "Catálogo", icon: IconGrid },
@@ -79,7 +69,6 @@ function hideTabBar(pathname: string) {
 
 export function StoreBottomNav() {
   const pathname = usePathname();
-  const { cart, openDrawer } = useCart();
   const { count: wishCount } = useWishlist();
   const { user } = useCustomerAuth();
 
@@ -130,23 +119,6 @@ export function StoreBottomNav() {
             </Link>
           );
         })}
-
-        <button
-          type="button"
-          onClick={openDrawer}
-          className="relative flex min-h-[3.35rem] flex-1 flex-col items-center justify-center gap-0.5 text-ink-muted transition-colors active:text-rose-gold"
-          aria-label="Abrir sacola"
-        >
-          <span className="relative">
-            <IconBag className="size-5" />
-            {cart.itemCount > 0 ? (
-              <span className="absolute -right-2 -top-1.5 flex size-3.5 items-center justify-center rounded-full bg-rose-gold text-[8px] text-cream">
-                {cart.itemCount > 9 ? "9+" : cart.itemCount}
-              </span>
-            ) : null}
-          </span>
-          <span className="text-[10px] tracking-[0.06em]">Sacola</span>
-        </button>
       </div>
     </nav>
   );

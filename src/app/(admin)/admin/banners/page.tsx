@@ -234,6 +234,7 @@ export default function AdminBannersPage() {
               <ImageUploader
                 folder="banners"
                 multiple={false}
+                aspect="wide"
                 label="Imagem desktop"
                 urls={form.imageUrl ? [form.imageUrl] : []}
                 onChange={(urls) =>
@@ -243,12 +244,19 @@ export default function AdminBannersPage() {
               <ImageUploader
                 folder="banners"
                 multiple={false}
+                aspect="wide"
                 label="Imagem mobile (opcional)"
                 urls={form.imageUrlMobile ? [form.imageUrlMobile] : []}
                 onChange={(urls) =>
                   setForm((f) => ({ ...f, imageUrlMobile: urls[0] ?? "" }))
                 }
               />
+              {form.imageUrl ? (
+                <p className="rounded-xl bg-emerald-50 px-3 py-2 text-xs text-emerald-800">
+                  Imagem pronta. Clique em <strong>Salvar</strong> para publicar
+                  na home.
+                </p>
+              ) : null}
               <AdminField label="Título interno">
                 <AdminInput
                   value={form.title}

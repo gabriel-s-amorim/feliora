@@ -16,6 +16,8 @@ type Props = {
   onChange: (urls: string[]) => void;
   multiple?: boolean;
   label?: string;
+  /** Preview landscape (ideal para banners) */
+  aspect?: "square" | "wide";
 };
 
 export function ImageUploader({
@@ -24,11 +26,13 @@ export function ImageUploader({
   onChange,
   multiple = true,
   label = "Imagens",
+  aspect = "square",
 }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
   const [dragging, setDragging] = useState(false);
+  const [broken, setBroken] = useState<Record<string, boolean>>({});
 
   async function handleFiles(files: FileList | null) {
     if (!files?.length) return;
@@ -131,18 +135,52 @@ export function ImageUploader({
       {error ? <AdminAlert>{error}</AdminAlert> : null}
 
       {urls.length > 0 ? (
-        <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+        <ul
+          className={
+            aspect === "wide"
+              ? "grid grid-cols-1 gap-3"
+              : "grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4"
+          }
+        >
           {urls.map((url, index) => (
             <li
               key={`${url}-${index}`}
               className="group relative overflow-hidden rounded-2xl border border-[var(--admin-line)] bg-[var(--admin-surface-2)] shadow-sm"
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={url}
-                alt=""
-                className="aspect-square w-full object-cover transition duration-300 group-hover:scale-[1.03]"
-              />
+              {broken[url] ? (
+                <div
+                  className={`flex flex-col items-center justify-center gap-2 px-4 text-center ${
+                    aspect === "wide" ? "aspect-[16/9]" : "aspect-square"
+                  }`}
+                >
+                  <p className="text-sm font-medium text-[var(--admin-ink)]">
+                    Preview indisponível
+                  </p>
+                  <p className="break-all text-[10px] text-[var(--admin-muted)]">
+                    {url}
+                  </p>
+                </div>
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={url}
+                  alt=""
+                  className={`w-full bg-zinc-100 object-cover transition duration-300 group-hover:scale-[1.02] ${
+                    aspect === "wide" ? "aspect-[16/9]" : "aspect-square"
+                  }`}
+                  onError={() =>
+                    setBroken((prev) => ({ ...prev, [url]: true }))
+                  }
+                  onLoad={() =>
+                    setBroken((prev) => {
+                      if (!prev[url]) return prev;
+                      const next = { ...prev };
+                      delete next[url];
+                      return next;
+                    })
+                  }
+                />
+              )}
               <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent opacity-0 transition group-hover:opacity-100" />
               <div className="absolute inset-x-2 bottom-2 flex gap-1 opacity-0 transition group-hover:opacity-100">
                 {multiple && index > 0 ? (
