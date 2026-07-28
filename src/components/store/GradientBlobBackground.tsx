@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 
-type BlobTone = "rose-blush" | "blush-cream" | "earth-blush" | "rose-cream";
+type BlobTone = "rose-blush" | "blush-warm" | "earth-rose" | "rose-soft";
 type BlobAnchor =
   | "top-left"
   | "top-right"
@@ -14,13 +14,11 @@ export type GradientBlob = {
   position: BlobAnchor;
   /** Diâmetro aproximado em px */
   size?: number;
-  /** Blur em px (80–120) */
+  /** Blur em px */
   blur?: number;
-  /** Opacidade do blob 0–1 */
-  opacity?: number;
-  /** Delay da animação, ex: "0s" | "4s" */
+  /** Intensidade 0–1 (misturada nas cores do gradiente) */
+  intensity?: number;
   delay?: string;
-  /** Duração da animação */
   duration?: string;
   className?: string;
 };
@@ -28,24 +26,24 @@ export type GradientBlob = {
 type Props = {
   className?: string;
   blobs?: GradientBlob[];
-  /** featured = laterais da seção Em destaque */
   variant?: "featured" | "ambient";
 };
 
+/** Pares de cor — ambos com pigmento; evita terminar em cream (= invisível) */
 const TONES: Record<BlobTone, [string, string]> = {
   "rose-blush": ["var(--color-rose-gold)", "var(--color-blush)"],
-  "blush-cream": ["var(--color-blush)", "var(--color-cream)"],
-  "earth-blush": ["var(--color-earth)", "var(--color-blush)"],
-  "rose-cream": ["var(--color-rose-gold)", "var(--color-ivory)"],
+  "blush-warm": ["var(--color-blush)", "var(--color-rose-gold-light)"],
+  "earth-rose": ["var(--color-earth)", "var(--color-rose-gold)"],
+  "rose-soft": ["var(--color-rose-gold-light)", "var(--color-blush)"],
 };
 
 const ANCHOR: Record<BlobAnchor, string> = {
-  "top-left": "left-0 top-0 -translate-x-1/3 -translate-y-1/4",
-  "top-right": "right-0 top-0 translate-x-1/3 -translate-y-1/4",
-  "bottom-left": "bottom-0 left-0 -translate-x-1/3 translate-y-1/4",
-  "bottom-right": "bottom-0 right-0 translate-x-1/3 translate-y-1/4",
-  "mid-left": "left-0 top-1/2 -translate-x-[40%] -translate-y-1/2",
-  "mid-right": "right-0 top-1/2 translate-x-[40%] -translate-y-1/2",
+  "top-left": "left-0 top-0 -translate-x-[15%] -translate-y-[10%]",
+  "top-right": "right-0 top-0 translate-x-[15%] -translate-y-[10%]",
+  "bottom-left": "bottom-0 left-0 -translate-x-[15%] translate-y-[10%]",
+  "bottom-right": "bottom-0 right-0 translate-x-[15%] translate-y-[10%]",
+  "mid-left": "left-0 top-1/2 -translate-x-[20%] -translate-y-1/2",
+  "mid-right": "right-0 top-1/2 translate-x-[20%] -translate-y-1/2",
 };
 
 const ORGANIC_RADIUS = [
@@ -59,27 +57,27 @@ const PRESETS: Record<NonNullable<Props["variant"]>, GradientBlob[]> = {
     {
       position: "mid-left",
       tone: "rose-blush",
-      size: 420,
-      blur: 100,
-      opacity: 0.2,
+      size: 480,
+      blur: 80,
+      intensity: 0.45,
       delay: "0s",
       duration: "18s",
     },
     {
       position: "top-right",
-      tone: "blush-cream",
-      size: 360,
-      blur: 90,
-      opacity: 0.22,
+      tone: "blush-warm",
+      size: 420,
+      blur: 75,
+      intensity: 0.4,
       delay: "3s",
       duration: "22s",
     },
     {
       position: "bottom-right",
-      tone: "earth-blush",
-      size: 320,
-      blur: 110,
-      opacity: 0.16,
+      tone: "earth-rose",
+      size: 380,
+      blur: 85,
+      intensity: 0.35,
       delay: "7s",
       duration: "20s",
     },
@@ -87,24 +85,30 @@ const PRESETS: Record<NonNullable<Props["variant"]>, GradientBlob[]> = {
   ambient: [
     {
       position: "top-left",
-      tone: "blush-cream",
-      size: 380,
-      blur: 100,
-      opacity: 0.18,
+      tone: "blush-warm",
+      size: 420,
+      blur: 80,
+      intensity: 0.38,
       delay: "0s",
       duration: "20s",
     },
     {
       position: "bottom-right",
       tone: "rose-blush",
-      size: 400,
-      blur: 110,
-      opacity: 0.18,
+      size: 440,
+      blur: 85,
+      intensity: 0.4,
       delay: "5s",
       duration: "24s",
     },
   ],
 };
+
+function blobBackground(from: string, to: string, intensity: number): string {
+  const core = `color-mix(in srgb, ${from} ${Math.round(intensity * 100)}%, transparent)`;
+  const mid = `color-mix(in srgb, ${to} ${Math.round(intensity * 70)}%, transparent)`;
+  return `radial-gradient(ellipse at 40% 40%, ${core} 0%, ${mid} 42%, transparent 72%)`;
+}
 
 /**
  * Luz colorida difusa nas laterais — só CSS, sem ilustração.
@@ -126,9 +130,9 @@ export function GradientBlobBackground({
     >
       {items.map((blob, i) => {
         const [from, to] = TONES[blob.tone ?? "rose-blush"];
-        const size = blob.size ?? 360;
-        const blur = blob.blur ?? 100;
-        const opacity = blob.opacity ?? 0.2;
+        const size = blob.size ?? 400;
+        const blur = blob.blur ?? 80;
+        const intensity = blob.intensity ?? 0.4;
         const radius = ORGANIC_RADIUS[i % ORGANIC_RADIUS.length];
 
         return (
@@ -137,14 +141,12 @@ export function GradientBlobBackground({
             className={cn("absolute", ANCHOR[blob.position], blob.className)}
             style={{ width: size, height: size }}
           >
-            {/* Camada interna: animação não sobrescreve o translate de âncora */}
             <div
               className="gradient-blob h-full w-full"
               style={{
                 borderRadius: radius,
-                opacity,
                 filter: `blur(${blur}px)`,
-                background: `radial-gradient(ellipse at 35% 40%, ${from} 0%, ${to} 55%, transparent 75%)`,
+                background: blobBackground(from, to, intensity),
                 animationDelay: blob.delay ?? "0s",
                 animationDuration: blob.duration ?? "20s",
               }}
