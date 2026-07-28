@@ -26,6 +26,7 @@ type CustomerAuthContextValue = {
     email: string;
     password: string;
     fullName: string;
+    phone?: string;
   }) => Promise<{ needsEmailConfirmation: boolean }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -33,6 +34,7 @@ type CustomerAuthContextValue = {
     fullName: string;
     phone: string;
   }) => Promise<void>;
+  updatePassword: (password: string) => Promise<void>;
 };
 
 const CustomerAuthContext = createContext<CustomerAuthContextValue | null>(
@@ -149,17 +151,37 @@ export function CustomerAuthProvider({
   }, []);
 
   const signUp = useCallback(
-    async (input: { email: string; password: string; fullName: string }) => {
+    async (input: {
+      email: string;
+      password: string;
+      fullName: string;
+      phone?: string;
+    }) => {
       const supabase = createClient();
       const { data, error } = await supabase.auth.signUp({
         email: input.email,
         password: input.password,
         options: {
-          data: { full_name: input.fullName },
+          data: {
+            full_name: input.fullName,
+            phone: input.phone ?? "",
+          },
           emailRedirectTo: `${window.location.origin}/conta`,
         },
       });
       if (error) throw error;
+
+      if (data.session && input.phone) {
+        await fetch("/api/account/profile", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            fullName: input.fullName,
+            phone: input.phone,
+          }),
+        });
+      }
+
       return { needsEmailConfirmation: !data.session };
     },
     []
@@ -174,17 +196,28 @@ export function CustomerAuthProvider({
   const updateProfile = useCallback(
     async (input: { fullName: string; phone: string }) => {
       if (!user) throw new Error("Não autenticado");
-      const supabase = createClient();
-      const { error } = await supabase.from("customer_profiles").upsert({
-        id: user.id,
-        full_name: input.fullName,
-        phone: input.phone,
+      const res = await fetch("/api/account/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(input),
       });
-      if (error) throw error;
-      setProfile({ fullName: input.fullName, phone: input.phone });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error ?? "Erro ao salvar perfil");
+      }
+      setProfile({
+        fullName: data.fullName ?? input.fullName,
+        phone: data.phone ?? input.phone,
+      });
     },
     [user]
   );
+
+  const updatePassword = useCallback(async (password: string) => {
+    const supabase = createClient();
+    const { error } = await supabase.auth.updateUser({ password });
+    if (error) throw error;
+  }, []);
 
   const value = useMemo(
     () => ({
@@ -196,6 +229,7 @@ export function CustomerAuthProvider({
       signOut,
       refreshProfile,
       updateProfile,
+      updatePassword,
     }),
     [
       user,
@@ -206,6 +240,7 @@ export function CustomerAuthProvider({
       signOut,
       refreshProfile,
       updateProfile,
+      updatePassword,
     ]
   );
 

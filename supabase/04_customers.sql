@@ -48,10 +48,11 @@ security definer
 set search_path = public
 as $$
 begin
-  insert into public.customer_profiles (id, full_name)
+  insert into public.customer_profiles (id, full_name, phone)
   values (
     new.id,
-    coalesce(new.raw_user_meta_data->>'full_name', '')
+    coalesce(new.raw_user_meta_data->>'full_name', ''),
+    coalesce(new.raw_user_meta_data->>'phone', '')
   )
   on conflict (id) do nothing;
   return new;
