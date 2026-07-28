@@ -1,0 +1,227 @@
+"use client";
+
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import type { User } from "@supabase/supabase-js";
+import { createClient } from "@/lib/supabase/client";
+
+type Profile = {
+  fullName: string;
+  phone: string;
+};
+
+type CustomerAuthContextValue = {
+  user: User | null;
+  profile: Profile | null;
+  loading: boolean;
+  signIn: (email: string, password: string) => Promise<void>;
+  signUp: (input: {
+    email: string;
+    password: string;
+    fullName: string;
+  }) => Promise<{ needsEmailConfirmation: boolean }>;
+  signOut: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
+  updateProfile: (input: {
+    fullName: string;
+    phone: string;
+  }) => Promise<void>;
+};
+
+const CustomerAuthContext = createContext<CustomerAuthContextValue | null>(
+  null
+);
+
+export const CART_REFRESH_EVENT = "feliora:cart-refresh";
+
+async function mergeGuestCart() {
+  try {
+    await fetch("/api/cart/merge", { method: "POST" });
+  } catch {
+    // silencioso — carrinho ainda pode ser recarregado
+  }
+  window.dispatchEvent(new Event(CART_REFRESH_EVENT));
+}
+
+export function CustomerAuthProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const mergedForUser = useRef<string | null>(null);
+
+  const loadProfile = useCallback(async (userId: string) => {
+    try {
+      const supabase = createClient();
+      const { data } = await supabase
+        .from("customer_profiles")
+        .select("full_name, phone")
+        .eq("id", userId)
+        .maybeSingle();
+
+      if (data) {
+        setProfile({
+          fullName: data.full_name ?? "",
+          phone: data.phone ?? "",
+        });
+      } else {
+        setProfile({ fullName: "", phone: "" });
+      }
+    } catch {
+      setProfile(null);
+    }
+  }, []);
+
+  const refreshProfile = useCallback(async () => {
+    if (!user) return;
+    await loadProfile(user.id);
+  }, [user, loadProfile]);
+
+  useEffect(() => {
+    let mounted = true;
+    const supabase = createClient();
+
+    async function init() {
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        if (!mounted) return;
+        setUser(session?.user ?? null);
+        if (session?.user) {
+          await loadProfile(session.user.id);
+          if (mergedForUser.current !== session.user.id) {
+            mergedForUser.current = session.user.id;
+            await mergeGuestCart();
+          }
+        }
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    }
+
+    void init();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        await loadProfile(session.user.id);
+        if (
+          (event === "SIGNED_IN" || event === "INITIAL_SESSION") &&
+          mergedForUser.current !== session.user.id
+        ) {
+          mergedForUser.current = session.user.id;
+          await mergeGuestCart();
+        }
+      } else {
+        setProfile(null);
+        mergedForUser.current = null;
+        window.dispatchEvent(new Event(CART_REFRESH_EVENT));
+      }
+      setLoading(false);
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, [loadProfile]);
+
+  const signIn = useCallback(async (email: string, password: string) => {
+    const supabase = createClient();
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (error) throw error;
+  }, []);
+
+  const signUp = useCallback(
+    async (input: { email: string; password: string; fullName: string }) => {
+      const supabase = createClient();
+      const { data, error } = await supabase.auth.signUp({
+        email: input.email,
+        password: input.password,
+        options: {
+          data: { full_name: input.fullName },
+          emailRedirectTo: `${window.location.origin}/conta`,
+        },
+      });
+      if (error) throw error;
+      return { needsEmailConfirmation: !data.session };
+    },
+    []
+  );
+
+  const signOut = useCallback(async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    mergedForUser.current = null;
+  }, []);
+
+  const updateProfile = useCallback(
+    async (input: { fullName: string; phone: string }) => {
+      if (!user) throw new Error("Não autenticado");
+      const supabase = createClient();
+      const { error } = await supabase.from("customer_profiles").upsert({
+        id: user.id,
+        full_name: input.fullName,
+        phone: input.phone,
+      });
+      if (error) throw error;
+      setProfile({ fullName: input.fullName, phone: input.phone });
+    },
+    [user]
+  );
+
+  const value = useMemo(
+    () => ({
+      user,
+      profile,
+      loading,
+      signIn,
+      signUp,
+      signOut,
+      refreshProfile,
+      updateProfile,
+    }),
+    [
+      user,
+      profile,
+      loading,
+      signIn,
+      signUp,
+      signOut,
+      refreshProfile,
+      updateProfile,
+    ]
+  );
+
+  return (
+    <CustomerAuthContext.Provider value={value}>
+      {children}
+    </CustomerAuthContext.Provider>
+  );
+}
+
+export function useCustomerAuth() {
+  const ctx = useContext(CustomerAuthContext);
+  if (!ctx) {
+    throw new Error(
+      "useCustomerAuth deve ser usado dentro de CustomerAuthProvider"
+    );
+  }
+  return ctx;
+}

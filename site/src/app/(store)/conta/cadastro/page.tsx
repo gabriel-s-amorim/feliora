@@ -1,0 +1,23 @@
+import type { Metadata } from "next";
+import { RegisterForm } from "@/components/store/auth/RegisterForm";
+
+export const metadata: Metadata = {
+  title: "Criar conta",
+  description: "Cadastre-se na Feliora.",
+};
+
+export default function CadastroPage() {
+  return (
+    <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:px-8">
+      <header className="mb-10 text-center">
+        <p className="font-display text-xs uppercase tracking-[0.35em] text-rose-gold">
+          Conta
+        </p>
+        <h1 className="mt-3 font-display text-3xl font-light tracking-[0.06em] text-ink">
+          Criar conta
+        </h1>
+      </header>
+      <RegisterForm />
+    </section>
+  );
+}

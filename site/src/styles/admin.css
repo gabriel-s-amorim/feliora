@@ -1,0 +1,230 @@
+/* Painel admin — full-bleed, branco + detalhes escuros (independente da loja) */
+
+.admin-app {
+  --admin-bg: #f4f4f5;
+  --admin-surface: #ffffff;
+  --admin-surface-2: #f4f4f5;
+  --admin-ink: #09090b;
+  --admin-muted: #71717a;
+  --admin-line: #e4e4e7;
+  --admin-accent: #18181b;
+  --admin-accent-soft: rgba(24, 24, 27, 0.06);
+  --admin-sidebar: #09090b;
+  --admin-sidebar-text: #fafafa;
+  --admin-sidebar-muted: #a1a1aa;
+  --admin-sidebar-hover: rgba(255, 255, 255, 0.06);
+  --admin-sidebar-active: rgba(255, 255, 255, 0.1);
+  --admin-success: #15803d;
+  --admin-danger: #b91c1c;
+  --admin-shadow: 0 1px 2px rgba(9, 9, 11, 0.04),
+    0 8px 24px rgba(9, 9, 11, 0.04);
+  --admin-radius: 0.875rem;
+  min-height: 100dvh;
+  width: 100%;
+  color: var(--admin-ink);
+  background: var(--admin-bg);
+}
+
+body:has(.admin-app)::before {
+  display: none;
+}
+
+.admin-app input,
+.admin-app textarea,
+.admin-app select,
+.admin-app button {
+  font-family: inherit;
+}
+
+.admin-panel {
+  border: 1px solid var(--admin-line);
+  border-radius: var(--admin-radius);
+  background: var(--admin-surface);
+  box-shadow: var(--admin-shadow);
+}
+
+.admin-input {
+  width: 100%;
+  border-radius: 0.625rem;
+  border: 1px solid var(--admin-line);
+  background: #ffffff;
+  padding: 0.65rem 0.85rem;
+  font-size: 0.9rem;
+  color: var(--admin-ink);
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.admin-input:focus {
+  border-color: #a1a1aa;
+  box-shadow: 0 0 0 3px rgba(9, 9, 11, 0.08);
+}
+
+.admin-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: var(--admin-surface-2);
+}
+
+.admin-label {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--admin-muted);
+}
+
+.admin-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  border-radius: 0.625rem;
+  padding: 0.6rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: background 0.15s ease, border-color 0.15s ease, opacity 0.15s ease,
+    color 0.15s ease;
+}
+
+.admin-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.admin-btn-primary {
+  background: var(--admin-ink);
+  color: #fafafa;
+  border: 1px solid var(--admin-ink);
+}
+
+.admin-btn-primary:hover:not(:disabled) {
+  background: #27272a;
+  border-color: #27272a;
+}
+
+.admin-btn-secondary {
+  background: #ffffff;
+  color: var(--admin-ink);
+  border: 1px solid var(--admin-line);
+}
+
+.admin-btn-secondary:hover:not(:disabled) {
+  background: var(--admin-surface-2);
+  border-color: #d4d4d8;
+}
+
+.admin-btn-ghost {
+  background: transparent;
+  color: var(--admin-muted);
+  border: 1px solid transparent;
+  padding-inline: 0.7rem;
+}
+
+.admin-btn-ghost:hover:not(:disabled) {
+  color: var(--admin-ink);
+  background: var(--admin-accent-soft);
+}
+
+.admin-btn-danger {
+  background: #fef2f2;
+  color: var(--admin-danger);
+  border: 1px solid #fecaca;
+}
+
+.admin-btn-danger:hover:not(:disabled) {
+  background: #fee2e2;
+}
+
+.admin-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  border-radius: 999px;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.admin-badge-success {
+  background: #dcfce7;
+  color: var(--admin-success);
+}
+
+.admin-badge-muted {
+  background: #f4f4f5;
+  color: var(--admin-muted);
+}
+
+.admin-table-wrap {
+  overflow: hidden;
+  border: 1px solid var(--admin-line);
+  border-radius: var(--admin-radius);
+  background: var(--admin-surface);
+  box-shadow: var(--admin-shadow);
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.9rem;
+}
+
+.admin-table thead {
+  background: #fafafa;
+}
+
+.admin-table th {
+  padding: 0.8rem 1rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--admin-muted);
+  border-bottom: 1px solid var(--admin-line);
+}
+
+.admin-table td {
+  padding: 0.9rem 1rem;
+  border-top: 1px solid var(--admin-line);
+  vertical-align: middle;
+}
+
+.admin-table tbody tr {
+  transition: background 0.12s ease;
+}
+
+.admin-table tbody tr:hover {
+  background: #fafafa;
+}
+
+@keyframes admin-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.admin-enter {
+  animation: admin-enter 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.admin-enter-delay-1 {
+  animation-delay: 0.05s;
+}
+
+.admin-enter-delay-2 {
+  animation-delay: 0.1s;
+}
+
+.admin-enter-delay-3 {
+  animation-delay: 0.15s;
+}

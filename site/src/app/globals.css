@@ -1,0 +1,105 @@
+@import "tailwindcss";
+
+:root {
+  --color-cream: #fdf8f4;
+  --color-ivory: #f7f0e8;
+  --color-rose-gold: #b76e79;
+  --color-rose-gold-light: #c9a07a;
+  --color-blush: #d4a59a;
+  --color-earth: #8c7b6a;
+  --color-ink: #2c241b;
+  --color-ink-muted: #6b5e52;
+  --color-line: rgba(183, 110, 121, 0.25);
+
+  --background: var(--color-cream);
+  --foreground: var(--color-ink);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-cream: var(--color-cream);
+  --color-ivory: var(--color-ivory);
+  --color-rose-gold: var(--color-rose-gold);
+  --color-rose-gold-light: var(--color-rose-gold-light);
+  --color-blush: var(--color-blush);
+  --color-earth: var(--color-earth);
+  --color-ink: var(--color-ink);
+  --color-ink-muted: var(--color-ink-muted);
+  --color-line: var(--color-line);
+  --font-sans: var(--font-outfit);
+  --font-display: var(--font-cormorant);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-outfit), system-ui, sans-serif;
+}
+
+/* Textura de papel sutil — eco da logo */
+body::before {
+  content: "";
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  opacity: 0.035;
+  background-image: url("/textures/paper-grain.svg");
+  background-repeat: repeat;
+  background-size: 180px 180px;
+  mix-blend-mode: multiply;
+}
+
+::selection {
+  background-color: color-mix(in srgb, var(--color-rose-gold) 28%, transparent);
+  color: var(--color-ink);
+}
+
+.font-display {
+  font-family: var(--font-cormorant), "Times New Roman", serif;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.8s ease-out both;
+}
+
+.animate-fade-in {
+  animation: fade-in 1s ease-out both;
+}
+
+.animate-delay-1 {
+  animation-delay: 0.12s;
+}
+
+.animate-delay-2 {
+  animation-delay: 0.28s;
+}
+
+.animate-delay-3 {
+  animation-delay: 0.44s;
+}
