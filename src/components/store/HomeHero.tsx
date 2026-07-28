@@ -72,7 +72,7 @@ export function HomeHero({ banners }: Props) {
   if (!hasBanners) {
     return (
       <section className="relative isolate min-h-[calc(100dvh-3.5rem)] overflow-hidden sm:min-h-[calc(100dvh-4rem)]">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-cream/40" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#f7efe6]/70 via-cream/40 to-transparent" />
         <div className="relative z-10">{content}</div>
       </section>
     );

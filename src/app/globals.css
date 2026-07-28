@@ -104,7 +104,7 @@ body::before {
   animation-delay: 0.44s;
 }
 
-/* ── Fundo floral (tatuagem) ─────────────────────────────────────────────── */
+/* ── Fundo floral sutil (tatuagem) ───────────────────────────────────────── */
 
 @keyframes floral-drift-a {
   0%,
@@ -112,7 +112,7 @@ body::before {
     transform: translate3d(0, 0, 0) rotate(0deg);
   }
   50% {
-    transform: translate3d(10px, -14px, 0) rotate(1.4deg);
+    transform: translate3d(8px, -10px, 0) rotate(1deg);
   }
 }
 
@@ -122,7 +122,7 @@ body::before {
     transform: translate3d(0, 0, 0) rotate(0deg);
   }
   50% {
-    transform: translate3d(-12px, 10px, 0) rotate(-1.6deg);
+    transform: translate3d(-10px, 8px, 0) rotate(-1.2deg);
   }
 }
 
@@ -131,11 +131,8 @@ body::before {
   100% {
     transform: translate3d(0, 0, 0) rotate(0deg);
   }
-  33% {
-    transform: translate3d(8px, 8px, 0) rotate(1deg);
-  }
-  66% {
-    transform: translate3d(-6px, -10px, 0) rotate(-0.8deg);
+  50% {
+    transform: translate3d(6px, 6px, 0) rotate(0.8deg);
   }
 }
 
@@ -145,7 +142,7 @@ body::before {
     transform: scale(1) translate3d(0, 0, 0);
   }
   50% {
-    transform: scale(1.035) translate3d(0, -8px, 0);
+    transform: scale(1.025) translate3d(0, -5px, 0);
   }
 }
 
@@ -155,96 +152,54 @@ body::before {
     transform: scale(1) translate3d(0, 0, 0);
   }
   50% {
-    transform: scale(1.045) translate3d(0, -5px, 0);
+    transform: scale(1.03) translate3d(0, -4px, 0);
   }
 }
 
 @keyframes floral-petal-float {
   0% {
-    transform: translate3d(0, 0, 0) scale(1);
-    opacity: 0.15;
+    transform: translate3d(0, 0, 0);
+    opacity: 0.2;
   }
-  40% {
-    opacity: 0.45;
+  50% {
+    opacity: 0.4;
   }
   100% {
-    transform: translate3d(18px, -48px, 0) scale(0.7);
+    transform: translate3d(12px, -36px, 0);
     opacity: 0;
   }
 }
 
 .floral-drift-a {
-  animation: floral-drift-a 22s ease-in-out infinite;
+  animation: floral-drift-a 24s ease-in-out infinite;
 }
 
 .floral-drift-b {
-  animation: floral-drift-b 26s ease-in-out infinite;
+  animation: floral-drift-b 28s ease-in-out infinite;
 }
 
 .floral-drift-c {
-  animation: floral-drift-c 19s ease-in-out infinite;
+  animation: floral-drift-c 22s ease-in-out infinite;
 }
 
 .floral-breathe {
-  animation: floral-breathe 14s ease-in-out infinite;
+  animation: floral-breathe 16s ease-in-out infinite;
 }
 
 .floral-breathe-slow {
-  animation: floral-breathe-slow 18s ease-in-out infinite;
+  animation: floral-breathe-slow 20s ease-in-out infinite;
 }
 
 .floral-petal {
-  animation: floral-petal-float 11s ease-in-out infinite;
+  animation: floral-petal-float 12s ease-in-out infinite;
 }
 
 .floral-petal-delay {
-  animation: floral-petal-float 14s ease-in-out 3.5s infinite;
+  animation: floral-petal-float 15s ease-in-out 4s infinite;
 }
 
 .floral-petal-slow {
-  animation: floral-petal-float 17s ease-in-out 7s infinite;
-}
-
-@keyframes floral-field-pan-a {
-  0%,
-  100% {
-    transform: translate3d(0, 0, 0) rotate(0deg);
-  }
-  50% {
-    transform: translate3d(16px, -12px, 0) rotate(1deg);
-  }
-}
-
-@keyframes floral-field-pan-b {
-  0%,
-  100% {
-    transform: translate3d(0, 0, 0) rotate(0deg);
-  }
-  50% {
-    transform: translate3d(-14px, 14px, 0) rotate(-1.2deg);
-  }
-}
-
-@keyframes floral-field-pan-c {
-  0%,
-  100% {
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-  50% {
-    transform: translate3d(10px, 10px, 0) scale(1.02);
-  }
-}
-
-.floral-field-pan-a {
-  animation: floral-field-pan-a 32s ease-in-out infinite;
-}
-
-.floral-field-pan-b {
-  animation: floral-field-pan-b 38s ease-in-out infinite;
-}
-
-.floral-field-pan-c {
-  animation: floral-field-pan-c 28s ease-in-out infinite;
+  animation: floral-petal-float 18s ease-in-out 8s infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -255,10 +210,7 @@ body::before {
   .floral-breathe-slow,
   .floral-petal,
   .floral-petal-delay,
-  .floral-petal-slow,
-  .floral-field-pan-a,
-  .floral-field-pan-b,
-  .floral-field-pan-c {
+  .floral-petal-slow {
     animation: none;
   }
 }

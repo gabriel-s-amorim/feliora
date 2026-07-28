@@ -68,7 +68,7 @@ export function Footer({ categories }: FooterProps) {
   }
 
   return (
-    <footer className="mt-auto border-t border-line bg-ivory/80 backdrop-blur-sm">
+    <footer className="mt-auto border-t border-line bg-ivory">
       <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-2 lg:grid-cols-4 lg:px-8">
         <div>
           <Link href="/" className="inline-block">
