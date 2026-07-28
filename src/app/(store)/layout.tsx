@@ -1,3 +1,4 @@
+import { CookieConsent } from "@/components/legal/CookieConsent";
 import { Footer } from "@/components/store/Footer";
 import { Header } from "@/components/store/Header";
 import { StoreMobileChrome } from "@/components/store/StoreMobileChrome";
@@ -18,6 +19,7 @@ export default async function StoreLayout({
         <main className="flex-1">{children}</main>
         <Footer categories={categories} />
       </StoreMobileChrome>
+      <CookieConsent />
     </StoreProviders>
   );
 }

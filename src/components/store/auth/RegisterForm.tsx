@@ -19,6 +19,7 @@ export function RegisterForm() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [marketingOptIn, setMarketingOptIn] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -60,12 +61,31 @@ export function RegisterForm() {
 
     setPending(true);
     try {
+      const trimmedEmail = email.trim();
       const result = await signUp({
-        email: email.trim(),
+        email: trimmedEmail,
         password,
         fullName: fullName.trim(),
         phone: phoneDigits || undefined,
       });
+
+      if (marketingOptIn) {
+        try {
+          await fetch("/api/newsletter", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: trimmedEmail,
+              name: fullName.trim(),
+              consent: true,
+              source: "register_form",
+            }),
+          });
+        } catch {
+          // Conta criada — falha de marketing não bloqueia o cadastro
+        }
+      }
+
       if (result.needsEmailConfirmation) {
         setInfo(
           "Conta criada. Confirme o e-mail se o Supabase exigir verificação, depois entre."
@@ -176,6 +196,18 @@ export function RegisterForm() {
               política de privacidade
             </Link>
             .
+          </span>
+        </label>
+        <label className="flex items-start gap-3 text-sm text-ink-muted">
+          <input
+            type="checkbox"
+            checked={marketingOptIn}
+            onChange={(e) => setMarketingOptIn(e.target.checked)}
+            className="mt-1 accent-[var(--color-rose-gold)]"
+          />
+          <span>
+            Quero receber e-mails de marketing e novidades da Feliora (opcional;
+            desmarcado por padrão). Posso cancelar a qualquer momento.
           </span>
         </label>
         {error ? <p className="text-sm text-rose-gold">{error}</p> : null}

@@ -18,6 +18,7 @@ Execute os arquivos **na ordem numérica** no SQL Editor do projeto Supabase da 
 | `11_checkout_integrations.sql` | Mercado Pago + Melhor Envio + RPCs checkout |
 | `12_brevo_fulfillment.sql` | Brevo (settings, deliveries, templates) + sync newsletter + índice fulfillment |
 | `13_brevo_email_templates_v2.sql` | Templates de e-mail Feliora (visual editorial + itens) — pode reexecutar |
+| `14_lgpd_privacy_content.sql` | Atualiza `content_pages` slug `privacidade` (texto LGPD completo) |
 
 ## Categorias
 

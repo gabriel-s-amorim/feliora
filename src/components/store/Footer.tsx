@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
+import { openCookiePreferences } from "@/shared/const/cookies";
 import {
   CATALOG_NAV,
   SITE_LOGO_PATH,
@@ -122,6 +123,15 @@ export function Footer({ categories }: FooterProps) {
               >
                 Privacidade
               </Link>
+            </li>
+            <li>
+              <button
+                type="button"
+                onClick={() => openCookiePreferences()}
+                className="transition-colors hover:text-rose-gold"
+              >
+                Cookies
+              </button>
             </li>
             <li>
               <Link
