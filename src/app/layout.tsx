@@ -9,6 +9,7 @@ import {
   SITE_THEME_COLOR,
   SITE_TITLE,
 } from "@/shared/const/site";
+import { getSiteOrigin } from "@/lib/siteOrigin";
 import "./globals.css";
 
 const cormorant = Cormorant_Garamond({
@@ -25,8 +26,10 @@ const outfit = Outfit({
   display: "swap",
 });
 
+const siteOrigin = getSiteOrigin(SITE_ORIGIN);
+
 export const metadata: Metadata = {
-  metadataBase: new URL(SITE_ORIGIN),
+  metadataBase: new URL(siteOrigin),
   title: {
     default: SITE_TITLE,
     template: `%s — ${SITE_NAME}`,
@@ -35,10 +38,11 @@ export const metadata: Metadata = {
   applicationName: SITE_NAME,
   icons: {
     icon: [
-      { url: "/favicon.ico", sizes: "32x32" },
+      { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
       { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
       { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
     ],
+    shortcut: [{ url: "/favicon-32.png", type: "image/png" }],
     apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
   },
   openGraph: {
