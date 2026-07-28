@@ -1,7 +1,12 @@
 import type { PaymentStatus } from "@/shared/types/mercadoPago";
 import type { OrderEmailEvent, StoreEmailEvent } from "@/shared/types/brevo";
 import { SITE_NAME } from "@/shared/const/site";
-import { renderStoreEmailTemplate } from "@/lib/brevo/storeEmailTemplate";
+import {
+  buildItemsHtml,
+  renderStoreEmailTemplate,
+  wrapFelioraEmail,
+  type OrderEmailParams,
+} from "@/lib/brevo/storeEmailTemplate";
 import {
   getBrevoTransactionalConfig,
   getPublicAppUrl,
@@ -165,33 +170,46 @@ async function resolveEmailContent(
     event === "order_delivered"
   ) {
     const titles: Record<string, string> = {
-      order_processing: "Pedido em preparação",
+      order_processing: "Em preparação",
       order_shipped: "Pedido enviado",
       order_delivered: "Pedido entregue",
     };
-    const bodies: Record<string, string> = {
+    const eyebrows: Record<string, string> = {
+      order_processing: "Atualização do pedido",
+      order_shipped: "Rastreio",
+      order_delivered: "Entrega",
+    };
+    const intros: Record<string, string> = {
       order_processing:
         "Seu pedido está sendo preparado com cuidado pela nossa equipe.",
       order_shipped: params.TRACKING_CODE
-        ? `Seu pedido foi enviado. Código de rastreio: <strong>${String(params.TRACKING_CODE)}</strong>.`
-        : "Seu pedido foi enviado.",
-      order_delivered: "Seu pedido foi marcado como entregue. Esperamos que ame!",
+        ? `Seu pedido saiu para entrega. Código de rastreio: <strong style="color:#2C241B;">${String(params.TRACKING_CODE)}</strong>.`
+        : "Seu pedido saiu para entrega.",
+      order_delivered:
+        "Seu pedido foi marcado como entregue. Esperamos que ame cada detalhe.",
     };
     const trackingLink =
       event === "order_shipped" && params.TRACKING_URL
-        ? `<p style="margin-top:16px;"><a href="${String(params.TRACKING_URL)}" style="color:#B76E79;">Acompanhar rastreio</a></p>`
+        ? `<p style="margin:14px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:13px;"><a href="${String(params.TRACKING_URL)}" style="color:#B76E79;text-decoration:underline;">Acompanhar rastreio</a></p>`
         : "";
+    const itemsTable = `<p style="margin:28px 0 10px;font-family:Arial,Helvetica,sans-serif;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:#B76E79;">Peças</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid rgba(183,110,121,0.18);">
+  ${buildItemsHtml(params.ITEMS as OrderEmailParams["ITEMS"])}
+</table>`;
+
     return {
       mode: "html",
       subject: `${titles[event]} — #${String(params.ORDER_SHORT_ID)}`,
-      htmlContent: `<div style="font-family:Georgia,serif;max-width:560px;margin:0 auto;color:#2C241B;line-height:1.55;background:#FDF8F4;padding:28px;">
-        <p style="font-size:12px;letter-spacing:0.28em;text-transform:uppercase;color:#B76E79;margin:0 0 8px;">${SITE_NAME}</p>
-        <h1 style="font-size:22px;font-weight:400;margin:0 0 16px;">${titles[event]}</h1>
-        <p>Olá, ${String(params.CUSTOMER_NAME)}!</p>
-        <p>${bodies[event]}</p>
-        ${trackingLink}
-        <p style="margin-top:24px;"><a href="${String(params.ORDER_URL)}" style="display:inline-block;background:#B76E79;color:#FDF8F4;padding:12px 18px;text-decoration:none;">Ver pedido</a></p>
-      </div>`,
+      htmlContent: wrapFelioraEmail({
+        eyebrow: eyebrows[event],
+        title: titles[event],
+        bodyHtml: `<p style="margin:0 0 8px;font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.6;color:#6B5E52;">Olá, ${String(params.CUSTOMER_NAME)}!</p>
+<p style="margin:0;font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.6;color:#6B5E52;">Pedido <strong style="color:#2C241B;">#${String(params.ORDER_SHORT_ID)}</strong>. ${intros[event]}</p>
+${trackingLink}
+${itemsTable}`,
+        ctaLabel: "Ver pedido",
+        ctaUrl: String(params.ORDER_URL ?? ""),
+      }),
     };
   }
 

@@ -17,6 +17,7 @@ Execute os arquivos **na ordem numérica** no SQL Editor do projeto Supabase da 
 | `10_storage_and_rate_limit.sql` | Storage + rate limit admin |
 | `11_checkout_integrations.sql` | Mercado Pago + Melhor Envio + RPCs checkout |
 | `12_brevo_fulfillment.sql` | Brevo (settings, deliveries, templates) + sync newsletter + índice fulfillment |
+| `13_brevo_email_templates_v2.sql` | Templates de e-mail Feliora (visual editorial + itens) — pode reexecutar |
 
 ## Categorias
 
