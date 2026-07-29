@@ -1,6 +1,7 @@
 import {
   adminProductSlugExists,
   createAdminProduct,
+  deleteAdminProduct,
   getAdminProduct,
   updateAdminProduct,
 } from "@/lib/admin/products";
@@ -85,9 +86,9 @@ function toProductInput(
   const variants = variantsRaw.map((v) => ({
     sizeLabel: v.sizeLabel,
     colorName: v.colorName,
-    sku:
-      v.sellerSku.trim() ||
-      skuFor(opts.slug, v.sizeLabel, v.colorName),
+    // seller_sku do TikTok não é confiavelmente único (há exports que usam
+    // "1" em todas as variantes). O SKU interno segue sempre o padrão Feliora.
+    sku: skuFor(opts.slug, v.sizeLabel, v.colorName),
     stockCount: v.quantity,
     isActive: true,
   }));
@@ -185,7 +186,7 @@ async function linkVariants(
       variantId: variant.id,
       productLinkId,
       externalSkuId: match?.skuId ?? "",
-      externalSku: variant.sku,
+      externalSku: match?.sellerSku.trim() || variant.sku,
     });
   }
 }
@@ -253,47 +254,68 @@ async function importOneProduct(
     images,
   });
 
-  let felioraProductId: number;
+  let felioraProductId: number | null = null;
+  let createdNewProduct = false;
 
-  if (selection.action === "update" && targetId) {
-    const oldUrls = [
-      existingProduct?.image,
-      ...(existingProduct?.images ?? []),
-    ].filter(Boolean) as string[];
+  try {
+    if (selection.action === "update" && targetId) {
+      const oldUrls = [
+        existingProduct?.image,
+        ...(existingProduct?.images ?? []),
+      ].filter(Boolean) as string[];
 
-    await updateAdminProduct(targetId, input);
-    felioraProductId = targetId;
+      await updateAdminProduct(targetId, input);
+      felioraProductId = targetId;
 
-    const newUrls = new Set([image, ...images]);
-    const orphans = oldUrls.filter((u) => !newUrls.has(u));
-    if (orphans.length > 0) {
-      await deleteStorageImages(orphans);
+      const newUrls = new Set([image, ...images]);
+      const orphans = oldUrls.filter((u) => !newUrls.has(u));
+      if (orphans.length > 0) {
+        await deleteStorageImages(orphans);
+      }
+    } else {
+      const created = await createAdminProduct(input);
+      felioraProductId = created.id;
+      createdNewProduct = true;
     }
-  } else {
-    const created = await createAdminProduct(input);
-    felioraProductId = created.id;
+
+    const remotePayload: TikTokRemotePayload = {
+      source: "xlsx",
+      sourceImageUrls: product.imageUrls,
+      imageMap: resolved.imageMap,
+    };
+
+    const link = await upsertProductLink({
+      channel: "tiktok",
+      productId: felioraProductId,
+      externalItemId: product.tiktokProductId,
+      status: "listed",
+      remotePayload,
+    });
+
+    await linkVariants(
+      link.id,
+      felioraProductId,
+      product,
+      selection.singleVariationAs
+    );
+  } catch (error) {
+    if (createdNewProduct && felioraProductId !== null) {
+      await deleteAdminProduct(felioraProductId).catch((rollbackError) => {
+        console.error(
+          "[tiktok-import] falha no rollback",
+          felioraProductId,
+          rollbackError
+        );
+      });
+    }
+
+    // Em criação, todas as imagens foram geradas para este produto. Remove-as
+    // quando o banco/link falhar para não acumular arquivos órfãos.
+    if (selection.action === "create") {
+      await deleteStorageImages(resolved.felioraUrls);
+    }
+    throw error;
   }
-
-  const remotePayload: TikTokRemotePayload = {
-    source: "xlsx",
-    sourceImageUrls: product.imageUrls,
-    imageMap: resolved.imageMap,
-  };
-
-  const link = await upsertProductLink({
-    channel: "tiktok",
-    productId: felioraProductId,
-    externalItemId: product.tiktokProductId,
-    status: "listed",
-    remotePayload,
-  });
-
-  await linkVariants(
-    link.id,
-    felioraProductId,
-    product,
-    selection.singleVariationAs
-  );
 
   return {
     tiktokProductId: product.tiktokProductId,

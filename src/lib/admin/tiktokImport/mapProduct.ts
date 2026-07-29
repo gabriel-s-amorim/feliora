@@ -185,12 +185,10 @@ export async function buildPreviewProducts(
     const cat = parseTikTokCategory(first.category);
     const mapped = cat.code ? byExternal.get(cat.code) : undefined;
 
+    // Imagens são metadados do produto e se repetem em cada linha/SKU.
+    // Usar apenas a primeira linha impede agregar mídias divergentes ou
+    // frames repetidos encontrados em linhas de variantes.
     const imageUrls = collectImageUrls(first);
-    for (const row of group.slice(1)) {
-      for (const url of collectImageUrls(row)) {
-        if (!imageUrls.includes(url)) imageUrls.push(url);
-      }
-    }
 
     const dimParts = group.map((r) => splitVariationValue(r.variation_value));
     const maxParts = Math.max(0, ...dimParts.map((p) => p.length));

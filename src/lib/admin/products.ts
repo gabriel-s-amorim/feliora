@@ -134,7 +134,23 @@ export async function createAdminProduct(
   if (error) throw new Error(error.message);
 
   const productId = data.id as number;
-  await syncVariants(productId, variants as VariantInput[]);
+  try {
+    await syncVariants(productId, variants as VariantInput[]);
+  } catch (variantError) {
+    // Evita produtos parciais quando alguma variante/SKU falha.
+    const { error: rollbackError } = await supabase
+      .from("products")
+      .delete()
+      .eq("id", productId);
+    if (rollbackError) {
+      console.error(
+        "[products] falha no rollback do produto",
+        productId,
+        rollbackError.message
+      );
+    }
+    throw variantError;
+  }
 
   const product = await fetchProductById(productId);
   if (!product) throw new Error("Produto criado mas não encontrado");
