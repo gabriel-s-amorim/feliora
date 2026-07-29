@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import type { Product } from "@/shared/types/product";
 import { cn } from "@/lib/utils";
+import { productColorBackground } from "@/shared/lib/productColor";
 
 type VariantSelectorProps = {
   product: Product;
@@ -56,11 +57,11 @@ export function VariantSelector({
     );
   }
 
-  function colorHex(name: string) {
-    return (
+  function colorBackground(name: string) {
+    const fallback =
       product.colors.find((c) => c.name.toLowerCase() === name.toLowerCase())
-        ?.hex ?? "#8C7B6A"
-    );
+        ?.hex ?? "#8C7B6A";
+    return productColorBackground(name, fallback);
   }
 
   return (
@@ -120,7 +121,10 @@ export function VariantSelector({
                       : "border-transparent",
                     !ok && "opacity-40"
                   )}
-                  style={{ backgroundColor: colorHex(name) }}
+                  style={{
+                    background: colorBackground(name),
+                    boxShadow: "inset 0 0 0 1px rgba(28, 28, 28, 0.16)",
+                  }}
                   aria-label={name}
                 />
               );

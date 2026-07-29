@@ -4,6 +4,10 @@ import { ProductDetail } from "@/components/store/ProductDetail";
 import { getProductBySlug, listRelatedProducts } from "@/lib/products";
 import { SITE_NAME, SITE_ORIGIN } from "@/shared/const/site";
 import { formatPrice } from "@/lib/utils";
+import {
+  productDescriptionText,
+  sanitizeProductDescription,
+} from "@/lib/productDescription";
 
 export const revalidate = 60;
 
@@ -21,6 +25,7 @@ export async function generateMetadata({
   const title = product.name;
   const description =
     product.shortDescription ||
+    productDescriptionText(product.description) ||
     `${product.name} — ${formatPrice(product.price)} na ${SITE_NAME}`;
 
   return {
@@ -49,7 +54,8 @@ function productJsonLd(
     "@context": "https://schema.org",
     "@type": "Product",
     name: product.name,
-    description: product.shortDescription || product.description,
+    description:
+      product.shortDescription || productDescriptionText(product.description),
     image: [product.image, ...product.images].filter(Boolean),
     sku: product.variants?.[0]?.sku,
     brand: { "@type": "Brand", name: SITE_NAME },
@@ -89,7 +95,11 @@ export default async function ProdutoPage({ params }: PageProps) {
           __html: JSON.stringify(productJsonLd(product)),
         }}
       />
-      <ProductDetail product={product} related={related} />
+      <ProductDetail
+        product={product}
+        related={related}
+        descriptionHtml={sanitizeProductDescription(product.description)}
+      />
     </>
   );
 }

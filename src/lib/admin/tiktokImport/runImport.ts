@@ -23,6 +23,7 @@ import {
   upsertVariantLink,
 } from "@/lib/marketplace/links";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { productColorHex } from "@/shared/lib/productColor";
 import { skuFor } from "@/shared/lib/sku";
 import { slugify } from "@/shared/lib/slugify";
 import type { ProductCreateInput } from "@/shared/schemas/product";
@@ -81,7 +82,10 @@ function toProductInput(
   const colorNames = [
     ...new Set(variantsRaw.map((v) => v.colorName).filter(Boolean)),
   ];
-  const colors = colorNames.map((name) => ({ name, hex: DEFAULT_HEX }));
+  const colors = colorNames.map((name) => ({
+    name,
+    hex: productColorHex(name, DEFAULT_HEX),
+  }));
 
   const variants = variantsRaw.map((v) => ({
     sizeLabel: v.sizeLabel,

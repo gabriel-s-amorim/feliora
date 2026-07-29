@@ -13,9 +13,14 @@ import { cn, formatPrice } from "@/lib/utils";
 type ProductDetailProps = {
   product: Product;
   related?: Product[];
+  descriptionHtml?: string;
 };
 
-export function ProductDetail({ product, related = [] }: ProductDetailProps) {
+export function ProductDetail({
+  product,
+  related = [],
+  descriptionHtml = "",
+}: ProductDetailProps) {
   const variants = useMemo(
     () => (product.variants ?? []).filter((v) => v.isActive),
     [product.variants]
@@ -171,15 +176,16 @@ export function ProductDetail({ product, related = [] }: ProductDetailProps) {
             </p>
           )}
 
-          {(product.description || product.highlights.length > 0) && (
+          {(descriptionHtml || product.highlights.length > 0) && (
             <section className="mt-14 border-t border-line pt-10 sm:mt-16">
               <p className="font-display text-[0.65rem] uppercase tracking-[0.35em] text-rose-gold">
                 Detalhes & cuidados
               </p>
-              {product.description ? (
-                <div className="mt-5 whitespace-pre-line font-display text-[0.95rem] font-light leading-[1.75] tracking-[0.01em] text-ink-muted sm:text-base">
-                  {product.description}
-                </div>
+              {descriptionHtml ? (
+                <div
+                  className="mt-5 font-display text-[0.95rem] font-light leading-[1.75] tracking-[0.01em] text-ink-muted sm:text-base [&_h2]:mb-3 [&_h2]:mt-6 [&_h2]:text-lg [&_h2]:text-ink [&_h3]:mb-2 [&_h3]:mt-5 [&_h3]:text-base [&_h3]:text-ink [&_li]:pl-1 [&_ol]:my-4 [&_ol]:list-decimal [&_ol]:space-y-2 [&_ol]:pl-5 [&_p]:mb-4 [&_p:last-child]:mb-0 [&_strong]:font-medium [&_strong]:text-ink [&_ul]:my-4 [&_ul]:list-disc [&_ul]:space-y-2 [&_ul]:pl-5"
+                  dangerouslySetInnerHTML={{ __html: descriptionHtml }}
+                />
               ) : null}
               {product.highlights.length > 0 ? (
                 <ul className="mt-8 space-y-3 border-t border-line/60 pt-8">
