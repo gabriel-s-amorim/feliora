@@ -1,9 +1,10 @@
 "use client";
 
-import { Pencil, Plus, Search, Trash2 } from "lucide-react";
+import { Pencil, Plus, Search, Trash2, Upload } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { AdminShell, RequireAdmin } from "@/components/admin/AdminShell";
+import { TikTokImportModal } from "@/components/admin/TikTokImportModal";
 import {
   AdminAlert,
   AdminBadge,
@@ -25,6 +26,7 @@ export default function AdminProductsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
+  const [importOpen, setImportOpen] = useState(false);
 
   async function load() {
     setLoading(true);
@@ -71,13 +73,24 @@ export default function AdminProductsPage() {
         title="Produtos"
         description="Gerencie peças, imagens, preços e a matriz de variantes."
         actions={
-          <Link href="/admin/produtos/novo">
-            <AdminButton className="!px-3 sm:!px-4">
-              <Plus className="size-4" />
-              <span className="sm:hidden">Novo</span>
-              <span className="hidden sm:inline">Novo produto</span>
+          <div className="flex flex-wrap items-center gap-2">
+            <AdminButton
+              variant="secondary"
+              className="!px-3 sm:!px-4"
+              onClick={() => setImportOpen(true)}
+            >
+              <Upload className="size-4" />
+              <span className="sm:hidden">TikTok</span>
+              <span className="hidden sm:inline">Importar do TikTok</span>
             </AdminButton>
-          </Link>
+            <Link href="/admin/produtos/novo">
+              <AdminButton className="!px-3 sm:!px-4">
+                <Plus className="size-4" />
+                <span className="sm:hidden">Novo</span>
+                <span className="hidden sm:inline">Novo produto</span>
+              </AdminButton>
+            </Link>
+          </div>
         }
       >
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -288,6 +301,12 @@ export default function AdminProductsPage() {
           </>
         )}
       </AdminShell>
+
+      <TikTokImportModal
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        onDone={() => void load()}
+      />
     </RequireAdmin>
   );
 }

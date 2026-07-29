@@ -3,6 +3,7 @@
 import { RefreshCw } from "lucide-react";
 import { useMemo } from "react";
 import { AdminButton, AdminInput } from "@/components/admin/ui";
+import { skuFor } from "@/shared/lib/sku";
 
 export type VariantDraft = {
   sizeLabel: string;
@@ -19,21 +20,6 @@ type Props = {
   variants: VariantDraft[];
   onChange: (variants: VariantDraft[]) => void;
 };
-
-function skuFor(slug: string, size: string, color: string): string {
-  const base = slug || "sku";
-  const parts = [base, size, color]
-    .filter(Boolean)
-    .map((p) =>
-      p
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-|-$/g, "")
-    );
-  return parts.join("-").slice(0, 64);
-}
 
 export function VariantMatrix({
   sizes,

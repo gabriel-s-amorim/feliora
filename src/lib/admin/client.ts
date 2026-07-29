@@ -166,3 +166,42 @@ export async function adminUploadImage(
 
   return data.url;
 }
+
+export type TikTokParseSummary = {
+  productCount: number;
+  variantCount: number;
+  imageCount: number;
+  estimatedSeconds: number;
+  duplicates: number;
+  unmappedCategories: number;
+};
+
+export function adminParseTikTokXlsx(file: File) {
+  const form = new FormData();
+  form.append("file", file);
+  return adminFetch<{
+    products: import("@/lib/admin/tiktokImport/types").TikTokParsedProduct[];
+    summary: TikTokParseSummary;
+  }>("/api/admin/products/import-tiktok/parse", {
+    method: "POST",
+    body: form,
+  });
+}
+
+export function adminRunTikTokImport(body: {
+  products: import("@/lib/admin/tiktokImport/types").TikTokParsedProduct[];
+  selections: Array<{
+    tiktokProductId: string;
+    action: "create" | "update";
+    categoryId: string | null;
+    singleVariationAs: "size" | "color";
+  }>;
+}) {
+  return adminFetch<{ jobId: string }>(
+    "/api/admin/products/import-tiktok/run",
+    {
+      method: "POST",
+      body: JSON.stringify(body),
+    }
+  );
+}

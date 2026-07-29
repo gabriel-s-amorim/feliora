@@ -27,6 +27,7 @@ import {
   adminUpdateProduct,
 } from "@/lib/admin/client";
 import { slugify } from "@/shared/lib/slugify";
+import { skuFor } from "@/shared/lib/sku";
 import type { Category } from "@/shared/types/category";
 import type { Product } from "@/shared/types/product";
 
@@ -148,7 +149,11 @@ export function ProductForm({ mode, initial }: Props) {
             : sizes.map((sizeLabel) => ({
                 sizeLabel,
                 colorName: cleanColors[0]?.name ?? "",
-                sku: `${slugify(name)}-${slugify(sizeLabel)}`.slice(0, 64),
+                sku: skuFor(
+                  slugify(name),
+                  sizeLabel,
+                  cleanColors[0]?.name ?? ""
+                ),
                 stockCount: 0,
                 isActive: true,
               })),

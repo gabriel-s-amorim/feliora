@@ -46,7 +46,7 @@ create trigger marketplace_channel_settings_updated_at
 create table if not exists public.marketplace_category_maps (
   id uuid primary key default gen_random_uuid(),
   channel text not null check (channel in ('shopee', 'tiktok')),
-  feliora_category_id text not null references public.categories(id) on delete cascade,
+  feliora_category_id uuid not null references public.categories(id) on delete cascade,
   external_category_id text not null,
   external_category_name text not null default '',
   attributes_json jsonb not null default '{}'::jsonb,
