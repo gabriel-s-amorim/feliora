@@ -220,7 +220,7 @@ export function TikTokImportModal({ open, onClose, onDone }: Props) {
         role="dialog"
         aria-modal="true"
         aria-label="Importar do TikTok"
-        className="flex max-h-[92vh] w-full max-w-4xl flex-col overflow-hidden rounded-t-2xl bg-[var(--admin-surface)] shadow-xl sm:rounded-2xl"
+        className="flex max-h-[92vh] w-full max-w-4xl flex-col overflow-hidden rounded-t-2xl bg-white shadow-xl sm:rounded-2xl"
       >
         <header className="flex items-center justify-between gap-3 border-b border-[var(--admin-line)] px-4 py-3 sm:px-5">
           <div>

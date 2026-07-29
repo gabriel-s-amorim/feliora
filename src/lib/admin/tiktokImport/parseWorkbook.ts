@@ -1,4 +1,5 @@
 import * as XLSX from "xlsx";
+import { strFromU8, strToU8, unzipSync, zipSync } from "fflate";
 
 const REQUIRED_COLUMNS = [
   "product_id",
@@ -55,34 +56,133 @@ function cellStr(value: unknown): string {
   return String(value).trim();
 }
 
-/** Parse da planilha Bulk Edit (aba Template). Dados começam na linha 6. */
-export function parseTikTokWorkbook(buffer: Buffer): TikTokRawRow[] {
+/**
+ * Alguns exports do Seller Center mantêm `!ref` limitado ao cabeçalho mesmo
+ * quando há células gravadas abaixo dele. Calcula o intervalo pelas células
+ * reais para que o SheetJS não descarte as linhas de produto.
+ */
+function getEffectiveRange(sheet: XLSX.WorkSheet): XLSX.Range | undefined {
+  const addresses = Object.keys(sheet).filter((key) => !key.startsWith("!"));
+  if (addresses.length === 0) return undefined;
+
+  let minRow = Number.POSITIVE_INFINITY;
+  let minCol = Number.POSITIVE_INFINITY;
+  let maxRow = 0;
+  let maxCol = 0;
+
+  for (const address of addresses) {
+    const cell = XLSX.utils.decode_cell(address);
+    minRow = Math.min(minRow, cell.r);
+    minCol = Math.min(minCol, cell.c);
+    maxRow = Math.max(maxRow, cell.r);
+    maxCol = Math.max(maxCol, cell.c);
+  }
+
+  return {
+    s: { r: minRow, c: minCol },
+    e: { r: maxRow, c: maxCol },
+  };
+}
+
+/**
+ * O TikTok gera alguns arquivos com células até dezenas/centenas de linhas,
+ * mas deixa `<dimension ref="A1:AL5">` no XML. O SheetJS respeita esse valor
+ * e nem carrega as células posteriores. Quando isso ocorrer, corrige apenas
+ * o metadado de dimensão dentro do ZIP e faz o parse novamente.
+ */
+function repairBrokenWorksheetDimensions(buffer: Buffer): Buffer {
+  const files = unzipSync(new Uint8Array(buffer));
+  let changed = false;
+
+  for (const [name, bytes] of Object.entries(files)) {
+    if (!/^xl\/worksheets\/sheet\d+\.xml$/i.test(name)) continue;
+
+    let xml = strFromU8(bytes);
+    const cells = xml.matchAll(/<c\b[^>]*\br="([A-Z]+\d+)"/g);
+    let range: XLSX.Range | null = null;
+
+    for (const match of cells) {
+      const cell = XLSX.utils.decode_cell(match[1]);
+      if (!range) {
+        range = { s: { ...cell }, e: { ...cell } };
+      } else {
+        range.s.r = Math.min(range.s.r, cell.r);
+        range.s.c = Math.min(range.s.c, cell.c);
+        range.e.r = Math.max(range.e.r, cell.r);
+        range.e.c = Math.max(range.e.c, cell.c);
+      }
+    }
+
+    if (!range) continue;
+
+    const actualRef = XLSX.utils.encode_range(range);
+    const currentRef = xml.match(/<dimension\b[^>]*\bref="([^"]+)"/)?.[1];
+    if (!currentRef) continue;
+
+    const currentRange = XLSX.utils.decode_range(currentRef);
+    if (
+      currentRange.e.r >= range.e.r &&
+      currentRange.e.c >= range.e.c
+    ) {
+      continue;
+    }
+
+    xml = xml.replace(
+      /<dimension\b[^>]*(?:\/>|>[\s\S]*?<\/dimension>)/,
+      `<dimension ref="${actualRef}"/>`
+    );
+    files[name] = strToU8(xml);
+    changed = true;
+  }
+
+  return changed ? Buffer.from(zipSync(files, { level: 6 })) : buffer;
+}
+
+function readTemplateRows(buffer: Buffer): {
+  rows: (string | number | null | undefined)[][];
+  sheetName: string | null;
+} {
   const workbook = XLSX.read(buffer, { type: "buffer", cellDates: false });
   const sheetName =
     workbook.SheetNames.find((n) => /^template$/i.test(n)) ??
-    workbook.SheetNames[0];
+    workbook.SheetNames[0] ??
+    null;
 
-  if (!sheetName) {
+  if (!sheetName) return { rows: [], sheetName: null };
+
+  const sheet = workbook.Sheets[sheetName];
+  const range = getEffectiveRange(sheet);
+  const rows = XLSX.utils.sheet_to_json<
+    (string | number | null | undefined)[]
+  >(sheet, { header: 1, defval: "", raw: false, range });
+
+  return { rows, sheetName };
+}
+
+/** Parse da planilha Bulk Edit (aba Template). Dados começam na linha 6. */
+export function parseTikTokWorkbook(buffer: Buffer): TikTokRawRow[] {
+  let parsed = readTemplateRows(buffer);
+
+  if (!parsed.sheetName) {
     throw new Error("Planilha vazia ou inválida.");
   }
 
-  const sheet = workbook.Sheets[sheetName];
-  const rows = XLSX.utils.sheet_to_json<(string | number | null | undefined)[]>(
-    sheet,
-    { header: 1, defval: "", raw: false }
-  );
-
-  if (rows.length < 6) {
-    throw new Error(
-      "Formato inválido: a planilha deve ter 5 linhas de cabeçalho e dados a partir da linha 6 (export Bulk Edit do TikTok Seller Center)."
-    );
+  if (parsed.rows.length < 6) {
+    parsed = readTemplateRows(repairBrokenWorksheetDimensions(buffer));
   }
 
+  const rows = parsed.rows;
   const headers = (rows[0] ?? []).map((h) => cellStr(h).toLowerCase());
   const missing = REQUIRED_COLUMNS.filter((col) => !headers.includes(col));
   if (missing.length > 0) {
     throw new Error(
       `Colunas obrigatórias ausentes: ${missing.join(", ")}. Confirme que exportou o template "All Information".`
+    );
+  }
+
+  if (rows.length < 6) {
+    throw new Error(
+      "A planilha tem o cabeçalho correto, mas não contém produtos. Salve o arquivo após preencher/exportar os dados e selecione essa cópia."
     );
   }
 
