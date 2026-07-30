@@ -3,6 +3,7 @@ import {
   emptyCart,
   removeCartItem,
   updateCartItemQuantity,
+  resolveCouponApplicationForCart,
 } from "@/lib/cart/service";
 import { resolveCartIdentity } from "@/lib/cart/identity";
 import { cartUpdateSchema } from "@/shared/schemas/cart";
@@ -28,7 +29,11 @@ export async function PATCH(request: Request, { params }: Params) {
       itemId,
       parsed.data.quantity
     );
-    return NextResponse.json({ cart });
+    const resolved = await resolveCouponApplicationForCart(cart);
+    return NextResponse.json({
+      cart: resolved.cart,
+      couponApplication: resolved.couponApplication,
+    });
   } catch (err) {
     const message =
       err instanceof Error ? err.message : "Erro ao atualizar item";
@@ -41,10 +46,17 @@ export async function DELETE(_request: Request, { params }: Params) {
     const { itemId } = await params;
     const { identity } = await resolveCartIdentity();
     if (!identity) {
-      return NextResponse.json({ cart: emptyCart() });
+      return NextResponse.json({
+        cart: emptyCart(),
+        couponApplication: null,
+      });
     }
     const cart = await removeCartItem(identity, itemId);
-    return NextResponse.json({ cart });
+    const resolved = await resolveCouponApplicationForCart(cart);
+    return NextResponse.json({
+      cart: resolved.cart,
+      couponApplication: resolved.couponApplication,
+    });
   } catch (err) {
     const message =
       err instanceof Error ? err.message : "Erro ao remover item";

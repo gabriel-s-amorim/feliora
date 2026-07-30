@@ -3,6 +3,7 @@ import {
   emptyCart,
   getActiveCart,
   addVariantToCart,
+  resolveCouponApplicationForCart,
 } from "@/lib/cart/service";
 import {
   resolveCartIdentity,
@@ -14,10 +15,17 @@ export async function GET() {
   try {
     const { identity } = await resolveCartIdentity();
     if (!identity) {
-      return NextResponse.json({ cart: emptyCart() });
+      return NextResponse.json({
+        cart: emptyCart(),
+        couponApplication: null,
+      });
     }
     const cart = (await getActiveCart(identity)) ?? emptyCart();
-    return NextResponse.json({ cart });
+    const resolved = await resolveCouponApplicationForCart(cart);
+    return NextResponse.json({
+      cart: resolved.cart,
+      couponApplication: resolved.couponApplication,
+    });
   } catch (err) {
     console.error("[api/cart GET]", err);
     return NextResponse.json(
@@ -44,8 +52,12 @@ export async function POST(request: Request) {
       parsed.data.variantId,
       parsed.data.quantity
     );
+    const resolved = await resolveCouponApplicationForCart(cart);
 
-    return NextResponse.json({ cart });
+    return NextResponse.json({
+      cart: resolved.cart,
+      couponApplication: resolved.couponApplication,
+    });
   } catch (err) {
     const message =
       err instanceof Error ? err.message : "Erro ao adicionar ao carrinho";

@@ -10,7 +10,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 const COUPON_SELECT =
   "id, code, type, value, is_active, starts_at, ends_at, min_subtotal, max_uses, max_uses_per_customer, usage_count, description, created_at, updated_at";
 
-type CouponRow = {
+export type CouponRow = {
   id: string;
   code: string;
   type: Coupon["type"];
@@ -27,7 +27,7 @@ type CouponRow = {
   updated_at: string;
 };
 
-function mapCouponRow(row: CouponRow): Coupon {
+export function mapCouponRow(row: CouponRow): Coupon {
   return {
     id: row.id,
     code: row.code,

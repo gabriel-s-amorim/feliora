@@ -1,5 +1,6 @@
 import type { Banner } from "@/shared/types/banner";
 import type { Category } from "@/shared/types/category";
+import type { Coupon } from "@/shared/types/coupon";
 import type { Product } from "@/shared/types/product";
 import type { StoreSettings } from "@/shared/types/storeSettings";
 
@@ -109,6 +110,38 @@ export function adminUpdateCategory(id: string, body: unknown) {
 
 export function adminDeleteCategory(id: string) {
   return adminFetch<void>(`/api/admin/categories/${id}`, { method: "DELETE" });
+}
+
+export function adminListCoupons(search?: string) {
+  const q = search?.trim()
+    ? `?q=${encodeURIComponent(search.trim())}`
+    : "";
+  return adminFetch<Coupon[]>(`/api/admin/coupons${q}`);
+}
+
+export function adminCreateCoupon(body: unknown) {
+  return adminFetch<Coupon>("/api/admin/coupons", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export function adminUpdateCoupon(id: string, body: unknown) {
+  return adminFetch<Coupon>(`/api/admin/coupons/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(body),
+  });
+}
+
+export function adminPatchCoupon(id: string, body: unknown) {
+  return adminFetch<Coupon>(`/api/admin/coupons/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(body),
+  });
+}
+
+export function adminDeleteCoupon(id: string) {
+  return adminFetch<void>(`/api/admin/coupons/${id}`, { method: "DELETE" });
 }
 
 export function adminListBanners() {

@@ -7,6 +7,7 @@ import {
   LockKeyhole,
   PackageCheck,
   ShieldCheck,
+  Tag,
   Truck,
   UserRound,
 } from "lucide-react";
@@ -14,6 +15,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CheckoutOrderSummary } from "@/components/checkout/CheckoutOrderSummary";
+import { CheckoutCouponField } from "@/components/checkout/CheckoutCouponField";
 import { CheckoutProcessingOverlay } from "@/components/checkout/CheckoutProcessingOverlay";
 import { CheckoutSuccessView } from "@/components/checkout/CheckoutSuccessView";
 import { useCart } from "@/contexts/CartContext";
@@ -74,7 +76,8 @@ const sectionClassName =
 export function CheckoutPageClient() {
   const router = useRouter();
   const { user, profile, loading: authLoading } = useCustomerAuth();
-  const { cart, loading: cartLoading, refresh } = useCart();
+  const { cart, loading: cartLoading, refresh, couponApplication, removeCoupon } =
+    useCart();
 
   const [addresses, setAddresses] = useState<CustomerAddress[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(
@@ -130,8 +133,11 @@ export function CheckoutPageClient() {
       recipientPhone.replace(/\D/g, "").length >= 10 &&
       cpf.replace(/\D/g, "").length === 11
   );
-  const checkoutTotal =
-    cart.subtotal + (selectedShipping?.customPrice ?? 0);
+  const discountAmount = couponApplication?.discountAmount ?? 0;
+  const checkoutTotal = Math.max(
+    0,
+    cart.subtotal - discountAmount + (selectedShipping?.customPrice ?? 0)
+  );
 
   useEffect(() => {
     if (authLoading) return;
@@ -753,6 +759,25 @@ export function CheckoutPageClient() {
               </div>
             </section>
 
+            <section className={sectionClassName}>
+              <div className="flex items-start gap-3">
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-ivory text-rose-gold">
+                  <Tag className="size-4.5" aria-hidden />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <h2 className="font-display text-xl font-light tracking-[0.04em] text-ink">
+                    Cupom de desconto
+                  </h2>
+                  <p className="mt-0.5 text-sm text-ink-muted">
+                    Tem um código? Aplique antes de pagar.
+                  </p>
+                </div>
+              </div>
+              <div className="mt-5">
+                <CheckoutCouponField />
+              </div>
+            </section>
+
             <section ref={paymentSectionRef} className={sectionClassName}>
               <div className="flex items-start gap-3">
                 <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-ivory text-rose-gold">
@@ -812,8 +837,7 @@ export function CheckoutPageClient() {
                 <div className="mt-5 min-w-0 overflow-x-auto rounded-xl border border-line bg-white p-2 sm:p-4">
                   <CardPayment
                     initialization={{
-                      amount:
-                        cart.subtotal + (selectedShipping?.customPrice ?? 0),
+                      amount: checkoutTotal,
                     }}
                     onSubmit={async (formData) => {
                       const card: CardPaymentData = {
@@ -863,6 +887,15 @@ export function CheckoutPageClient() {
             cart={cart}
             shippingAmount={
               selectedShipping ? selectedShipping.customPrice : null
+            }
+            discountAmount={discountAmount}
+            couponCode={couponApplication?.code ?? null}
+            onRemoveCoupon={
+              couponApplication
+                ? () => {
+                    void removeCoupon();
+                  }
+                : undefined
             }
             shippingPending={!hasShipping}
             className="order-1 lg:order-2"

@@ -1,6 +1,12 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  assertCouponApplicable,
+  CouponEvalError,
+} from "@/lib/coupons/service";
 import type { Cart, CartItem } from "@/shared/types/cart";
+import type { CouponApplication } from "@/shared/types/coupon";
 import { emptyCart } from "@/lib/cart/empty";
+import { normalizeCouponCode } from "@/shared/lib/coupons";
 
 export { emptyCart };
 
@@ -376,4 +382,87 @@ export async function mergeGuestCartIntoCustomer(
   await supabase.from("carts").delete().eq("id", guestCart.id);
 
   return (await getActiveCart(customerIdentity)) ?? emptyCart();
+}
+
+export async function resolveCouponApplicationForCart(
+  cart: Cart
+): Promise<{ cart: Cart; couponApplication: CouponApplication | null }> {
+  if (!cart.id || !cart.couponCode) {
+    return { cart, couponApplication: null };
+  }
+
+  try {
+    const couponApplication = await assertCouponApplicable({
+      code: cart.couponCode,
+      subtotal: cart.subtotal,
+      customerId: cart.customerId,
+    });
+    return { cart, couponApplication };
+  } catch (error) {
+    if (!(error instanceof CouponEvalError)) throw error;
+
+    const supabase = createAdminClient();
+    await supabase
+      .from("carts")
+      .update({ coupon_code: null })
+      .eq("id", cart.id);
+
+    return {
+      cart: { ...cart, couponCode: null },
+      couponApplication: null,
+    };
+  }
+}
+
+export async function applyCouponToCart(
+  identity: CartIdentity,
+  code: string
+): Promise<{ cart: Cart; couponApplication: CouponApplication }> {
+  const cart = await getActiveCart(identity);
+  if (!cart || !cart.id || cart.items.length === 0) {
+    throw new CouponEvalError("invalid", "Carrinho vazio");
+  }
+
+  const normalized = normalizeCouponCode(code);
+  if (!normalized) {
+    throw new CouponEvalError("invalid", "Cupom inválido");
+  }
+
+  const couponApplication = await assertCouponApplicable({
+    code: normalized,
+    subtotal: cart.subtotal,
+    customerId: cart.customerId,
+  });
+
+  const supabase = createAdminClient();
+  const { error } = await supabase
+    .from("carts")
+    .update({ coupon_code: couponApplication.code })
+    .eq("id", cart.id);
+
+  if (error) throw new Error(error.message);
+
+  return {
+    cart: { ...cart, couponCode: couponApplication.code },
+    couponApplication,
+  };
+}
+
+export async function removeCouponFromCart(
+  identity: CartIdentity
+): Promise<Cart> {
+  const cart = await getActiveCart(identity);
+  if (!cart || !cart.id) return emptyCart();
+
+  if (!cart.couponCode) return cart;
+
+  const supabase = createAdminClient();
+  const { error } = await supabase
+    .from("carts")
+    .update({ coupon_code: null })
+    .eq("id", cart.id);
+
+  if (error) throw new Error(error.message);
+
+  return { ...cart, couponCode: null };
 }

@@ -11,6 +11,7 @@ import {
   ShoppingBag,
   Store,
   Tags,
+  TicketPercent,
   X,
 } from "lucide-react";
 import Image from "next/image";
@@ -34,6 +35,7 @@ const SIDEBAR_NAV = [
   { href: "/admin/canais", label: "Canais", icon: Store },
   { href: "/admin/pedidos", label: "Pedidos", icon: ShoppingBag },
   { href: "/admin/categorias", label: "Categorias", icon: Tags },
+  { href: "/admin/cupons", label: "Cupons", icon: TicketPercent },
   { href: "/admin/banners", label: "Banners", icon: ImageIcon },
   { href: "/admin/integracoes", label: "Integrações", icon: Plug },
   { href: "/admin/settings", label: "Settings", icon: Settings2 },
@@ -53,6 +55,7 @@ const BOTTOM_TABS = [
 const MORE_LINKS = [
   { href: "/admin/canais", label: "Canais", icon: Store },
   { href: "/admin/categorias", label: "Categorias", icon: Tags },
+  { href: "/admin/cupons", label: "Cupons", icon: TicketPercent },
   { href: "/admin/banners", label: "Banners", icon: ImageIcon },
   { href: "/admin/integracoes", label: "Integrações", icon: Plug },
   { href: "/admin/settings", label: "Settings", icon: Settings2 },

@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { ChevronDown, ShoppingBag } from "lucide-react";
+import { ChevronDown, ShoppingBag, X } from "lucide-react";
 import { useState } from "react";
 import { cn, formatPrice } from "@/lib/utils";
 import type { Cart } from "@/shared/types/cart";
@@ -10,12 +10,16 @@ export function CheckoutOrderSummary({
   cart,
   shippingAmount,
   discountAmount = 0,
+  couponCode = null,
+  onRemoveCoupon,
   shippingPending = false,
   className,
 }: {
   cart: Cart;
   shippingAmount: number | null;
   discountAmount?: number;
+  couponCode?: string | null;
+  onRemoveCoupon?: () => void;
   shippingPending?: boolean;
   className?: string;
 }) {
@@ -102,34 +106,51 @@ export function CheckoutOrderSummary({
           ))}
         </ul>
         <dl className="mt-5 space-y-2 border-t border-line pt-4 text-sm">
-        <div className="flex justify-between text-ink-muted">
-          <dt>Subtotal</dt>
-          <dd>{formatPrice(cart.subtotal)}</dd>
-        </div>
-        {discountAmount > 0 ? (
           <div className="flex justify-between text-ink-muted">
-            <dt>Desconto</dt>
-            <dd>-{formatPrice(discountAmount)}</dd>
+            <dt>Subtotal</dt>
+            <dd>{formatPrice(cart.subtotal)}</dd>
           </div>
-        ) : null}
-        <div className="flex justify-between text-ink-muted">
-          <dt>Frete</dt>
-          <dd>
-            {shippingAmount == null
-              ? "Calcule o frete"
-              : shippingAmount === 0
-                ? "Grátis"
-                : formatPrice(shippingAmount)}
-          </dd>
-        </div>
-        <div className="flex justify-between border-t border-line pt-3 font-medium text-ink">
-          <dt>Total</dt>
-          <dd className="font-display text-lg tracking-[0.04em]">
-            {shippingAmount == null
-              ? formatPrice(Math.max(0, cart.subtotal - discountAmount))
-              : formatPrice(total)}
-          </dd>
-        </div>
+          {discountAmount > 0 ? (
+            <div className="flex items-center justify-between gap-2 text-ink-muted">
+              <dt className="min-w-0">
+                Desconto
+                {couponCode ? (
+                  <span className="ml-1 text-xs">({couponCode})</span>
+                ) : null}
+              </dt>
+              <dd className="flex items-center gap-1.5">
+                <span>-{formatPrice(discountAmount)}</span>
+                {onRemoveCoupon ? (
+                  <button
+                    type="button"
+                    onClick={onRemoveCoupon}
+                    className="inline-flex size-6 items-center justify-center rounded-md text-ink-muted transition-colors hover:bg-ivory hover:text-ink"
+                    aria-label="Remover cupom"
+                  >
+                    <X className="size-3.5" aria-hidden />
+                  </button>
+                ) : null}
+              </dd>
+            </div>
+          ) : null}
+          <div className="flex justify-between text-ink-muted">
+            <dt>Frete</dt>
+            <dd>
+              {shippingAmount == null
+                ? "Calcule o frete"
+                : shippingAmount === 0
+                  ? "Grátis"
+                  : formatPrice(shippingAmount)}
+            </dd>
+          </div>
+          <div className="flex justify-between border-t border-line pt-3 font-medium text-ink">
+            <dt>Total</dt>
+            <dd className="font-display text-lg tracking-[0.04em]">
+              {shippingAmount == null
+                ? formatPrice(Math.max(0, cart.subtotal - discountAmount))
+                : formatPrice(total)}
+            </dd>
+          </div>
         </dl>
         {shippingPending ? (
           <p className="mt-4 rounded-xl border border-rose-gold/25 bg-rose-gold/5 px-3 py-2 text-xs leading-relaxed text-rose-gold">
