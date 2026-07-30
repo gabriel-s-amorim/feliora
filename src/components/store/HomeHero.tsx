@@ -150,7 +150,7 @@ export function HomeHero({ banners }: Props) {
 
       {/* Overlay leve — a foto continua protagonista */}
       <div className="absolute inset-0 bg-gradient-to-t from-ink/55 via-ink/20 to-ink/10" />
-      <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent via-cream/65 to-cream backdrop-blur-[2px] sm:h-28" />
+      <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent via-cream/65 to-cream sm:h-28" />
 
       <div className="relative z-10 h-full">{content}</div>
 
