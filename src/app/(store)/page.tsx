@@ -52,7 +52,7 @@ export default async function HomePage() {
       <HomeHero banners={banners} />
 
       {categories.length > 0 ? (
-        <section className="border-t border-line/60">
+        <section>
           <div className="mx-auto max-w-4xl px-4 py-10 text-center sm:px-6 sm:py-12 lg:px-8 lg:py-14">
             <p className="font-display text-[0.65rem] uppercase tracking-[0.42em] text-rose-gold">
               Explorar

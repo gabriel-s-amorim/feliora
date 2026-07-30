@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import type { Banner } from "@/shared/types/banner";
@@ -131,23 +130,19 @@ export function HomeHero({ banners }: Props) {
             )}
             aria-hidden={!active}
           >
-            <Image
-              src={mobile}
-              alt=""
-              fill
-              priority={i === 0}
-              sizes="100vw"
-              className="object-cover md:hidden"
-              style={{ objectPosition: banner.objectPositionMobile }}
+            <div
+              className="absolute inset-0 bg-cover bg-fixed bg-no-repeat md:hidden"
+              style={{
+                backgroundImage: `url(${JSON.stringify(mobile)})`,
+                backgroundPosition: banner.objectPositionMobile,
+              }}
             />
-            <Image
-              src={desktop}
-              alt=""
-              fill
-              priority={i === 0}
-              sizes="100vw"
-              className="hidden object-cover md:block"
-              style={{ objectPosition: banner.objectPosition }}
+            <div
+              className="absolute inset-0 hidden bg-cover bg-fixed bg-no-repeat md:block"
+              style={{
+                backgroundImage: `url(${JSON.stringify(desktop)})`,
+                backgroundPosition: banner.objectPosition,
+              }}
             />
           </div>
         );
@@ -155,6 +150,7 @@ export function HomeHero({ banners }: Props) {
 
       {/* Overlay leve — a foto continua protagonista */}
       <div className="absolute inset-0 bg-gradient-to-t from-ink/55 via-ink/20 to-ink/10" />
+      <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent via-cream/65 to-cream backdrop-blur-[2px] sm:h-28" />
 
       <div className="relative z-10 h-full">{content}</div>
 
