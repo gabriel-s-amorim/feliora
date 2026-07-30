@@ -17,11 +17,19 @@ type Profile = {
   phone: string;
 };
 
+function safeNextPath(next: string | undefined): string {
+  if (!next || !next.startsWith("/") || next.startsWith("//")) {
+    return "/conta";
+  }
+  return next;
+}
+
 type CustomerAuthContextValue = {
   user: User | null;
   profile: Profile | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
+  signInWithGoogle: (next?: string) => Promise<void>;
   signUp: (input: {
     email: string;
     password: string;
@@ -150,6 +158,25 @@ export function CustomerAuthProvider({
     if (error) throw error;
   }, []);
 
+  const signInWithGoogle = useCallback(async (next?: string) => {
+    const supabase = createClient();
+    const redirectNext = safeNextPath(next);
+    const redirectTo = new URL("/auth/callback", window.location.origin);
+    redirectTo.searchParams.set("next", redirectNext);
+
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: redirectTo.toString(),
+        queryParams: {
+          access_type: "online",
+          prompt: "select_account",
+        },
+      },
+    });
+    if (error) throw error;
+  }, []);
+
   const signUp = useCallback(
     async (input: {
       email: string;
@@ -158,6 +185,12 @@ export function CustomerAuthProvider({
       phone?: string;
     }) => {
       const supabase = createClient();
+      const emailRedirectTo = new URL(
+        "/auth/callback",
+        window.location.origin
+      );
+      emailRedirectTo.searchParams.set("next", "/conta");
+
       const { data, error } = await supabase.auth.signUp({
         email: input.email,
         password: input.password,
@@ -166,7 +199,7 @@ export function CustomerAuthProvider({
             full_name: input.fullName,
             phone: input.phone ?? "",
           },
-          emailRedirectTo: `${window.location.origin}/conta`,
+          emailRedirectTo: emailRedirectTo.toString(),
         },
       });
       if (error) throw error;
@@ -225,6 +258,7 @@ export function CustomerAuthProvider({
       profile,
       loading,
       signIn,
+      signInWithGoogle,
       signUp,
       signOut,
       refreshProfile,
@@ -236,6 +270,7 @@ export function CustomerAuthProvider({
       profile,
       loading,
       signIn,
+      signInWithGoogle,
       signUp,
       signOut,
       refreshProfile,

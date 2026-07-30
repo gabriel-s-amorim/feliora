@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { RegisterForm } from "@/components/store/auth/RegisterForm";
 
 export const metadata: Metadata = {
@@ -17,7 +18,13 @@ export default function CadastroPage() {
           Criar conta
         </h1>
       </header>
-      <RegisterForm />
+      <Suspense
+        fallback={
+          <div className="mx-auto h-40 w-full max-w-md animate-pulse bg-line/40" />
+        }
+      >
+        <RegisterForm />
+      </Suspense>
     </section>
   );
 }

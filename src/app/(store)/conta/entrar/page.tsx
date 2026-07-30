@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { LoginForm } from "@/components/store/auth/LoginForm";
 
 export const metadata: Metadata = {
@@ -17,7 +18,13 @@ export default function EntrarPage() {
           Entrar
         </h1>
       </header>
-      <LoginForm />
+      <Suspense
+        fallback={
+          <div className="mx-auto h-40 w-full max-w-md animate-pulse bg-line/40" />
+        }
+      >
+        <LoginForm />
+      </Suspense>
     </section>
   );
 }
