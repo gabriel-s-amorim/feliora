@@ -7,6 +7,7 @@ import {
 } from "@/shared/const/site";
 import { absoluteUrl } from "@/lib/seo/metadata";
 import type { Product } from "@/shared/types/product";
+import type { ProductReview } from "@/shared/types/review";
 import { productDescriptionText } from "@/lib/productDescription";
 
 export type SocialLinks = {
@@ -105,7 +106,10 @@ export function breadcrumbJsonLd(
   };
 }
 
-export function productJsonLd(product: Product) {
+export function productJsonLd(
+  product: Product,
+  reviews: ProductReview[] = []
+) {
   const description =
     product.seoDescription ||
     product.shortDescription ||
@@ -117,11 +121,24 @@ export function productJsonLd(product: Product) {
     .map((src) => (src.startsWith("http") ? src : absoluteUrl(src)));
 
   const url = absoluteUrl(`/produto/${product.slug}`);
+  const activeVariants = (product.variants ?? []).filter((v) => v.isActive);
   const sku =
-    product.variants?.find((v) => v.isActive)?.sku ||
+    activeVariants.find((v) => v.stockCount > 0)?.sku ||
+    activeVariants[0]?.sku ||
     product.variants?.[0]?.sku;
 
-  const offers = {
+  const colors = product.colors.map((c) => c.name).filter(Boolean);
+  const sizes = product.sizes.map((s) => s.label).filter(Boolean);
+  const materials = product.materials.filter(Boolean);
+
+  const lowPrice = activeVariants.length
+    ? Math.min(product.price, ...activeVariants.map(() => product.price))
+    : product.price;
+  const highPrice = product.originalPrice
+    ? Math.max(product.price, product.originalPrice)
+    : product.price;
+
+  const offer = {
     "@type": "Offer" as const,
     url,
     priceCurrency: "BRL",
@@ -135,10 +152,53 @@ export function productJsonLd(product: Product) {
     itemCondition: "https://schema.org/NewCondition",
     seller: {
       "@type": "Organization",
+      "@id": `${SITE_ORIGIN}/#organization`,
       name: SITE_NAME,
       url: SITE_ORIGIN,
     },
+    shippingDetails: {
+      "@type": "OfferShippingDetails",
+      shippingDestination: {
+        "@type": "DefinedRegion",
+        addressCountry: "BR",
+      },
+      deliveryTime: {
+        "@type": "ShippingDeliveryTime",
+        handlingTime: {
+          "@type": "QuantitativeValue",
+          minValue: 1,
+          maxValue: 3,
+          unitCode: "DAY",
+        },
+        transitTime: {
+          "@type": "QuantitativeValue",
+          minValue: 3,
+          maxValue: 12,
+          unitCode: "DAY",
+        },
+      },
+    },
+    hasMerchantReturnPolicy: {
+      "@type": "MerchantReturnPolicy",
+      applicableCountry: "BR",
+      returnPolicyCategory:
+        "https://schema.org/MerchantReturnFiniteReturnWindow",
+      merchantReturnDays: 7,
+      returnMethod: "https://schema.org/ReturnByMail",
+      returnFees: "https://schema.org/ReturnFeesCustomerResponsibility",
+    },
   };
+
+  const approvedReviews = reviews.filter((r) => r.isApproved);
+  const reviewCount =
+    product.reviewsCount > 0 ? product.reviewsCount : approvedReviews.length;
+  const ratingValue =
+    product.reviewsCount > 0
+      ? Number(product.ratingAvg)
+      : approvedReviews.length
+        ? approvedReviews.reduce((sum, r) => sum + r.rating, 0) /
+          approvedReviews.length
+        : 0;
 
   return {
     "@context": "https://schema.org",
@@ -155,16 +215,53 @@ export function productJsonLd(product: Product) {
     },
     category: product.category?.name,
     url,
-    offers,
-    ...(product.reviewsCount > 0
+    ...(colors.length ? { color: colors.join(", ") } : {}),
+    ...(sizes.length ? { size: sizes.join(", ") } : {}),
+    ...(materials.length ? { material: materials.join(", ") } : {}),
+    offers:
+      activeVariants.length > 1
+        ? {
+            "@type": "AggregateOffer",
+            url,
+            priceCurrency: "BRL",
+            lowPrice: lowPrice.toFixed(2),
+            highPrice: highPrice.toFixed(2),
+            offerCount: activeVariants.length,
+            availability: product.inStock
+              ? "https://schema.org/InStock"
+              : "https://schema.org/OutOfStock",
+            offers: offer,
+          }
+        : offer,
+    ...(reviewCount > 0
       ? {
           aggregateRating: {
             "@type": "AggregateRating",
-            ratingValue: Number(product.ratingAvg).toFixed(1),
-            reviewCount: product.reviewsCount,
+            ratingValue: ratingValue.toFixed(1),
+            reviewCount,
             bestRating: 5,
             worstRating: 1,
           },
+        }
+      : {}),
+    ...(approvedReviews.length
+      ? {
+          review: approvedReviews.slice(0, 10).map((r) => ({
+            "@type": "Review",
+            author: {
+              "@type": "Person",
+              name: r.authorName,
+            },
+            datePublished: r.createdAt.slice(0, 10),
+            reviewRating: {
+              "@type": "Rating",
+              ratingValue: r.rating,
+              bestRating: 5,
+              worstRating: 1,
+            },
+            name: r.title || undefined,
+            reviewBody: r.body || undefined,
+          })),
         }
       : {}),
   };

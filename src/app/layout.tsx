@@ -3,7 +3,6 @@ import { Cormorant_Garamond, Outfit } from "next/font/google";
 import {
   SITE_BG_COLOR,
   SITE_DESCRIPTION,
-  SITE_KEYWORDS,
   SITE_LOCALE,
   SITE_LOCALE_BCP47,
   SITE_NAME,
@@ -39,7 +38,6 @@ export const metadata: Metadata = {
   },
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,
-  keywords: [...SITE_KEYWORDS],
   authors: [{ name: SITE_NAME, url: SITE_ORIGIN }],
   creator: SITE_NAME,
   publisher: SITE_NAME,

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import type { Product } from "@/shared/types/product";
 import { Breadcrumb } from "@/components/store/Breadcrumb";
 import { ProductGallery } from "@/components/store/ProductGallery";
@@ -14,12 +14,14 @@ type ProductDetailProps = {
   product: Product;
   related?: Product[];
   descriptionHtml?: string;
+  reviewsSlot?: ReactNode;
 };
 
 export function ProductDetail({
   product,
   related = [],
   descriptionHtml = "",
+  reviewsSlot,
 }: ProductDetailProps) {
   const variants = useMemo(
     () => (product.variants ?? []).filter((v) => v.isActive),
@@ -87,7 +89,7 @@ export function ProductDetail({
             {product.name}
           </h1>
 
-          <div className="mt-6 flex items-baseline gap-3 border-b border-line/70 pb-8">
+          <div className="mt-6 flex flex-wrap items-baseline gap-x-3 gap-y-2 border-b border-line/70 pb-8">
             <p className="text-lg tracking-wide text-ink">
               {formatPrice(product.price)}
             </p>
@@ -95,6 +97,12 @@ export function ProductDetail({
             product.originalPrice > product.price ? (
               <p className="text-sm text-ink-muted line-through">
                 {formatPrice(product.originalPrice)}
+              </p>
+            ) : null}
+            {product.reviewsCount > 0 ? (
+              <p className="w-full text-xs tracking-[0.08em] text-ink-muted sm:ml-auto sm:w-auto">
+                {product.ratingAvg.toFixed(1)} · {product.reviewsCount}{" "}
+                {product.reviewsCount === 1 ? "avaliação" : "avaliações"}
               </p>
             ) : null}
           </div>
@@ -204,6 +212,8 @@ export function ProductDetail({
           )}
         </div>
       </div>
+
+      {reviewsSlot}
 
       <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
         <div className="mb-10 text-center sm:mb-12">

@@ -3,15 +3,22 @@ export function JsonLd({
 }: {
   data: Record<string, unknown> | Array<Record<string, unknown> | null>;
 }) {
-  const payload = Array.isArray(data) ? data.filter(Boolean) : data;
-  if (Array.isArray(payload) && payload.length === 0) return null;
+  const items = (Array.isArray(data) ? data : [data]).filter(
+    (item): item is Record<string, unknown> => Boolean(item)
+  );
+  if (items.length === 0) return null;
 
   return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{
-        __html: JSON.stringify(payload).replace(/</g, "\\u003c"),
-      }}
-    />
+    <>
+      {items.map((item, index) => (
+        <script
+          key={`${String(item["@type"] ?? "schema")}-${index}`}
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(item).replace(/</g, "\\u003c"),
+          }}
+        />
+      ))}
+    </>
   );
 }
