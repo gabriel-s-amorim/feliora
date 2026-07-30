@@ -35,8 +35,11 @@ export function HomeHero({ banners }: Props) {
       ? SITE_TAGLINE
       : "Peças com presença — ritmo de lookbook.";
 
+  const heroHeight =
+    "h-[78svh] min-h-[30rem] max-h-[44rem] md:h-[70svh] md:min-h-[32rem] md:max-h-[48rem]";
+
   const content = (
-    <div className="relative mx-auto flex min-h-[calc(100dvh-3.5rem)] max-w-3xl flex-col items-center justify-end px-5 pb-16 pt-24 text-center sm:min-h-[calc(100dvh-4rem)] sm:px-8 sm:pb-20 md:justify-center md:pb-24">
+    <div className="relative mx-auto flex h-full max-w-3xl flex-col items-center justify-end px-5 pb-16 pt-20 text-center sm:px-8 sm:pb-20 md:justify-center md:py-16">
       <h1
         className={cn(
           "animate-fade-up font-display text-[1.85rem] font-light leading-[1.15] tracking-[0.06em] sm:text-4xl md:text-5xl",
@@ -73,16 +76,19 @@ export function HomeHero({ banners }: Props) {
 
   if (!hasBanners) {
     return (
-      <section className="relative isolate min-h-[calc(100dvh-3.5rem)] overflow-hidden sm:min-h-[calc(100dvh-4rem)]">
+      <section className={cn("relative isolate overflow-hidden", heroHeight)}>
         <div className="absolute inset-0 bg-gradient-to-b from-[#f7efe6] via-cream to-ivory" />
-        <div className="relative z-10">{content}</div>
+        <div className="relative z-10 h-full">{content}</div>
       </section>
     );
   }
 
   return (
     <section
-      className="relative isolate min-h-[calc(100dvh-3.5rem)] touch-pan-y select-none overflow-hidden cursor-grab active:cursor-grabbing sm:min-h-[calc(100dvh-4rem)]"
+      className={cn(
+        "relative isolate touch-pan-y select-none overflow-hidden cursor-grab active:cursor-grabbing",
+        heroHeight
+      )}
       onPointerDown={(event) => {
         if (!event.isPrimary) return;
         pointerStart.current = event.clientX;
@@ -150,7 +156,7 @@ export function HomeHero({ banners }: Props) {
       {/* Overlay leve — a foto continua protagonista */}
       <div className="absolute inset-0 bg-gradient-to-t from-ink/55 via-ink/20 to-ink/10" />
 
-      <div className="relative z-10">{content}</div>
+      <div className="relative z-10 h-full">{content}</div>
 
       {banners.length > 1 ? (
         <div className="absolute bottom-5 left-1/2 z-10 flex -translate-x-1/2 gap-2">

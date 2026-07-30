@@ -53,11 +53,11 @@ export default async function HomePage() {
 
       {categories.length > 0 ? (
         <section className="border-t border-line/60">
-          <div className="mx-auto max-w-4xl px-4 py-16 text-center sm:px-6 lg:px-8 lg:py-20">
+          <div className="mx-auto max-w-4xl px-4 py-10 text-center sm:px-6 sm:py-12 lg:px-8 lg:py-14">
             <p className="font-display text-[0.65rem] uppercase tracking-[0.42em] text-rose-gold">
               Explorar
             </p>
-            <ul className="mt-8 flex flex-wrap justify-center gap-x-6 gap-y-4 sm:gap-x-10">
+            <ul className="mt-6 flex flex-wrap justify-center gap-x-6 gap-y-4 sm:mt-7 sm:gap-x-10">
               {categories.map((c) => (
                 <li key={c.id}>
                   <Link
