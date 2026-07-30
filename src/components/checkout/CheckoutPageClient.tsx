@@ -1,6 +1,15 @@
 "use client";
 
 import { CardPayment, initMercadoPago } from "@mercadopago/sdk-react";
+import {
+  Check,
+  CreditCard,
+  LockKeyhole,
+  PackageCheck,
+  ShieldCheck,
+  Truck,
+  UserRound,
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -55,6 +64,13 @@ function formatPhoneInput(value: string) {
   return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
 }
 
+const fieldClassName =
+  "mt-1.5 min-h-12 w-full rounded-xl border border-line bg-cream px-3.5 text-base text-ink outline-none transition-[border-color,box-shadow,background-color] placeholder:text-ink-muted/60 focus:border-rose-gold focus:bg-white focus:shadow-[0_0_0_3px_rgba(183,110,121,0.12)]";
+const fieldLabelClassName =
+  "text-[11px] font-medium uppercase tracking-[0.14em] text-ink-muted";
+const sectionClassName =
+  "scroll-mt-24 rounded-2xl border border-line bg-cream/90 p-4 shadow-[0_16px_45px_rgba(44,36,27,0.045)] sm:p-6";
+
 export function CheckoutPageClient() {
   const router = useRouter();
   const { user, profile, loading: authLoading } = useCustomerAuth();
@@ -95,6 +111,7 @@ export function CheckoutPageClient() {
   const [completedOrder, setCompletedOrder] = useState<Order | null>(null);
   const [polling, setPolling] = useState(false);
   const shippingSectionRef = useRef<HTMLElement | null>(null);
+  const paymentSectionRef = useRef<HTMLElement | null>(null);
   const lastQuotedCep = useRef<string>("");
 
   const selectedShipping: ShippingQuoteOption | null = useMemo(() => {
@@ -107,6 +124,14 @@ export function CheckoutPageClient() {
   const cepDigits = normalizeCep(addressForm.cep);
   const hasShipping = Boolean(shippingQuote?.quoteId && selectedShippingId);
   const canFinish = hasShipping && Boolean(mpConfig?.enabled);
+  const recipientComplete = Boolean(
+    recipientName.trim() &&
+      recipientEmail.trim() &&
+      recipientPhone.replace(/\D/g, "").length >= 10 &&
+      cpf.replace(/\D/g, "").length === 11
+  );
+  const checkoutTotal =
+    cart.subtotal + (selectedShipping?.customPrice ?? 0);
 
   useEffect(() => {
     if (authLoading) return;
@@ -365,34 +390,89 @@ export function CheckoutPageClient() {
   return (
     <>
       <CheckoutProcessingOverlay visible={submitting} />
-      <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
-        <header className="mb-8">
-          <p className="font-display text-xs uppercase tracking-[0.35em] text-rose-gold">
-            Finalizar
-          </p>
-          <h1 className="mt-3 font-display text-3xl font-light tracking-[0.06em] text-ink">
-            Checkout
-          </h1>
+      <div className="mx-auto max-w-6xl px-3 pb-44 pt-5 sm:px-6 sm:pt-8 lg:px-8 lg:py-14">
+        <header className="mb-5 sm:mb-8">
+          <div className="flex items-end justify-between gap-4">
+            <div>
+              <Link
+                href="/carrinho"
+                className="inline-flex items-center text-xs font-medium uppercase tracking-[0.14em] text-ink-muted transition-colors hover:text-rose-gold"
+              >
+                ← Voltar ao carrinho
+              </Link>
+              <h1 className="mt-2 font-display text-3xl font-light tracking-[0.04em] text-ink sm:text-4xl">
+                Finalizar compra
+              </h1>
+            </div>
+            <span className="hidden items-center gap-2 text-xs text-ink-muted sm:flex">
+              <LockKeyhole className="size-4 text-rose-gold" aria-hidden />
+              Ambiente seguro
+            </span>
+          </div>
+
+          <ol
+            className="mt-5 grid grid-cols-3 overflow-hidden rounded-xl border border-line bg-ivory/65"
+            aria-label="Etapas do checkout"
+          >
+            {[
+              { label: "Entrega", complete: hasShipping },
+              { label: "Dados", complete: recipientComplete },
+              { label: "Pagamento", complete: false },
+            ].map((step, index) => (
+              <li
+                key={step.label}
+                className="flex min-w-0 items-center justify-center gap-1.5 border-r border-line px-2 py-2.5 text-[10px] font-medium uppercase tracking-[0.08em] text-ink-muted last:border-r-0 sm:text-xs"
+              >
+                <span
+                  className={`flex size-5 shrink-0 items-center justify-center rounded-full text-[10px] ${
+                    step.complete
+                      ? "bg-rose-gold text-cream"
+                      : "border border-line bg-cream text-ink-muted"
+                  }`}
+                >
+                  {step.complete ? (
+                    <Check className="size-3" aria-hidden />
+                  ) : (
+                    index + 1
+                  )}
+                </span>
+                <span className="truncate">{step.label}</span>
+              </li>
+            ))}
+          </ol>
         </header>
 
         {error ? (
-          <p className="mb-6 border border-rose-gold/40 bg-rose-gold/5 px-4 py-3 text-sm text-rose-gold">
+          <p
+            className="mb-5 rounded-xl border border-rose-gold/40 bg-rose-gold/5 px-4 py-3 text-sm text-rose-gold"
+            role="alert"
+          >
             {error}
           </p>
         ) : null}
 
-        <div className="grid gap-10 lg:grid-cols-[1fr_340px]">
-          <div className="space-y-10">
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-8">
+          <div className="order-2 min-w-0 space-y-4 lg:order-1 lg:space-y-6">
             {addresses.length > 0 ? (
-              <section>
-                <h2 className="font-display text-xl font-light tracking-[0.06em] text-ink">
-                  Endereço salvo
-                </h2>
-                <div className="mt-4 space-y-2">
+              <section className={sectionClassName}>
+                <div className="flex items-center gap-3">
+                  <span className="flex size-9 items-center justify-center rounded-full bg-ivory text-rose-gold">
+                    <PackageCheck className="size-4.5" aria-hidden />
+                  </span>
+                  <div>
+                    <h2 className="font-display text-xl font-light tracking-[0.04em] text-ink">
+                      Usar endereço salvo
+                    </h2>
+                    <p className="text-xs text-ink-muted">
+                      Selecione para preencher os dados de entrega.
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-4 grid gap-2 sm:grid-cols-2">
                   {addresses.map((address) => (
                     <label
                       key={address.id}
-                      className="flex cursor-pointer gap-3 border border-line px-4 py-3 text-sm has-[:checked]:border-rose-gold"
+                      className="flex min-h-16 cursor-pointer gap-3 rounded-xl border border-line bg-ivory/35 px-3.5 py-3 text-sm transition-colors has-[:checked]:border-rose-gold has-[:checked]:bg-rose-gold/5"
                     >
                       <input
                         type="radio"
@@ -415,12 +495,12 @@ export function CheckoutPageClient() {
                         }}
                         className="mt-1 accent-[var(--color-rose-gold)]"
                       />
-                      <span>
+                      <span className="min-w-0">
                         <span className="font-medium text-ink">
                           {address.label}
                         </span>
                         <br />
-                        <span className="text-ink-muted">
+                        <span className="line-clamp-2 text-xs leading-relaxed text-ink-muted">
                           {address.rua}, {address.numero} — {address.bairro},{" "}
                           {address.cidade}/{address.estado}
                         </span>
@@ -431,32 +511,32 @@ export function CheckoutPageClient() {
               </section>
             ) : null}
 
-            <section ref={shippingSectionRef}>
-              <div className="flex flex-wrap items-end justify-between gap-3">
-                <div>
-                  <h2 className="font-display text-xl font-light tracking-[0.06em] text-ink">
-                    1. Entrega
-                  </h2>
-                  <p className="mt-1 text-sm text-ink-muted">
-                    Informe o CEP — o frete é calculado automaticamente.
+            <section ref={shippingSectionRef} className={sectionClassName}>
+              <div className="flex items-start gap-3">
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-ivory text-rose-gold">
+                  <Truck className="size-4.5" aria-hidden />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <h2 className="font-display text-xl font-light tracking-[0.04em] text-ink">
+                      Entrega
+                    </h2>
+                    {hasShipping ? (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-[0.1em] text-emerald-700">
+                        <Check className="size-3.5" aria-hidden />
+                        Frete selecionado
+                      </span>
+                    ) : null}
+                  </div>
+                  <p className="mt-0.5 text-sm text-ink-muted">
+                    Preencha seu endereço para ver prazo e valor.
                   </p>
                 </div>
-                {hasShipping ? (
-                  <span className="text-xs font-medium uppercase tracking-[0.12em] text-emerald-700">
-                    Frete selecionado
-                  </span>
-                ) : (
-                  <span className="text-xs font-medium uppercase tracking-[0.12em] text-rose-gold">
-                    Obrigatório para finalizar
-                  </span>
-                )}
               </div>
 
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <div className="mt-5 grid gap-3 sm:grid-cols-2">
                 <label className="sm:col-span-1">
-                  <span className="text-xs uppercase tracking-[0.14em] text-ink-muted">
-                    CEP
-                  </span>
+                  <span className={fieldLabelClassName}>CEP</span>
                   <input
                     value={addressForm.cep}
                     onChange={(e) => {
@@ -470,51 +550,44 @@ export function CheckoutPageClient() {
                       }
                       if (digits.length === 8) void lookupCep(next);
                     }}
-                    className="mt-1 w-full border border-line bg-cream px-3 py-2.5 text-sm outline-none focus:border-rose-gold"
+                    className={fieldClassName}
                     inputMode="numeric"
                     placeholder="00000-000"
+                    autoComplete="postal-code"
                   />
                 </label>
                 <label>
-                  <span className="text-xs uppercase tracking-[0.14em] text-ink-muted">
-                    Número
-                  </span>
+                  <span className={fieldLabelClassName}>Número</span>
                   <input
                     value={addressForm.numero}
                     onChange={(e) =>
                       setAddressForm((p) => ({ ...p, numero: e.target.value }))
                     }
-                    className="mt-1 w-full border border-line bg-cream px-3 py-2.5 text-sm outline-none focus:border-rose-gold"
+                    className={fieldClassName}
                   />
                 </label>
                 <label className="sm:col-span-2">
-                  <span className="text-xs uppercase tracking-[0.14em] text-ink-muted">
-                    Rua
-                  </span>
+                  <span className={fieldLabelClassName}>Rua</span>
                   <input
                     value={addressForm.rua}
                     onChange={(e) =>
                       setAddressForm((p) => ({ ...p, rua: e.target.value }))
                     }
-                    className="mt-1 w-full border border-line bg-cream px-3 py-2.5 text-sm outline-none focus:border-rose-gold"
+                    className={fieldClassName}
                   />
                 </label>
                 <label>
-                  <span className="text-xs uppercase tracking-[0.14em] text-ink-muted">
-                    Bairro
-                  </span>
+                  <span className={fieldLabelClassName}>Bairro</span>
                   <input
                     value={addressForm.bairro}
                     onChange={(e) =>
                       setAddressForm((p) => ({ ...p, bairro: e.target.value }))
                     }
-                    className="mt-1 w-full border border-line bg-cream px-3 py-2.5 text-sm outline-none focus:border-rose-gold"
+                    className={fieldClassName}
                   />
                 </label>
                 <label>
-                  <span className="text-xs uppercase tracking-[0.14em] text-ink-muted">
-                    Complemento
-                  </span>
+                  <span className={fieldLabelClassName}>Complemento</span>
                   <input
                     value={addressForm.complemento}
                     onChange={(e) =>
@@ -523,25 +596,21 @@ export function CheckoutPageClient() {
                         complemento: e.target.value,
                       }))
                     }
-                    className="mt-1 w-full border border-line bg-cream px-3 py-2.5 text-sm outline-none focus:border-rose-gold"
+                    className={fieldClassName}
                   />
                 </label>
                 <label>
-                  <span className="text-xs uppercase tracking-[0.14em] text-ink-muted">
-                    Cidade
-                  </span>
+                  <span className={fieldLabelClassName}>Cidade</span>
                   <input
                     value={addressForm.cidade}
                     onChange={(e) =>
                       setAddressForm((p) => ({ ...p, cidade: e.target.value }))
                     }
-                    className="mt-1 w-full border border-line bg-cream px-3 py-2.5 text-sm outline-none focus:border-rose-gold"
+                    className={fieldClassName}
                   />
                 </label>
                 <label>
-                  <span className="text-xs uppercase tracking-[0.14em] text-ink-muted">
-                    UF
-                  </span>
+                  <span className={fieldLabelClassName}>UF</span>
                   <input
                     value={addressForm.estado}
                     onChange={(e) =>
@@ -550,7 +619,7 @@ export function CheckoutPageClient() {
                         estado: e.target.value.toUpperCase().slice(0, 2),
                       }))
                     }
-                    className="mt-1 w-full border border-line bg-cream px-3 py-2.5 text-sm outline-none focus:border-rose-gold"
+                    className={fieldClassName}
                     maxLength={2}
                   />
                 </label>
@@ -561,7 +630,7 @@ export function CheckoutPageClient() {
                   type="button"
                   onClick={() => void quoteShipping()}
                   disabled={shippingLoading || cepDigits.length !== 8}
-                  className="inline-flex min-h-11 items-center justify-center border border-rose-gold bg-rose-gold px-5 text-sm tracking-[0.12em] text-cream transition-colors hover:bg-rose-gold-light disabled:opacity-40"
+                  className="inline-flex min-h-12 w-full items-center justify-center rounded-xl border border-rose-gold bg-rose-gold px-5 text-sm font-medium tracking-[0.08em] text-cream transition-[background-color,transform] active:scale-[0.99] disabled:opacity-40 sm:w-auto"
                 >
                   {shippingLoading
                     ? "Calculando frete…"
@@ -570,18 +639,18 @@ export function CheckoutPageClient() {
                       : "Calcular frete"}
                 </button>
                 {cepDigits.length < 8 ? (
-                  <p className="text-sm text-ink-muted">
+                  <p className="text-xs leading-relaxed text-ink-muted sm:text-sm">
                     Digite o CEP completo para ver as opções de entrega.
                   </p>
                 ) : shippingLoading ? (
-                  <p className="text-sm text-ink-muted">
+                  <p className="text-xs text-ink-muted sm:text-sm">
                     Buscando transportadoras…
                   </p>
                 ) : null}
               </div>
 
               {!hasShipping && !shippingLoading && cepDigits.length === 8 ? (
-                <p className="mt-3 border border-rose-gold/30 bg-rose-gold/5 px-4 py-3 text-sm text-rose-gold">
+                <p className="mt-3 rounded-xl border border-rose-gold/30 bg-rose-gold/5 px-4 py-3 text-sm text-rose-gold">
                   Ainda sem frete selecionado. Aguarde o cálculo ou clique em
                   “Calcular frete” para continuar o pedido.
                 </p>
@@ -595,27 +664,27 @@ export function CheckoutPageClient() {
                   {shippingQuote.options.map((option) => (
                     <label
                       key={option.id}
-                      className="flex cursor-pointer items-center justify-between gap-3 border border-line px-4 py-3 text-sm has-[:checked]:border-rose-gold has-[:checked]:bg-rose-gold/5"
+                      className="grid min-h-16 cursor-pointer grid-cols-[auto_1fr] items-start gap-x-3 rounded-xl border border-line bg-ivory/25 px-3.5 py-3 text-sm transition-colors has-[:checked]:border-rose-gold has-[:checked]:bg-rose-gold/5 sm:grid-cols-[1fr_auto] sm:items-center"
                     >
-                      <span className="flex items-center gap-3">
+                      <span className="contents sm:flex sm:items-center sm:gap-3">
                         <input
                           type="radio"
                           name="shipping"
                           checked={selectedShippingId === option.id}
                           onChange={() => setSelectedShippingId(option.id)}
-                          className="accent-[var(--color-rose-gold)]"
+                          className="mt-1 accent-[var(--color-rose-gold)] sm:mt-0"
                         />
-                        <span>
-                          <span className="font-medium text-ink">
-                            {option.company} — {option.name}
+                        <span className="min-w-0">
+                          <span className="block font-medium leading-snug text-ink">
+                            {option.company}
                           </span>
-                          <br />
-                          <span className="text-xs text-ink-muted">
+                          <span className="mt-0.5 block text-xs text-ink-muted">
+                            {option.name} ·{" "}
                             até {option.customDeliveryTime} dias úteis
                           </span>
                         </span>
                       </span>
-                      <span className="shrink-0 text-ink">
+                      <span className="col-start-2 mt-1 shrink-0 font-medium text-ink sm:col-auto sm:mt-0">
                         {option.customPrice === 0
                           ? "Grátis"
                           : formatPrice(option.customPrice)}
@@ -626,65 +695,80 @@ export function CheckoutPageClient() {
               ) : null}
             </section>
 
-            <section>
-              <h2 className="font-display text-xl font-light tracking-[0.06em] text-ink">
-                2. Destinatário
-              </h2>
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <section className={sectionClassName}>
+              <div className="flex items-start gap-3">
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-ivory text-rose-gold">
+                  <UserRound className="size-4.5" aria-hidden />
+                </span>
+                <div>
+                  <h2 className="font-display text-xl font-light tracking-[0.04em] text-ink">
+                    Dados do destinatário
+                  </h2>
+                  <p className="mt-0.5 text-sm text-ink-muted">
+                    Usaremos estes dados para a entrega e o pagamento.
+                  </p>
+                </div>
+              </div>
+              <div className="mt-5 grid gap-3 sm:grid-cols-2">
                 <label className="sm:col-span-2">
-                  <span className="text-xs uppercase tracking-[0.14em] text-ink-muted">
-                    Nome completo
-                  </span>
+                  <span className={fieldLabelClassName}>Nome completo</span>
                   <input
                     value={recipientName}
                     onChange={(e) => setRecipientName(e.target.value)}
-                    className="mt-1 w-full border border-line bg-cream px-3 py-2.5 text-sm outline-none focus:border-rose-gold"
+                    className={fieldClassName}
+                    autoComplete="name"
                   />
                 </label>
                 <label>
-                  <span className="text-xs uppercase tracking-[0.14em] text-ink-muted">
-                    E-mail
-                  </span>
+                  <span className={fieldLabelClassName}>E-mail</span>
                   <input
                     type="email"
                     value={recipientEmail}
                     onChange={(e) => setRecipientEmail(e.target.value)}
-                    className="mt-1 w-full border border-line bg-cream px-3 py-2.5 text-sm outline-none focus:border-rose-gold"
+                    className={fieldClassName}
+                    autoComplete="email"
                   />
                 </label>
                 <label>
-                  <span className="text-xs uppercase tracking-[0.14em] text-ink-muted">
-                    Telefone
-                  </span>
+                  <span className={fieldLabelClassName}>Telefone</span>
                   <input
                     value={recipientPhone}
                     onChange={(e) =>
                       setRecipientPhone(formatPhoneInput(e.target.value))
                     }
-                    className="mt-1 w-full border border-line bg-cream px-3 py-2.5 text-sm outline-none focus:border-rose-gold"
+                    className={fieldClassName}
                     inputMode="tel"
+                    autoComplete="tel"
                   />
                 </label>
                 <label className="sm:col-span-2">
-                  <span className="text-xs uppercase tracking-[0.14em] text-ink-muted">
-                    CPF
-                  </span>
+                  <span className={fieldLabelClassName}>CPF</span>
                   <input
                     value={cpf}
                     onChange={(e) => setCpf(formatCpfInput(e.target.value))}
-                    className="mt-1 w-full border border-line bg-cream px-3 py-2.5 text-sm outline-none focus:border-rose-gold"
+                    className={fieldClassName}
                     inputMode="numeric"
                   />
                 </label>
               </div>
             </section>
 
-            <section>
-              <h2 className="font-display text-xl font-light tracking-[0.06em] text-ink">
-                3. Pagamento
-              </h2>
+            <section ref={paymentSectionRef} className={sectionClassName}>
+              <div className="flex items-start gap-3">
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-ivory text-rose-gold">
+                  <CreditCard className="size-4.5" aria-hidden />
+                </span>
+                <div>
+                  <h2 className="font-display text-xl font-light tracking-[0.04em] text-ink">
+                    Pagamento
+                  </h2>
+                  <p className="mt-0.5 text-sm text-ink-muted">
+                    Escolha a forma de pagamento que preferir.
+                  </p>
+                </div>
+              </div>
               {!hasShipping ? (
-                <p className="mt-3 border border-line bg-ivory/60 px-4 py-3 text-sm text-ink-muted">
+                <p className="mt-4 rounded-xl border border-line bg-ivory/60 px-4 py-3 text-sm text-ink-muted">
                   Complete a etapa de entrega (CEP + frete) para liberar o
                   pagamento.
                 </p>
@@ -699,14 +783,14 @@ export function CheckoutPageClient() {
                 </p>
               ) : (
                 <div
-                  className={`mt-4 flex flex-wrap gap-2 ${!hasShipping ? "pointer-events-none opacity-40" : ""}`}
+                  className={`mt-5 grid grid-cols-3 gap-2 ${!hasShipping ? "pointer-events-none opacity-40" : ""}`}
                 >
                   {mpConfig.methods.map((method) => (
                     <button
                       key={method}
                       type="button"
                       onClick={() => setPaymentMethod(method)}
-                      className={`min-h-11 border px-4 text-sm tracking-[0.1em] transition-colors ${
+                      className={`min-h-12 rounded-xl border px-2 text-sm font-medium transition-colors ${
                         paymentMethod === method
                           ? "border-rose-gold bg-rose-gold text-cream"
                           : "border-line text-ink hover:border-rose-gold"
@@ -725,7 +809,7 @@ export function CheckoutPageClient() {
               {paymentMethod === "credit_card" &&
               mpConfig?.enabled &&
               hasShipping ? (
-                <div className="mt-6">
+                <div className="mt-5 min-w-0 overflow-x-auto rounded-xl border border-line bg-white p-2 sm:p-4">
                   <CardPayment
                     initialization={{
                       amount:
@@ -747,12 +831,12 @@ export function CheckoutPageClient() {
               ) : null}
 
               {paymentMethod !== "credit_card" ? (
-                <div className="mt-6 space-y-2">
+                <div className="mt-6 hidden space-y-3 lg:block">
                   <button
                     type="button"
                     disabled={submitting || !canFinish}
                     onClick={() => void submitCheckout()}
-                    className="inline-flex min-h-12 w-full items-center justify-center bg-rose-gold px-7 text-sm tracking-[0.14em] text-cream transition-colors hover:bg-rose-gold-light disabled:opacity-40 sm:w-auto"
+                    className="inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-rose-gold px-7 text-sm font-medium tracking-[0.1em] text-cream transition-colors hover:bg-rose-gold-light disabled:opacity-40"
                   >
                     {submitting
                       ? "Processando…"
@@ -766,6 +850,10 @@ export function CheckoutPageClient() {
                       selecionada.
                     </p>
                   ) : null}
+                  <p className="flex items-center justify-center gap-2 text-xs text-ink-muted">
+                    <ShieldCheck className="size-4 text-rose-gold" aria-hidden />
+                    Pagamento processado com segurança.
+                  </p>
                 </div>
               ) : null}
             </section>
@@ -777,7 +865,52 @@ export function CheckoutPageClient() {
               selectedShipping ? selectedShipping.customPrice : null
             }
             shippingPending={!hasShipping}
+            className="order-1 lg:order-2"
           />
+        </div>
+      </div>
+
+      <div
+        className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-cream/95 px-3 pt-3 shadow-[0_-14px_40px_rgba(44,36,27,0.09)] backdrop-blur-xl lg:hidden"
+        style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
+      >
+        <div className="mx-auto max-w-lg">
+          <div className="mb-2 flex items-end justify-between gap-4 px-1">
+            <span className="text-xs text-ink-muted">
+              {hasShipping ? "Total com frete" : "Total sem frete"}
+            </span>
+            <span className="font-display text-xl font-medium tracking-[0.02em] text-ink">
+              {formatPrice(checkoutTotal)}
+            </span>
+          </div>
+          <button
+            type="button"
+            disabled={submitting || !canFinish}
+            onClick={() => {
+              if (paymentMethod === "credit_card") {
+                paymentSectionRef.current?.scrollIntoView({
+                  behavior: "smooth",
+                  block: "start",
+                });
+                return;
+              }
+              void submitCheckout();
+            }}
+            className="inline-flex min-h-13 w-full items-center justify-center gap-2 rounded-xl bg-rose-gold px-5 text-sm font-medium tracking-[0.08em] text-cream transition-[background-color,transform] active:scale-[0.99] disabled:opacity-40"
+          >
+            <LockKeyhole className="size-4" aria-hidden />
+            {submitting
+              ? "Processando…"
+              : !hasShipping
+                ? "Calcule o frete para continuar"
+                : paymentMethod === "credit_card"
+                  ? "Preencher dados do cartão"
+                  : "Finalizar pedido"}
+          </button>
+          <p className="mt-2 flex items-center justify-center gap-1.5 text-[10px] text-ink-muted">
+            <ShieldCheck className="size-3.5 text-rose-gold" aria-hidden />
+            Seus dados estão protegidos.
+          </p>
         </div>
       </div>
     </>

@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { Check, CircleX, Clock3 } from "lucide-react";
 import { useState } from "react";
 import { formatPrice } from "@/lib/utils";
 import type { Order } from "@/shared/types/order";
@@ -32,15 +33,32 @@ export function CheckoutSuccessView({
   }
 
   return (
-    <section className="mx-auto max-w-lg px-4 py-14 text-center sm:px-6">
-      <p className="font-display text-xs uppercase tracking-[0.35em] text-rose-gold">
+    <section className="mx-auto max-w-lg px-3 py-8 text-center sm:px-6 sm:py-14">
+      <div
+        className={`mx-auto flex size-16 items-center justify-center rounded-full ${
+          approved
+            ? "bg-emerald-50 text-emerald-700"
+            : rejected
+              ? "bg-red-50 text-red-700"
+              : "bg-ivory text-rose-gold"
+        }`}
+      >
+        {approved ? (
+          <Check className="size-7" aria-hidden />
+        ) : rejected ? (
+          <CircleX className="size-7" aria-hidden />
+        ) : (
+          <Clock3 className="size-7" aria-hidden />
+        )}
+      </div>
+      <p className="mt-5 font-display text-xs uppercase tracking-[0.35em] text-rose-gold">
         {approved
           ? "Pedido confirmado"
           : rejected
             ? "Pagamento recusado"
             : "Aguardando pagamento"}
       </p>
-      <h1 className="mt-4 font-display text-3xl font-light tracking-[0.06em] text-ink">
+      <h1 className="mt-3 font-display text-3xl font-light tracking-[0.06em] text-ink">
         {approved
           ? "Obrigada!"
           : rejected
@@ -56,26 +74,26 @@ export function CheckoutSuccessView({
       ) : null}
 
       {isPix && (instructions?.qrCodeBase64 || instructions?.qrCode) ? (
-        <div className="mx-auto mt-8 max-w-xs space-y-3">
+        <div className="mx-auto mt-8 max-w-sm space-y-3 rounded-2xl border border-line bg-cream p-4 shadow-[0_16px_45px_rgba(44,36,27,0.05)]">
           {instructions.qrCodeBase64 ? (
             <Image
               src={`data:image/png;base64,${instructions.qrCodeBase64}`}
               alt="QR Code Pix"
               width={240}
               height={240}
-              className="mx-auto"
+              className="mx-auto rounded-xl"
               unoptimized
             />
           ) : null}
           {instructions.qrCode ? (
             <>
-              <p className="break-all rounded border border-line bg-ivory/50 p-3 text-left text-[11px] text-ink-muted">
+              <p className="max-h-24 overflow-y-auto break-all rounded-xl border border-line bg-ivory/50 p-3 text-left text-[11px] text-ink-muted">
                 {instructions.qrCode}
               </p>
               <button
                 type="button"
                 onClick={() => void copyPixCode()}
-                className="inline-flex min-h-12 w-full items-center justify-center border border-rose-gold px-7 text-sm tracking-[0.14em] text-rose-gold transition-colors hover:bg-rose-gold hover:text-cream"
+                className="inline-flex min-h-12 w-full items-center justify-center rounded-xl border border-rose-gold px-7 text-sm font-medium tracking-[0.1em] text-rose-gold transition-colors hover:bg-rose-gold hover:text-cream"
               >
                 {copied ? "Código copiado" : "Copiar código Pix"}
               </button>
@@ -89,7 +107,7 @@ export function CheckoutSuccessView({
           href={instructions.ticketUrl}
           target="_blank"
           rel="noreferrer"
-          className="mt-8 inline-flex min-h-12 items-center justify-center border border-rose-gold px-7 text-sm tracking-[0.14em] text-rose-gold transition-colors hover:bg-rose-gold hover:text-cream"
+          className="mt-8 inline-flex min-h-12 w-full items-center justify-center rounded-xl border border-rose-gold px-7 text-sm tracking-[0.1em] text-rose-gold transition-colors hover:bg-rose-gold hover:text-cream sm:w-auto"
         >
           Abrir boleto
         </a>
@@ -104,13 +122,13 @@ export function CheckoutSuccessView({
       <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
         <Link
           href="/conta"
-          className="inline-flex min-h-12 items-center justify-center bg-rose-gold px-7 text-sm tracking-[0.14em] text-cream transition-colors hover:bg-rose-gold-light"
+          className="inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-rose-gold px-7 text-sm font-medium tracking-[0.1em] text-cream transition-colors hover:bg-rose-gold-light sm:w-auto"
         >
           Ver meus pedidos
         </Link>
         <Link
           href="/catalogo"
-          className="inline-flex min-h-12 items-center justify-center border border-line px-7 text-sm tracking-[0.14em] text-ink transition-colors hover:border-rose-gold hover:text-rose-gold"
+          className="inline-flex min-h-12 w-full items-center justify-center rounded-xl border border-line px-7 text-sm tracking-[0.1em] text-ink transition-colors hover:border-rose-gold hover:text-rose-gold sm:w-auto"
         >
           Continuar comprando
         </Link>

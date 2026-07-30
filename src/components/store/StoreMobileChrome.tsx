@@ -17,11 +17,13 @@ function hideTabBar(pathname: string) {
 export function StoreMobileChrome({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const tabsHidden = hideTabBar(pathname);
+  const checkoutActive = pathname.startsWith("/checkout");
 
   return (
     <>
       <div
         className={cn(
+          checkoutActive && "[&>footer]:hidden",
           !tabsHidden &&
             "pb-[calc(4.25rem+env(safe-area-inset-bottom))] md:pb-0"
         )}
