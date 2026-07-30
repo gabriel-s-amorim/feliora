@@ -43,7 +43,7 @@ export function ProductGallery({ name, images }: ProductGalleryProps) {
   return (
     <div
       ref={containerRef}
-      className="grid grid-cols-2 gap-2.5 sm:gap-4"
+      className="grid grid-cols-2 gap-2.5 sm:gap-5"
     >
       {gallery.map((src, index) => {
         const featured = index === 0;
@@ -57,7 +57,7 @@ export function ProductGallery({ name, images }: ProductGalleryProps) {
             className={cn(
               "group relative block overflow-hidden border border-line/40 bg-ivory",
               featured
-                ? "col-span-2 aspect-[4/3]"
+                ? "col-span-2 aspect-[6/5]"
                 : "aspect-[4/5]"
             )}
           >
@@ -69,8 +69,8 @@ export function ProductGallery({ name, images }: ProductGalleryProps) {
               quality={90}
               sizes={
                 featured
-                  ? "(max-width: 768px) 100vw, 58vw"
-                  : "(max-width: 768px) 50vw, 29vw"
+                  ? "(max-width: 768px) 100vw, 68vw"
+                  : "(max-width: 768px) 50vw, 34vw"
               }
               className="object-contain transition-transform duration-500 ease-out group-hover:scale-[1.015]"
             />

@@ -75,11 +75,11 @@ export function ProductDetail({
 
   return (
     <div className="pb-28 lg:pb-0">
-      <div className="mx-auto max-w-6xl px-4 pt-6 sm:px-6 lg:px-8 lg:pt-10">
+      <div className="mx-auto max-w-[1500px] px-4 pt-6 sm:px-6 lg:px-8 lg:pt-10">
         <Breadcrumb items={crumbs} />
       </div>
 
-      <div className="mx-auto grid max-w-7xl gap-10 px-4 pt-6 sm:px-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(22rem,0.8fr)] lg:items-start lg:gap-14 lg:px-8 lg:pt-10 lg:pb-8">
+      <div className="mx-auto grid max-w-[1500px] gap-10 px-4 pt-6 sm:px-6 lg:grid-cols-[minmax(0,1.7fr)_minmax(21rem,0.68fr)] lg:items-start lg:gap-12 lg:px-8 lg:pt-10 lg:pb-12 xl:gap-16">
         <ProductGallery name={product.name} images={gallery} />
 
         <div className="lg:sticky lg:top-24 lg:pt-2">
