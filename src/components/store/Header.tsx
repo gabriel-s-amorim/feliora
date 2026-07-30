@@ -93,8 +93,19 @@ export function Header({ categories }: HeaderProps) {
       <div className="relative mx-auto flex h-14 max-w-6xl items-center justify-between gap-2 px-4 sm:h-16 sm:px-6 lg:px-8">
         <Link
           href="/"
-          className="absolute left-1/2 flex shrink-0 -translate-x-1/2 items-center md:static md:translate-x-0"
+          className="absolute left-1/2 flex -translate-x-1/2 items-center md:hidden"
         >
+          <Image
+            src={SITE_LOGO_PATH}
+            alt={SITE_NAME}
+            width={160}
+            height={160}
+            className="h-11 w-auto object-contain sm:h-12"
+            priority
+          />
+        </Link>
+
+        <Link href="/" className="hidden shrink-0 items-center md:flex">
           <Image
             src={SITE_LOGO_PATH}
             alt={SITE_NAME}
@@ -117,7 +128,7 @@ export function Header({ categories }: HeaderProps) {
           ))}
         </nav>
 
-        <div className="ml-auto flex items-center gap-0.5">
+        <div className="ml-auto flex items-center gap-0.5 md:ml-0">
           <Link
             href="/busca"
             className="flex size-11 items-center justify-center text-ink transition-colors hover:text-rose-gold"
