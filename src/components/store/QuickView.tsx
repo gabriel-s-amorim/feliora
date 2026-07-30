@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { createPortal } from "react-dom";
 import type { Product, ProductVariant } from "@/shared/types/product";
 import { cn, formatPrice } from "@/lib/utils";
 import { VariantSelector } from "@/components/store/VariantSelector";
@@ -67,7 +68,7 @@ export function QuickView({ product, open, onClose }: QuickViewProps) {
     if (ok) setMessage("Adicionado ao carrinho");
   }
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center sm:p-4">
       <button
         type="button"
@@ -192,6 +193,7 @@ export function QuickView({ product, open, onClose }: QuickViewProps) {
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
