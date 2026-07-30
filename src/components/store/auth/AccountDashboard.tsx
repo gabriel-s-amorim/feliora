@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -256,6 +257,12 @@ export function AccountDashboard() {
   }
 
   const displayName = fullName.trim() || profile?.fullName || "Cliente";
+  const googleAvatar =
+    typeof user.user_metadata.avatar_url === "string"
+      ? user.user_metadata.avatar_url
+      : typeof user.user_metadata.picture === "string"
+        ? user.user_metadata.picture
+        : null;
   const tabs: { id: Tab; label: string }[] = [
     { id: "perfil", label: "Perfil" },
     { id: "enderecos", label: "Endereços" },
@@ -267,8 +274,18 @@ export function AccountDashboard() {
     <div className="mx-auto max-w-3xl space-y-8 px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
       <header className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full border border-rose-gold/40 bg-ivory font-display text-lg tracking-wide text-rose-gold">
-            {initials(displayName)}
+          <div className="relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full border border-rose-gold/40 bg-ivory font-display text-lg tracking-wide text-rose-gold">
+            {googleAvatar ? (
+              <Image
+                src={googleAvatar}
+                alt={`Foto de ${displayName}`}
+                fill
+                sizes="56px"
+                className="object-cover"
+              />
+            ) : (
+              initials(displayName)
+            )}
           </div>
           <div>
             <p className="font-display text-xs uppercase tracking-[0.35em] text-rose-gold">
