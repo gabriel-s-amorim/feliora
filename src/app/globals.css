@@ -35,6 +35,25 @@ html {
   scroll-behavior: smooth;
 }
 
+/*
+ * Escala tipográfica exclusiva da loja. Tailwind usa rem, então ampliar a
+ * raiz aumenta títulos, textos, controles e espaçamentos de forma coerente,
+ * sem alterar o painel administrativo.
+ */
+html:has(.store-app) {
+  font-size: 17px;
+}
+
+@media (min-width: 768px) {
+  html:has(.store-app) {
+    font-size: 18px;
+  }
+}
+
+.store-app {
+  text-rendering: optimizeLegibility;
+}
+
 body {
   background-color: var(--color-cream);
   color: var(--color-ink);

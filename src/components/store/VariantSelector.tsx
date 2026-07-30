@@ -68,7 +68,7 @@ export function VariantSelector({
     <div className="space-y-8">
       {sizes.length > 0 ? (
         <div>
-          <p className="text-[11px] uppercase tracking-[0.18em] text-earth">
+          <p className="text-xs uppercase tracking-[0.18em] text-earth">
             Tamanho
           </p>
           <div className="mt-3.5 flex flex-wrap gap-2.5">
@@ -100,7 +100,7 @@ export function VariantSelector({
 
       {colors.length > 0 ? (
         <div>
-          <p className="text-[11px] uppercase tracking-[0.18em] text-earth">
+          <p className="text-xs uppercase tracking-[0.18em] text-earth">
             Cor{color ? ` — ${color}` : ""}
           </p>
           <div className="mt-3.5 flex flex-wrap gap-3">

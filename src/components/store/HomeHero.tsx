@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Banner } from "@/shared/types/banner";
 import { SITE_TAGLINE } from "@/shared/const/site";
 import { cn } from "@/lib/utils";
@@ -13,6 +13,8 @@ type Props = {
 
 export function HomeHero({ banners }: Props) {
   const [index, setIndex] = useState(0);
+  const pointerStart = useRef<number | null>(null);
+  const dragged = useRef(false);
   const hasBanners = banners.length > 0;
   const current = hasBanners ? banners[index % banners.length] : null;
 
@@ -79,7 +81,36 @@ export function HomeHero({ banners }: Props) {
   }
 
   return (
-    <section className="relative isolate min-h-[calc(100dvh-3.5rem)] overflow-hidden sm:min-h-[calc(100dvh-4rem)]">
+    <section
+      className="relative isolate min-h-[calc(100dvh-3.5rem)] touch-pan-y select-none overflow-hidden cursor-grab active:cursor-grabbing sm:min-h-[calc(100dvh-4rem)]"
+      onPointerDown={(event) => {
+        if (!event.isPrimary) return;
+        pointerStart.current = event.clientX;
+        dragged.current = false;
+        event.currentTarget.setPointerCapture(event.pointerId);
+      }}
+      onPointerUp={(event) => {
+        if (pointerStart.current === null || !event.isPrimary) return;
+        const distance = event.clientX - pointerStart.current;
+        pointerStart.current = null;
+        if (Math.abs(distance) < 45) return;
+        dragged.current = true;
+        setIndex((currentIndex) =>
+          distance < 0
+            ? (currentIndex + 1) % banners.length
+            : (currentIndex - 1 + banners.length) % banners.length
+        );
+      }}
+      onPointerCancel={() => {
+        pointerStart.current = null;
+      }}
+      onClickCapture={(event) => {
+        if (!dragged.current) return;
+        event.preventDefault();
+        event.stopPropagation();
+        dragged.current = false;
+      }}
+    >
       {banners.map((banner, i) => {
         const desktop = banner.imageUrl;
         const mobile = banner.imageUrlMobile || banner.imageUrl;

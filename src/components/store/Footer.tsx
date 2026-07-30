@@ -69,8 +69,8 @@ export function Footer({ categories }: FooterProps) {
 
   return (
     <footer className="mt-auto border-t border-line bg-ivory">
-      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-2 lg:grid-cols-4 lg:px-8">
-        <div>
+      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 text-center sm:px-6 md:grid-cols-2 lg:grid-cols-4 lg:px-8">
+        <div className="flex flex-col items-center">
           <Link href="/" className="inline-block">
             <Image
               src={SITE_LOGO_PATH}
@@ -172,7 +172,7 @@ export function Footer({ categories }: FooterProps) {
               placeholder="seu@email.com"
               className="min-h-11 w-full border border-line bg-cream px-3 text-sm text-ink outline-none focus:border-rose-gold"
             />
-            <label className="flex items-start gap-2 text-xs text-ink-muted">
+            <label className="flex items-start justify-center gap-2 text-left text-xs text-ink-muted">
               <input
                 type="checkbox"
                 checked={consent}
@@ -208,7 +208,7 @@ export function Footer({ categories }: FooterProps) {
       </div>
 
       <div className="border-t border-line">
-        <p className="mx-auto max-w-6xl px-4 py-5 text-xs text-ink-muted sm:px-6 lg:px-8">
+        <p className="mx-auto max-w-6xl px-4 py-5 text-center text-xs text-ink-muted sm:px-6 lg:px-8">
           © {year} {SITE_NAME}. Todos os direitos reservados.
         </p>
       </div>

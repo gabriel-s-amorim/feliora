@@ -15,15 +15,17 @@ export default async function StoreLayout({
 
   return (
     <StoreProviders>
-      <Header categories={categories} />
-      <StoreMobileChrome>
-        <main className="relative isolate flex-1">
-          <BotanicalTattooBackground />
-          <div className="relative z-10">{children}</div>
-        </main>
-        <Footer categories={categories} />
-      </StoreMobileChrome>
-      <CookieConsent />
+      <div className="store-app flex min-h-full flex-1 flex-col">
+        <Header categories={categories} />
+        <StoreMobileChrome>
+          <main className="relative isolate flex-1">
+            <BotanicalTattooBackground />
+            <div className="relative z-10">{children}</div>
+          </main>
+          <Footer categories={categories} />
+        </StoreMobileChrome>
+        <CookieConsent />
+      </div>
     </StoreProviders>
   );
 }

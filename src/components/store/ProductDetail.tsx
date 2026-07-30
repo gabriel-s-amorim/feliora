@@ -129,7 +129,7 @@ export function ProductDetail({
           </p>
 
           {selected?.sku ? (
-            <p className="mt-2 text-[11px] tracking-wide text-ink-muted">
+            <p className="mt-2 text-xs tracking-wide text-ink-muted">
               SKU {selected.sku}
             </p>
           ) : null}
@@ -178,7 +178,7 @@ export function ProductDetail({
 
           {(descriptionHtml || product.highlights.length > 0) && (
             <section className="mt-14 border-t border-line pt-10 sm:mt-16">
-              <p className="font-display text-[0.65rem] uppercase tracking-[0.35em] text-rose-gold">
+              <p className="font-display text-xs uppercase tracking-[0.35em] text-rose-gold">
                 Detalhes & cuidados
               </p>
               {descriptionHtml ? (
@@ -207,7 +207,7 @@ export function ProductDetail({
 
       <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
         <div className="mb-10 text-center sm:mb-12">
-          <p className="font-display text-[0.65rem] uppercase tracking-[0.42em] text-rose-gold">
+          <p className="font-display text-xs uppercase tracking-[0.42em] text-rose-gold">
             Continuar olhando
           </p>
           <h2 className="mt-4 font-display text-2xl font-light tracking-[0.08em] text-ink sm:text-3xl">

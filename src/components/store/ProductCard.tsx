@@ -66,7 +66,7 @@ export function ProductCard({
             </>
           ) : (
             <div className="flex h-full items-center justify-center border border-line bg-cream">
-              <span className="font-display text-xs tracking-[0.2em] text-ink-muted">
+              <span className="font-display text-sm tracking-[0.2em] text-ink-muted">
                 Feliora
               </span>
             </div>
@@ -94,7 +94,7 @@ export function ProductCard({
         </button>
 
         {(product.badge || product.isNew) && (
-          <span className="pointer-events-none absolute left-2 top-2 max-w-[70%] bg-cream/95 px-2 py-1 text-[10px] uppercase tracking-[0.14em] text-rose-gold">
+          <span className="pointer-events-none absolute left-2 top-2 max-w-[70%] bg-cream/95 px-2 py-1 text-xs uppercase tracking-[0.14em] text-rose-gold">
             {product.badge || "Novidade"}
           </span>
         )}
@@ -103,7 +103,7 @@ export function ProductCard({
           <button
             type="button"
             onClick={() => onQuickView(product)}
-            className="absolute inset-x-2 bottom-2 z-10 min-h-10 border border-cream/40 bg-cream/95 text-[11px] tracking-[0.16em] text-ink opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100"
+            className="absolute inset-x-2 bottom-2 z-10 min-h-10 border border-cream/40 bg-cream/95 text-xs tracking-[0.16em] text-ink opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100"
           >
             Visualização rápida
           </button>
@@ -112,7 +112,7 @@ export function ProductCard({
 
       <div className="mt-4 space-y-1.5 px-0.5 sm:mt-5">
         {product.category ? (
-          <p className="text-[10px] uppercase tracking-[0.18em] text-earth">
+          <p className="text-xs uppercase tracking-[0.18em] text-earth">
             {product.category.name}
           </p>
         ) : null}

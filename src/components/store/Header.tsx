@@ -90,8 +90,11 @@ export function Header({ categories }: HeaderProps) {
 
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-cream/90 backdrop-blur-md pt-[env(safe-area-inset-top)]">
-      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-2 px-4 sm:h-16 sm:px-6 lg:px-8">
-        <Link href="/" className="flex shrink-0 items-center">
+      <div className="relative mx-auto flex h-14 max-w-6xl items-center justify-between gap-2 px-4 sm:h-16 sm:px-6 lg:px-8">
+        <Link
+          href="/"
+          className="absolute left-1/2 flex shrink-0 -translate-x-1/2 items-center md:static md:translate-x-0"
+        >
           <Image
             src={SITE_LOGO_PATH}
             alt={SITE_NAME}
@@ -114,7 +117,7 @@ export function Header({ categories }: HeaderProps) {
           ))}
         </nav>
 
-        <div className="flex items-center gap-0.5">
+        <div className="ml-auto flex items-center gap-0.5">
           <Link
             href="/busca"
             className="flex size-11 items-center justify-center text-ink transition-colors hover:text-rose-gold"
