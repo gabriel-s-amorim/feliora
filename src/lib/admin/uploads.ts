@@ -4,9 +4,13 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 export const PRODUCT_IMAGES_BUCKET = "product-images";
 export const MAX_UPLOAD_BYTES = 12 * 1024 * 1024;
-const WEBP_QUALITY = 82;
 
 export type UploadFolder = "products" | "banners";
+
+const WEBP_QUALITY_BY_FOLDER: Record<UploadFolder, number> = {
+  products: 92,
+  banners: 82,
+};
 
 const MAX_DIMENSION_BY_FOLDER: Record<UploadFolder, number> = {
   products: 1600,
@@ -29,6 +33,7 @@ async function toOptimizedWebp(
   folder: UploadFolder
 ): Promise<Buffer> {
   const maxSide = MAX_DIMENSION_BY_FOLDER[folder];
+  const quality = WEBP_QUALITY_BY_FOLDER[folder];
   const out = await sharp(buffer, { failOn: "none" })
     .rotate()
     .resize({
@@ -37,7 +42,7 @@ async function toOptimizedWebp(
       fit: "inside",
       withoutEnlargement: true,
     })
-    .webp({ quality: WEBP_QUALITY, effort: 4 })
+    .webp({ quality, effort: 4, smartSubsample: true })
     .toBuffer();
 
   // Garante WebP válido antes de subir (evita gravar arquivo corrompido)

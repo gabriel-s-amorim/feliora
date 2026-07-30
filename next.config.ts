@@ -6,6 +6,7 @@ const supabaseHost = process.env.NEXT_PUBLIC_SUPABASE_URL
 
 const nextConfig: NextConfig = {
   images: {
+    qualities: [90],
     remotePatterns: [
       ...(supabaseHost
         ? [

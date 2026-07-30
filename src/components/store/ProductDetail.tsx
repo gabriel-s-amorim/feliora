@@ -79,10 +79,10 @@ export function ProductDetail({
         <Breadcrumb items={crumbs} />
       </div>
 
-      <div className="mx-auto grid max-w-6xl gap-10 px-4 pt-6 sm:px-6 lg:grid-cols-2 lg:gap-16 lg:px-8 lg:pt-10 lg:pb-8">
+      <div className="mx-auto grid max-w-7xl gap-10 px-4 pt-6 sm:px-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(22rem,0.8fr)] lg:items-start lg:gap-14 lg:px-8 lg:pt-10 lg:pb-8">
         <ProductGallery name={product.name} images={gallery} />
 
-        <div className="lg:pt-2">
+        <div className="lg:sticky lg:top-24 lg:pt-2">
           <h1 className="font-display text-3xl font-light tracking-[0.05em] text-ink sm:text-4xl lg:text-[2.65rem] lg:leading-tight">
             {product.name}
           </h1>
