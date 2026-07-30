@@ -256,6 +256,8 @@ function MelhorEnvioCard() {
   const [environment, setEnvironment] = useState<"production" | "sandbox">(
     "sandbox"
   );
+  const [freeShippingEnabled, setFreeShippingEnabled] = useState(true);
+  const [freeShippingThreshold, setFreeShippingThreshold] = useState("299");
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -272,6 +274,10 @@ function MelhorEnvioCard() {
       setUserAgent(data.userAgent ?? "");
       setRedirectUri(data.redirectUri || data.suggestedRedirectUri || "");
       setEnvironment(data.environment ?? "sandbox");
+      setFreeShippingEnabled(data.freeShippingEnabled ?? true);
+      setFreeShippingThreshold(
+        String(data.freeShippingThreshold ?? 299).replace(".", ",")
+      );
       setClientSecret("");
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "Erro ao carregar ME");
@@ -295,6 +301,15 @@ function MelhorEnvioCard() {
     setSaving(true);
     setMessage(null);
     try {
+      const threshold = Number(
+        freeShippingThreshold.replace(/\./g, "").replace(",", ".")
+      );
+      if (
+        freeShippingEnabled &&
+        (!Number.isFinite(threshold) || threshold <= 0)
+      ) {
+        throw new Error("Informe um valor mínimo de frete grátis válido");
+      }
       const res = await fetch("/api/admin/melhor-envio", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -305,11 +320,17 @@ function MelhorEnvioCard() {
           originPostalCode,
           userAgent,
           redirectUri,
+          freeShippingEnabled,
+          freeShippingThreshold: freeShippingEnabled ? threshold : undefined,
         }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Erro ao salvar");
       setStatus(data);
+      setFreeShippingEnabled(data.freeShippingEnabled ?? freeShippingEnabled);
+      setFreeShippingThreshold(
+        String(data.freeShippingThreshold ?? threshold).replace(".", ",")
+      );
       setMessage("Melhor Envio salvo.");
       setClientSecret("");
     } catch (err) {
@@ -354,65 +375,107 @@ function MelhorEnvioCard() {
           <AdminSpinner /> Carregando…
         </div>
       ) : (
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <label className="text-sm">
-            Ambiente
-            <select
-              value={environment}
-              onChange={(e) =>
-                setEnvironment(e.target.value as "production" | "sandbox")
-              }
-              className="mt-1 w-full rounded-lg border border-zinc-200 px-3 py-2"
-            >
-              <option value="sandbox">Sandbox</option>
-              <option value="production">Produção</option>
-            </select>
-          </label>
-          <label className="text-sm">
-            CEP origem
-            <input
-              value={originPostalCode}
-              onChange={(e) => setOriginPostalCode(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-zinc-200 px-3 py-2"
-            />
-          </label>
-          <label className="text-sm">
-            Client ID
-            <input
-              value={clientId}
-              onChange={(e) => setClientId(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-zinc-200 px-3 py-2"
-            />
-          </label>
-          <label className="text-sm">
-            Client Secret{" "}
-            {status?.hasClientSecret ? (
-              <span className="text-xs text-emerald-600">(salvo)</span>
-            ) : null}
-            <input
-              type="password"
-              value={clientSecret}
-              onChange={(e) => setClientSecret(e.target.value)}
-              placeholder="Deixe em branco para manter"
-              className="mt-1 w-full rounded-lg border border-zinc-200 px-3 py-2"
-            />
-          </label>
-          <label className="sm:col-span-2 text-sm">
-            Redirect URI
-            <input
-              value={redirectUri}
-              onChange={(e) => setRedirectUri(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-zinc-200 px-3 py-2"
-            />
-          </label>
-          <label className="sm:col-span-2 text-sm">
-            User-Agent
-            <input
-              value={userAgent}
-              onChange={(e) => setUserAgent(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-zinc-200 px-3 py-2"
-            />
-          </label>
+        <div className="mt-4 space-y-4">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="text-sm">
+              Ambiente
+              <select
+                value={environment}
+                onChange={(e) =>
+                  setEnvironment(e.target.value as "production" | "sandbox")
+                }
+                className="mt-1 w-full rounded-lg border border-zinc-200 px-3 py-2"
+              >
+                <option value="sandbox">Sandbox</option>
+                <option value="production">Produção</option>
+              </select>
+            </label>
+            <label className="text-sm">
+              CEP origem
+              <input
+                value={originPostalCode}
+                onChange={(e) => setOriginPostalCode(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-zinc-200 px-3 py-2"
+              />
+            </label>
+            <label className="text-sm">
+              Client ID
+              <input
+                value={clientId}
+                onChange={(e) => setClientId(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-zinc-200 px-3 py-2"
+              />
+            </label>
+            <label className="text-sm">
+              Client Secret{" "}
+              {status?.hasClientSecret ? (
+                <span className="text-xs text-emerald-600">(salvo)</span>
+              ) : null}
+              <input
+                type="password"
+                value={clientSecret}
+                onChange={(e) => setClientSecret(e.target.value)}
+                placeholder="Deixe em branco para manter"
+                className="mt-1 w-full rounded-lg border border-zinc-200 px-3 py-2"
+              />
+            </label>
+            <label className="sm:col-span-2 text-sm">
+              Redirect URI
+              <input
+                value={redirectUri}
+                onChange={(e) => setRedirectUri(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-zinc-200 px-3 py-2"
+              />
+            </label>
+            <label className="sm:col-span-2 text-sm">
+              User-Agent
+              <input
+                value={userAgent}
+                onChange={(e) => setUserAgent(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-zinc-200 px-3 py-2"
+              />
+            </label>
+          </div>
+
+          <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold text-zinc-900">
+                  Frete grátis
+                </p>
+                <p className="mt-1 text-sm text-zinc-500">
+                  Quando ativo, a opção de frete mais barata fica R$ 0,00 se o
+                  subtotal do carrinho atingir o valor mínimo. A etiqueta no
+                  Melhor Envio continua sendo gerada normalmente.
+                </p>
+              </div>
+              <label className="inline-flex cursor-pointer items-center gap-2 text-sm text-zinc-800">
+                <input
+                  type="checkbox"
+                  checked={freeShippingEnabled}
+                  onChange={(e) => setFreeShippingEnabled(e.target.checked)}
+                  className="size-4 rounded border-zinc-300"
+                />
+                Ativar
+              </label>
+            </div>
+            <label className="mt-3 block text-sm">
+              Pedido mínimo (R$)
+              <input
+                type="text"
+                inputMode="decimal"
+                disabled={!freeShippingEnabled}
+                value={freeShippingThreshold}
+                onChange={(e) => setFreeShippingThreshold(e.target.value)}
+                placeholder="299"
+                className="mt-1 w-full max-w-xs rounded-lg border border-zinc-200 bg-white px-3 py-2 disabled:bg-zinc-100 disabled:text-zinc-400"
+              />
+            </label>
+            <p className="mt-2 text-xs text-zinc-500">
+              Ex.: 299 = frete grátis a partir de R$ 299. Para quase sempre
+              grátis, use um valor bem baixo (ex.: 0,01).
+            </p>
+          </div>
         </div>
       )}
 
