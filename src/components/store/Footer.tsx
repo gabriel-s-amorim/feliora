@@ -227,7 +227,7 @@ export function Footer({ categories }: FooterProps) {
       <TrustBadges />
 
       <div className="border-t border-line">
-        <div className="mx-auto flex max-w-6xl flex-col items-center gap-1.5 px-4 py-5 text-center sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-6xl flex-col items-center gap-2.5 px-4 py-5 text-center sm:px-6 lg:px-8">
           <p className="text-xs text-ink-muted">
             © {year} {SITE_NAME}. Todos os direitos reservados.
           </p>
@@ -235,7 +235,7 @@ export function Footer({ categories }: FooterProps) {
             href="https://gabrielamorimdev.vercel.app/"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[10px] text-ink-muted/70 transition-colors hover:text-rose-gold"
+            className="inline-flex items-center rounded-full border border-line/80 bg-cream/50 px-3.5 py-1.5 text-xs text-ink-muted transition-colors hover:border-rose-gold/40 hover:text-rose-gold"
           >
             Desenvolvido por Gabriel Henrique
           </a>
