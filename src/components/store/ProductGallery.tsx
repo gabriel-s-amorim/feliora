@@ -46,6 +46,7 @@ export function ProductGallery({ name, images }: ProductGalleryProps) {
       className="grid grid-cols-2 gap-2.5 sm:gap-5"
     >
       {gallery.map((src, index) => {
+        
         const featured = index === 0;
         return (
           <a
