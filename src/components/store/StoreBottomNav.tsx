@@ -9,9 +9,9 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
 import { useCustomerAuth } from "@/contexts/CustomerAuthContext";
 import { useWishlist } from "@/contexts/WishlistContext";
+import { useUnreadStoreNotifications } from "@/hooks/useUnreadStoreNotifications";
 import { cn } from "@/lib/utils";
 
 const TABS = [
@@ -51,33 +51,8 @@ function hideTabBar(pathname: string) {
 export function StoreBottomNav() {
   const pathname = usePathname();
   const { count: wishCount } = useWishlist();
-  const { user, loading } = useCustomerAuth();
-  const [unreadNotifications, setUnreadNotifications] = useState(0);
-  const notifBadge = user ? unreadNotifications : 0;
-
-  useEffect(() => {
-    if (loading || !user) return;
-
-    let cancelled = false;
-
-    void fetch("/api/notifications")
-      .then(async (res) => {
-        if (!res.ok || cancelled) return;
-        const data = (await res.json()) as { unreadCount?: number };
-        if (!cancelled) {
-          setUnreadNotifications(
-            typeof data.unreadCount === "number" ? data.unreadCount : 0
-          );
-        }
-      })
-      .catch(() => {
-        if (!cancelled) setUnreadNotifications(0);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [user, loading, pathname]);
+  const { user } = useCustomerAuth();
+  const { unreadCount: notifBadge } = useUnreadStoreNotifications();
 
   if (hideTabBar(pathname)) return null;
 

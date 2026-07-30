@@ -7,6 +7,7 @@ import type { CategoryNavItem } from "@/shared/types/category";
 import { useCart } from "@/contexts/CartContext";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { useCustomerAuth } from "@/contexts/CustomerAuthContext";
+import { useUnreadStoreNotifications } from "@/hooks/useUnreadStoreNotifications";
 
 function IconSearch({ className }: { className?: string }) {
   return (
@@ -36,6 +37,25 @@ function IconUser({ className }: { className?: string }) {
     >
       <circle cx="12" cy="8" r="3.5" />
       <path d="M5 19a7 7 0 0 1 14 0" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function IconBell({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      aria-hidden
+    >
+      <path
+        d="M6.5 9.5a5.5 5.5 0 0 1 11 0c0 4.2 1.5 5.5 1.5 5.5H5s1.5-1.3 1.5-5.5z"
+        strokeLinejoin="round"
+      />
+      <path d="M10 18.5a2 2 0 0 0 4 0" strokeLinecap="round" />
     </svg>
   );
 }
@@ -82,11 +102,16 @@ export function Header({ categories }: HeaderProps) {
   const { cart, openDrawer } = useCart();
   const { count: wishCount } = useWishlist();
   const { user } = useCustomerAuth();
+  const { unreadCount: notifCount } = useUnreadStoreNotifications();
 
   const navLinks = [
     { href: CATALOG_NAV.href, label: CATALOG_NAV.label },
     ...categories.map((c) => ({ href: c.href, label: c.name })),
   ];
+
+  const notificationsHref = user
+    ? "/notificacoes"
+    : `/conta/entrar?next=${encodeURIComponent("/notificacoes")}`;
 
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-cream/90 backdrop-blur-md pt-[env(safe-area-inset-top)]">
@@ -135,6 +160,18 @@ export function Header({ categories }: HeaderProps) {
             aria-label="Buscar"
           >
             <IconSearch className="size-5" />
+          </Link>
+          <Link
+            href={notificationsHref}
+            className="relative hidden size-11 items-center justify-center text-ink transition-colors hover:text-rose-gold md:flex"
+            aria-label="Notificações"
+          >
+            <IconBell className="size-5" />
+            {notifCount > 0 ? (
+              <span className="absolute right-1.5 top-1.5 flex size-4 items-center justify-center rounded-full bg-rose-gold text-[9px] text-cream">
+                {notifCount > 9 ? "9+" : notifCount}
+              </span>
+            ) : null}
           </Link>
           <Link
             href={user ? "/conta" : "/conta/entrar"}

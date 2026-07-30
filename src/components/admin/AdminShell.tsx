@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Bell,
   ImageIcon,
   LayoutDashboard,
   LogOut,
@@ -19,6 +20,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
+import { AdminNotificationBell } from "@/components/admin/AdminNotificationBell";
 import { AdminSpinner } from "@/components/admin/ui";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
 import { cn } from "@/lib/utils";
@@ -32,6 +34,7 @@ const SIDEBAR_NAV = [
     exact: true,
     icon: LayoutDashboard,
   },
+  { href: "/admin/notificacoes", label: "Notificações", icon: Bell },
   { href: "/admin/produtos", label: "Produtos", icon: Package },
   { href: "/admin/canais", label: "Canais", icon: Store },
   { href: "/admin/pedidos", label: "Pedidos", icon: ShoppingBag },
@@ -50,11 +53,12 @@ const BOTTOM_TABS = [
     exact: true,
     icon: LayoutDashboard,
   },
-  { href: "/admin/produtos", label: "Produtos", icon: Package },
   { href: "/admin/pedidos", label: "Pedidos", icon: ShoppingBag },
+  { href: "/admin/notificacoes", label: "Avisos", icon: Bell },
 ] as const;
 
 const MORE_LINKS = [
+  { href: "/admin/produtos", label: "Produtos", icon: Package },
   { href: "/admin/clientes", label: "Clientes", icon: Users },
   { href: "/admin/canais", label: "Canais", icon: Store },
   { href: "/admin/categorias", label: "Categorias", icon: Tags },
@@ -364,11 +368,10 @@ export function AdminShell({
                   </p>
                 ) : null}
               </div>
-              {actions ? (
-                <div className="flex shrink-0 items-center gap-2 admin-enter">
-                  {actions}
-                </div>
-              ) : null}
+              <div className="flex shrink-0 items-center gap-2 admin-enter">
+                <AdminNotificationBell />
+                {actions}
+              </div>
             </div>
           </header>
 

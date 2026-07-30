@@ -25,6 +25,7 @@ Execute os arquivos **na ordem numérica** no SQL Editor do projeto Supabase da 
 | `18_order_admin_management.sql` | Cancelamento idempotente, reposição de estoque e exclusão controlada de pedidos |
 | `19_site_analytics.sql` | Analytics first-party: pageviews, presença ao vivo e métricas do dashboard admin |
 | `20_order_notifications_messages.sql` | Notificações in-app de pedidos + mensagens cliente/admin (triggers em status/rastreio/cancelamento) |
+| `21_admin_notifications.sql` | Notificações do painel admin: cadastro, pedido, pagamento aprovado e mensagem do cliente |
 
 ## Categorias
 
