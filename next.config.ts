@@ -29,16 +29,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  async redirects() {
-    return [
-      {
-        source: "/:path*",
-        has: [{ type: "host", value: "www.feliora.com.br" }],
-        destination: "https://feliora.com.br/:path*",
-        permanent: true,
-      },
-    ];
-  },
   async headers() {
     return [
       {

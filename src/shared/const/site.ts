@@ -28,10 +28,10 @@ export const SITE_OG_IMAGE_HEIGHT = 630;
 export const SITE_OG_IMAGE_ALT = "Feliora — moda feminina com delicadeza";
 
 /**
- * Domínio canônico público (apex, sem www, sem barra final).
- * www.feliora.com.br redireciona para cá via next.config.
+ * Domínio canônico público (sem barra final).
+ * A Vercel redireciona o domínio apex para www.
  */
-export const SITE_ORIGIN = "https://feliora.com.br";
+export const SITE_ORIGIN = "https://www.feliora.com.br";
 export const SITE_WWW_ORIGIN = "https://www.feliora.com.br";
 
 export const DEFAULT_TITLE_TEMPLATE = `%s | ${SITE_NAME}`;

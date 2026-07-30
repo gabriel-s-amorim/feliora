@@ -14,6 +14,14 @@ type SitemapRow = {
   image?: string | null;
 };
 
+/**
+ * O serializador de image sitemap do Next 16 não escapa `&` em image:loc.
+ * Sem isso, URLs com query string geram XML inválido para Google e Bing.
+ */
+function xmlSafeImageUrl(url: string): string {
+  return url.replaceAll("&", "&amp;");
+}
+
 async function fetchSitemapRows(): Promise<{
   products: SitemapRow[];
   categories: SitemapRow[];
@@ -87,9 +95,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const productEntries: MetadataRoute.Sitemap = products.map((p) => {
     const images =
       p.image && p.image.startsWith("http")
-        ? [p.image]
+        ? [xmlSafeImageUrl(p.image)]
         : p.image
-          ? [`${origin}${p.image.startsWith("/") ? p.image : `/${p.image}`}`]
+          ? [
+              xmlSafeImageUrl(
+                `${origin}${p.image.startsWith("/") ? p.image : `/${p.image}`}`
+              ),
+            ]
           : undefined;
 
     return {
