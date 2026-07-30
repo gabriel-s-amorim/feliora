@@ -90,6 +90,12 @@ export function HomeHero({ banners }: Props) {
       )}
       onPointerDown={(event) => {
         if (!event.isPrimary) return;
+        if (
+          event.target instanceof Element &&
+          event.target.closest("a, button")
+        ) {
+          return;
+        }
         pointerStart.current = event.clientX;
         dragged.current = false;
         event.currentTarget.setPointerCapture(event.pointerId);
