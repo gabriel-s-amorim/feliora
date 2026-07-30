@@ -23,6 +23,7 @@ Execute os arquivos **na ordem numérica** no SQL Editor do projeto Supabase da 
 | `16_google_oauth_profile.sql` | Trigger de perfil lê `name` do Google OAuth (além de `full_name`) |
 | `17_seo.sql` | SEO: `products.seo_title/seo_description`, FTS, seed categorias/páginas |
 | `18_order_admin_management.sql` | Cancelamento idempotente, reposição de estoque e exclusão controlada de pedidos |
+| `19_site_analytics.sql` | Analytics first-party: pageviews, presença ao vivo e métricas do dashboard admin |
 
 ## Categorias
 

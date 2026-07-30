@@ -4,6 +4,7 @@ export const COOKIE_CONSENT_NAME = "feliora_cookie_consent";
 export const COOKIE_POLICY_VERSION = 1;
 export const COOKIE_CONSENT_MAX_AGE_SEC = 60 * 60 * 24 * 365; // 1 ano
 export const COOKIE_PREFERENCES_EVENT = "feliora:open-cookie-preferences";
+export const COOKIE_CONSENT_UPDATED_EVENT = "feliora:cookie-consent-updated";
 
 export type CookieConsentState = {
   v: number;

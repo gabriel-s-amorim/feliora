@@ -1,7 +1,9 @@
+import { Suspense } from "react";
 import { CookieConsent } from "@/components/legal/CookieConsent";
 import { BotanicalTattooBackground } from "@/components/store/BotanicalTattooBackground";
 import { Footer } from "@/components/store/Footer";
 import { Header } from "@/components/store/Header";
+import { SiteAnalyticsTracker } from "@/components/store/SiteAnalyticsTracker";
 import { StoreMobileChrome } from "@/components/store/StoreMobileChrome";
 import { StoreProviders } from "@/components/store/StoreProviders";
 import { listActiveCategoryNav } from "@/lib/categories";
@@ -25,6 +27,9 @@ export default async function StoreLayout({
           <Footer categories={categories} />
         </StoreMobileChrome>
         <CookieConsent />
+        <Suspense fallback={null}>
+          <SiteAnalyticsTracker />
+        </Suspense>
       </div>
     </StoreProviders>
   );

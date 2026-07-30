@@ -6,13 +6,14 @@ import {
   Package,
   Plus,
   ShoppingBag,
-  Sparkles,
   Tags,
+  Users,
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { AdminAnalyticsDashboard } from "@/components/admin/AdminAnalyticsDashboard";
 import { AdminShell, RequireAdmin } from "@/components/admin/AdminShell";
-import { AdminButton, AdminPanel, AdminSpinner } from "@/components/admin/ui";
+import { AdminButton, AdminSpinner } from "@/components/admin/ui";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
 import {
   adminListBanners,
@@ -59,34 +60,30 @@ export default function AdminDashboardPage() {
 
   const firstName = admin?.name?.split(" ")[0] || "Admin";
 
-  const cards = [
+  const catalogCards = [
     {
       label: "Produtos",
       value: stats.products,
       href: "/admin/produtos",
       icon: Package,
-      hint: "No catálogo",
     },
     {
       label: "Ativos",
       value: stats.activeProducts,
       href: "/admin/produtos",
-      icon: Sparkles,
-      hint: "Visíveis na loja",
+      icon: Package,
     },
     {
       label: "Categorias",
       value: stats.categories,
       href: "/admin/categorias",
       icon: Tags,
-      hint: "Seções",
     },
     {
       label: "Banners",
       value: stats.banners,
       href: "/admin/banners",
       icon: ImageIcon,
-      hint: "Vitrine",
     },
   ];
 
@@ -103,9 +100,9 @@ export default function AdminDashboardPage() {
       icon: ShoppingBag,
     },
     {
-      href: "/admin/categorias",
-      label: "Categorias",
-      icon: Tags,
+      href: "/admin/clientes",
+      label: "Clientes",
+      icon: Users,
     },
     {
       href: "/admin/banners",
@@ -118,7 +115,7 @@ export default function AdminDashboardPage() {
     <RequireAdmin>
       <AdminShell
         title="Início"
-        description="Visão rápida do catálogo e atalhos para o dia a dia."
+        description="Acessos da loja em tempo real e visão rápida do catálogo."
         actions={
           <Link href="/admin/produtos/novo" className="hidden sm:block">
             <AdminButton>
@@ -128,17 +125,35 @@ export default function AdminDashboardPage() {
           </Link>
         }
       >
-        {/* Mobile greeting */}
-        <section className="mb-5 lg:hidden">
+        <section className="mb-4 lg:hidden">
           <p className="text-sm text-zinc-500">Olá, {firstName}</p>
           <p className="mt-1 text-lg font-semibold tracking-tight text-zinc-950">
-            O que vamos cuidar hoje?
+            Como está a loja hoje?
           </p>
         </section>
 
-        {/* Quick actions — app style */}
-        <section className="mb-5 lg:hidden">
-          <div className="grid grid-cols-2 gap-2.5">
+        <AdminAnalyticsDashboard />
+
+        <section className="mt-6 lg:mt-8">
+          <div className="mb-3 flex items-end justify-between gap-3">
+            <div>
+              <h2 className="text-sm font-semibold text-zinc-950 sm:text-base">
+                Catálogo
+              </h2>
+              <p className="mt-0.5 text-xs text-zinc-500">
+                Atalhos e números do inventário
+              </p>
+            </div>
+            <Link
+              href="/admin/produtos"
+              className="hidden text-xs font-medium text-zinc-500 hover:text-zinc-900 sm:inline-flex sm:items-center sm:gap-1"
+            >
+              Ver tudo
+              <ArrowUpRight className="size-3.5" />
+            </Link>
+          </div>
+
+          <div className="mb-3 grid grid-cols-2 gap-2.5 sm:hidden">
             {quickActions.map((action) => {
               const Icon = action.icon;
               return (
@@ -165,171 +180,32 @@ export default function AdminDashboardPage() {
               );
             })}
           </div>
-        </section>
 
-        <div className="grid grid-cols-2 gap-2.5 sm:gap-4 xl:grid-cols-4">
-          {cards.map((card) => {
-            const Icon = card.icon;
-            return (
-              <Link
-                key={card.label}
-                href={card.href}
-                className="admin-stat-card group p-4 transition active:bg-zinc-50 sm:p-5"
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-zinc-400 sm:text-[11px]">
-                      {card.label}
-                    </p>
-                    <p className="mt-2 text-2xl font-semibold tracking-tight text-zinc-950 sm:mt-3 sm:text-3xl">
-                      {loading ? (
-                        <AdminSpinner className="mt-1" />
-                      ) : (
-                        card.value
-                      )}
-                    </p>
-                    <p className="mt-1 hidden text-xs text-zinc-500 sm:mt-2 sm:block">
-                      {card.hint}
-                    </p>
-                  </div>
-                  <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-zinc-100 text-zinc-700 sm:size-9">
-                    <Icon className="size-3.5 sm:size-4" />
-                  </span>
-                </div>
-                <span className="mt-3 hidden items-center gap-1 text-xs font-medium text-zinc-400 transition group-hover:text-zinc-700 sm:mt-4 sm:inline-flex">
-                  Abrir
-                  <ArrowUpRight className="size-3.5" />
-                </span>
-              </Link>
-            );
-          })}
-        </div>
-
-        <div className="mt-5 hidden gap-4 lg:mt-6 lg:grid lg:grid-cols-[1.2fr_0.8fr]">
-          <AdminPanel
-            title="Comece por aqui"
-            description="Fluxo sugerido para popular a loja."
-          >
-            <ol className="space-y-2.5">
-              {[
-                {
-                  step: "01",
-                  title: "Categorias",
-                  text: "Organize Vestidos, Blusas e demais seções.",
-                  href: "/admin/categorias",
-                },
-                {
-                  step: "02",
-                  title: "Produtos + variantes",
-                  text: "Cadastre peças com matriz tamanho × cor e estoque.",
-                  href: "/admin/produtos/novo",
-                },
-                {
-                  step: "03",
-                  title: "Banners",
-                  text: "Atualize a vitrine da home com imagens WebP.",
-                  href: "/admin/banners",
-                },
-              ].map((item) => (
+          <div className="grid grid-cols-2 gap-2.5 sm:gap-3 xl:grid-cols-4">
+            {catalogCards.map((card) => {
+              const Icon = card.icon;
+              return (
                 <Link
-                  key={item.step}
-                  href={item.href}
-                  className="flex items-start gap-4 rounded-xl border border-zinc-200 bg-white px-4 py-3.5 transition hover:border-zinc-300 hover:bg-zinc-50"
+                  key={card.label}
+                  href={card.href}
+                  className="admin-stat-card group p-3.5 transition active:bg-zinc-50 sm:p-4"
                 >
-                  <span className="text-sm font-semibold text-zinc-400">
-                    {item.step}
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block font-medium text-zinc-950">
-                      {item.title}
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-zinc-400">
+                        {card.label}
+                      </p>
+                      <p className="mt-1.5 text-xl font-semibold tracking-tight text-zinc-950 sm:text-2xl">
+                        {loading ? <AdminSpinner /> : card.value}
+                      </p>
+                    </div>
+                    <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-zinc-100 text-zinc-700">
+                      <Icon className="size-3.5" />
                     </span>
-                    <span className="mt-0.5 block text-sm text-zinc-500">
-                      {item.text}
-                    </span>
-                  </span>
+                  </div>
                 </Link>
-              ))}
-            </ol>
-          </AdminPanel>
-
-          <AdminPanel title="Atalhos" description="Ações frequentes.">
-            <div className="flex flex-col gap-2">
-              <Link href="/admin/produtos">
-                <AdminButton
-                  variant="secondary"
-                  className="w-full justify-between"
-                >
-                  Ver produtos
-                  <ArrowUpRight className="size-4" />
-                </AdminButton>
-              </Link>
-              <Link href="/admin/banners">
-                <AdminButton
-                  variant="secondary"
-                  className="w-full justify-between"
-                >
-                  Gerir banners
-                  <ArrowUpRight className="size-4" />
-                </AdminButton>
-              </Link>
-              <Link href="/admin/settings">
-                <AdminButton
-                  variant="secondary"
-                  className="w-full justify-between"
-                >
-                  Contato & redes
-                  <ArrowUpRight className="size-4" />
-                </AdminButton>
-              </Link>
-              <a href="/" target="_blank" rel="noreferrer">
-                <AdminButton variant="ghost" className="w-full justify-between">
-                  Abrir loja
-                  <ArrowUpRight className="size-4" />
-                </AdminButton>
-              </a>
-            </div>
-          </AdminPanel>
-        </div>
-
-        {/* Mobile: compact next steps */}
-        <section className="mt-5 lg:hidden">
-          <p className="mb-2.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-zinc-400">
-            Próximos passos
-          </p>
-          <div className="overflow-hidden rounded-[1.15rem] border border-zinc-200 bg-white shadow-[var(--admin-shadow)]">
-            {[
-              {
-                title: "Categorias",
-                text: "Organize as seções da loja",
-                href: "/admin/categorias",
-              },
-              {
-                title: "Produtos",
-                text: "Cadastre peças e estoque",
-                href: "/admin/produtos",
-              },
-              {
-                title: "Banners",
-                text: "Atualize a vitrine",
-                href: "/admin/banners",
-              },
-            ].map((item, i) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center justify-between gap-3 px-4 py-3.5 active:bg-zinc-50 ${
-                  i > 0 ? "border-t border-zinc-100" : ""
-                }`}
-              >
-                <span>
-                  <span className="block text-sm font-medium text-zinc-950">
-                    {item.title}
-                  </span>
-                  <span className="block text-xs text-zinc-500">{item.text}</span>
-                </span>
-                <ArrowUpRight className="size-4 shrink-0 text-zinc-400" />
-              </Link>
-            ))}
+              );
+            })}
           </div>
         </section>
       </AdminShell>
