@@ -42,10 +42,19 @@ export function ProductDetail({
   );
   const available = Boolean(selected && selected.stockCount > 0);
 
-  const gallery = [
-    product.image,
-    ...product.images.filter((img) => img && img !== product.image),
-  ].filter(Boolean);
+  const gallery = useMemo(() => {
+    const colorImage = product.colors.find(
+      (item) => item.name.toLowerCase() === color.toLowerCase()
+    )?.imageUrl;
+
+    return [
+      ...new Set(
+        [colorImage, product.image, ...product.images].filter(
+          (image): image is string => Boolean(image)
+        )
+      ),
+    ];
+  }, [color, product.colors, product.image, product.images]);
 
   async function handleAdd() {
     if (!selected || !available) return;

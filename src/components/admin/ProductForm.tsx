@@ -36,7 +36,7 @@ type Props = {
   initial?: Product;
 };
 
-type ColorDraft = { name: string; hex: string };
+type ColorDraft = { name: string; hex: string; imageUrl?: string };
 
 export function ProductForm({ mode, initial }: Props) {
   const router = useRouter();
@@ -123,7 +123,11 @@ export function ProductForm({ mode, initial }: Props) {
 
     try {
       const cleanColors = colors
-        .map((c) => ({ name: c.name.trim(), hex: c.hex }))
+        .map((c) => ({
+          name: c.name.trim(),
+          hex: c.hex,
+          imageUrl: c.imageUrl?.trim() ?? "",
+        }))
         .filter((c) => c.name);
 
       const payload = {
@@ -384,6 +388,34 @@ export function ProductForm({ mode, initial }: Props) {
                 }}
                 className="h-11 w-12 cursor-pointer rounded-xl border border-[var(--admin-line)] bg-white p-1"
               />
+              {color.imageUrl ? (
+                <div
+                  className="size-11 shrink-0 rounded-xl border border-[var(--admin-line)] bg-cover bg-center"
+                  style={{
+                    backgroundImage: `url(${JSON.stringify(color.imageUrl)})`,
+                  }}
+                  aria-hidden
+                />
+              ) : null}
+              <AdminSelect
+                value={color.imageUrl ?? ""}
+                onChange={(e) => {
+                  const next = [...colors];
+                  next[index] = { ...next[index], imageUrl: e.target.value };
+                  setColors(next);
+                }}
+                className="min-w-[180px] flex-[1.2]"
+                aria-label={`Imagem da cor ${color.name || index + 1}`}
+              >
+                <option value="">Usar imagem principal</option>
+                {images.map((url, imageIndex) => (
+                  <option key={url} value={url}>
+                    {imageIndex === 0
+                      ? "Imagem 1 (capa)"
+                      : `Imagem ${imageIndex + 1}`}
+                  </option>
+                ))}
+              </AdminSelect>
               <AdminButton
                 type="button"
                 variant="ghost"
@@ -396,7 +428,12 @@ export function ProductForm({ mode, initial }: Props) {
           <AdminButton
             type="button"
             variant="secondary"
-            onClick={() => setColors([...colors, { name: "", hex: "#B76E79" }])}
+            onClick={() =>
+              setColors([
+                ...colors,
+                { name: "", hex: "#B76E79", imageUrl: "" },
+              ])
+            }
           >
             <Plus className="size-4" />
             Adicionar cor

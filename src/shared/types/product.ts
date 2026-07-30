@@ -5,6 +5,7 @@ export type ProductSizeMeta = {
 export type ProductColorMeta = {
   name: string;
   hex: string;
+  imageUrl?: string;
 };
 
 export type ProductVariant = {

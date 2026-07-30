@@ -81,8 +81,18 @@ function asColors(value: unknown): ProductColorMeta[] {
   return value
     .map((item) => {
       if (item && typeof item === "object" && "name" in item && "hex" in item) {
-        const row = item as { name: unknown; hex: unknown };
-        return { name: String(row.name), hex: String(row.hex) };
+        const row = item as {
+          name: unknown;
+          hex: unknown;
+          imageUrl?: unknown;
+        };
+        return {
+          name: String(row.name),
+          hex: String(row.hex),
+          ...(typeof row.imageUrl === "string"
+            ? { imageUrl: row.imageUrl }
+            : {}),
+        };
       }
       return null;
     })

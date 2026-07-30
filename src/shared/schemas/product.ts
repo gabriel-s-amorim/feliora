@@ -15,6 +15,7 @@ export const productColorMetaSchema = z.object({
   hex: z
     .string()
     .regex(/^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/, "Hex inválido"),
+  imageUrl: z.string().trim().optional(),
 });
 
 export const productVariantInputSchema = z.object({

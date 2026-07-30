@@ -54,6 +54,28 @@ function mapItem(row: CartItemRow): CartItem {
   };
 }
 
+function imageForColor(
+  colors: unknown,
+  colorName: string,
+  fallback: string
+): string {
+  if (!Array.isArray(colors) || !colorName) return fallback;
+
+  const normalizedColor = colorName.trim().toLowerCase();
+  const match = colors.find((item) => {
+    if (!item || typeof item !== "object" || !("name" in item)) return false;
+    return String(item.name).trim().toLowerCase() === normalizedColor;
+  });
+
+  if (!match || typeof match !== "object" || !("imageUrl" in match)) {
+    return fallback;
+  }
+
+  return typeof match.imageUrl === "string" && match.imageUrl.trim()
+    ? match.imageUrl.trim()
+    : fallback;
+}
+
 function buildCart(cart: CartRow, items: CartItem[]): Cart {
   const itemCount = items.reduce((sum, i) => sum + i.quantity, 0);
   const subtotal = items.reduce((sum, i) => sum + i.quantity * i.unitPrice, 0);
@@ -173,7 +195,7 @@ export async function addVariantToCart(
 
   const { data: product, error: productError } = await supabase
     .from("products")
-    .select("id, name, slug, image, price, is_active")
+    .select("id, name, slug, image, colors, price, is_active")
     .eq("id", variant.product_id)
     .maybeSingle();
 
@@ -183,6 +205,11 @@ export async function addVariantToCart(
 
   if (variant.stock_count < quantity) throw new Error("Estoque insuficiente");
 
+  const productImage = imageForColor(
+    product.colors,
+    variant.color_name ?? "",
+    product.image
+  );
   const cart = await getOrCreateCart(identity);
 
   const { data: existingItem } = await supabase
@@ -203,7 +230,7 @@ export async function addVariantToCart(
         unit_price: product.price,
         product_name: product.name,
         product_slug: product.slug,
-        product_image: product.image,
+        product_image: productImage,
         sku: variant.sku,
         size_label: variant.size_label,
         color_name: variant.color_name ?? "",
@@ -219,7 +246,7 @@ export async function addVariantToCart(
       unit_price: product.price,
       product_name: product.name,
       product_slug: product.slug,
-      product_image: product.image,
+      product_image: productImage,
       sku: variant.sku,
       size_label: variant.size_label,
       color_name: variant.color_name ?? "",
