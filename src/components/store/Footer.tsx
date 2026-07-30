@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
+import { SocialLinks } from "@/components/store/SocialLinks";
 import { TrustBadges } from "@/components/store/TrustBadges";
 import { openCookiePreferences } from "@/shared/const/cookies";
 import {
@@ -12,12 +13,14 @@ import {
   SITE_TAGLINE,
 } from "@/shared/const/site";
 import type { CategoryNavItem } from "@/shared/types/category";
+import type { StoreSettings } from "@/shared/types/storeSettings";
 
 type FooterProps = {
   categories: CategoryNavItem[];
+  settings: StoreSettings;
 };
 
-export function Footer({ categories }: FooterProps) {
+export function Footer({ categories, settings }: FooterProps) {
   const year = new Date().getFullYear();
   const [email, setEmail] = useState("");
   const [consent, setConsent] = useState(false);
@@ -84,6 +87,12 @@ export function Footer({ categories }: FooterProps) {
           <p className="mt-3 max-w-xs text-sm leading-relaxed text-ink-muted">
             {SITE_TAGLINE}. Peças com presença, espaço e acabamento cuidadoso.
           </p>
+          <SocialLinks
+            instagramUrl={settings.instagramUrl}
+            facebookUrl={settings.facebookUrl}
+            tiktokUrl={settings.tiktokUrl}
+            twitterUrl={settings.twitterUrl}
+          />
         </div>
 
         <div>

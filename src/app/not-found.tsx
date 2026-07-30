@@ -4,9 +4,13 @@ import { Footer } from "@/components/store/Footer";
 import { Header } from "@/components/store/Header";
 import { StoreProviders } from "@/components/store/StoreProviders";
 import { listActiveCategoryNav } from "@/lib/categories";
+import { getPublicStoreSettings } from "@/lib/storeSettings";
 
 export default async function NotFound() {
-  const categories = await listActiveCategoryNav();
+  const [categories, settings] = await Promise.all([
+    listActiveCategoryNav(),
+    getPublicStoreSettings(),
+  ]);
 
   return (
     <StoreProviders>
@@ -37,7 +41,7 @@ export default async function NotFound() {
           </Link>
         </div>
       </main>
-      <Footer categories={categories} />
+      <Footer categories={categories} settings={settings} />
     </StoreProviders>
   );
 }

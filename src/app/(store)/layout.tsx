@@ -7,13 +7,17 @@ import { SiteAnalyticsTracker } from "@/components/store/SiteAnalyticsTracker";
 import { StoreMobileChrome } from "@/components/store/StoreMobileChrome";
 import { StoreProviders } from "@/components/store/StoreProviders";
 import { listActiveCategoryNav } from "@/lib/categories";
+import { getPublicStoreSettings } from "@/lib/storeSettings";
 
 export default async function StoreLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const categories = await listActiveCategoryNav();
+  const [categories, settings] = await Promise.all([
+    listActiveCategoryNav(),
+    getPublicStoreSettings(),
+  ]);
 
   return (
     <StoreProviders>
@@ -24,7 +28,7 @@ export default async function StoreLayout({
             <BotanicalTattooBackground />
             <div className="relative z-10">{children}</div>
           </main>
-          <Footer categories={categories} />
+          <Footer categories={categories} settings={settings} />
         </StoreMobileChrome>
         <CookieConsent />
         <Suspense fallback={null}>
