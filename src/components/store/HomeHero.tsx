@@ -131,7 +131,7 @@ export function HomeHero({ banners }: Props) {
             aria-hidden={!active}
           >
             <div
-              className="absolute inset-0 bg-cover bg-fixed bg-no-repeat md:hidden"
+              className="absolute inset-0 bg-cover bg-scroll bg-no-repeat md:hidden"
               style={{
                 backgroundImage: `url(${JSON.stringify(mobile)})`,
                 backgroundPosition: banner.objectPositionMobile,
