@@ -36,7 +36,7 @@ export function HomeHero({ banners }: Props) {
       : "Peças com presença — ritmo de lookbook.";
 
   const heroHeight =
-    "h-[78svh] min-h-[30rem] max-h-[44rem] md:h-[70svh] md:min-h-[32rem] md:max-h-[48rem]";
+    "h-[78svh] min-h-[30rem] max-h-[44rem] md:h-[64svh] md:min-h-[26rem] md:max-h-[44rem]";
 
   const content = (
     <div className="relative mx-auto flex h-full max-w-3xl flex-col items-center justify-end px-5 pb-16 pt-20 text-center sm:px-8 sm:pb-20 md:justify-center md:py-16">
