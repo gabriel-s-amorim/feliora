@@ -110,6 +110,22 @@ export function Footer({ categories }: FooterProps) {
           <ul className="mt-4 space-y-2.5 text-sm text-ink-muted">
             <li>
               <Link
+                href="/pages/sobre"
+                className="transition-colors hover:text-rose-gold"
+              >
+                Sobre
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/pages/frete"
+                className="transition-colors hover:text-rose-gold"
+              >
+                Frete e entregas
+              </Link>
+            </li>
+            <li>
+              <Link
                 href="/pages/trocas"
                 className="transition-colors hover:text-rose-gold"
               >

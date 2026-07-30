@@ -14,6 +14,8 @@ create table if not exists public.products (
   featured boolean not null default false,
   is_new boolean not null default false,
   short_description text not null default '',
+  seo_title text not null default '',
+  seo_description text not null default '',
   description text not null default '',
   materials jsonb not null default '[]'::jsonb,
   care_instructions jsonb not null default '[]'::jsonb,
@@ -136,7 +138,9 @@ begin
 
   new.search_vector :=
     setweight(to_tsvector('portuguese', coalesce(new.name, '')), 'A')
+    || setweight(to_tsvector('portuguese', coalesce(new.seo_title, '')), 'A')
     || setweight(to_tsvector('portuguese', coalesce(new.short_description, '')), 'B')
+    || setweight(to_tsvector('portuguese', coalesce(new.seo_description, '')), 'B')
     || setweight(to_tsvector('portuguese', coalesce(v_category_name, '')), 'C');
 
   return new;
@@ -145,7 +149,7 @@ $$;
 
 drop trigger if exists trg_products_search_vector on public.products;
 create trigger trg_products_search_vector
-before insert or update of name, short_description, category_id on public.products
+before insert or update of name, short_description, seo_title, seo_description, category_id on public.products
 for each row execute function public.products_refresh_search_vector();
 
 alter table public.products enable row level security;

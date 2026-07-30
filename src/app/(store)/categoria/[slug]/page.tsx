@@ -3,12 +3,16 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { CatalogView } from "@/components/store/CatalogView";
 import { ProductGridSkeleton } from "@/components/store/ProductSkeleton";
+import { JsonLd } from "@/components/seo/JsonLd";
 import { getCategoryBySlug, listActiveCategoryNav } from "@/lib/categories";
 import { parseCatalogSearchParams } from "@/lib/catalogParams";
 import {
   extractFilterFacets,
   listProductsByCategorySlug,
 } from "@/lib/products";
+import { SITE_NAME } from "@/shared/const/site";
+import { buildPageMetadata } from "@/lib/seo/metadata";
+import { breadcrumbJsonLd } from "@/lib/seo/jsonld";
 
 export const revalidate = 60;
 
@@ -22,15 +26,22 @@ export async function generateMetadata({
 }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const category = await getCategoryBySlug(slug);
-  if (!category) return { title: "Categoria" };
+  if (!category) return { title: "Categoria", robots: { index: false } };
 
-  return {
-    title: category.seoTitle || category.name,
-    description:
-      category.seoDescription ||
-      category.description ||
-      `Peças da categoria ${category.name} na Feliora.`,
-  };
+  const title =
+    category.seoTitle || `${category.name} | ${SITE_NAME}`;
+  const description =
+    category.seoDescription ||
+    category.description ||
+    `Peças da categoria ${category.name} na ${SITE_NAME}. Compre online com frete para todo o Brasil.`;
+
+  return buildPageMetadata({
+    title,
+    description,
+    path: `/categoria/${category.slug}`,
+    image: category.imageUrl || undefined,
+    imageAlt: category.name,
+  });
 }
 
 export default async function CategoriaPage({
@@ -59,6 +70,13 @@ export default async function CategoriaPage({
 
   return (
     <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8 lg:py-20">
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: "Início", path: "/" },
+          { name: "Catálogo", path: "/catalogo" },
+          { name: category.name, path: `/categoria/${category.slug}` },
+        ])}
+      />
       <header className="mb-12 text-center sm:mb-16">
         <p className="font-display text-[0.65rem] uppercase tracking-[0.42em] text-rose-gold sm:text-xs">
           Categoria

@@ -1,10 +1,14 @@
 import type { Metadata } from "next";
 import { CheckoutPageClient } from "@/components/checkout/CheckoutPageClient";
+import { buildPageMetadata } from "@/lib/seo/metadata";
 
 export const metadata: Metadata = {
-  title: "Checkout",
-  description: "Finalize sua compra na Feliora.",
-  robots: { index: false, follow: false },
+  ...buildPageMetadata({
+    title: "Checkout",
+    description: "Finalize sua compra na Feliora.",
+    path: "/checkout",
+    noIndex: true,
+  }),
 };
 
 export default function CheckoutPage() {

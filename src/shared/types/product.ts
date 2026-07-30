@@ -33,6 +33,8 @@ export type Product = {
   featured: boolean;
   isNew: boolean;
   shortDescription: string;
+  seoTitle: string;
+  seoDescription: string;
   description: string;
   materials: string[];
   careInstructions: string[];

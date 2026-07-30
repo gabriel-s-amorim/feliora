@@ -110,6 +110,8 @@ function toProductInput(
     featured: false,
     isNew: false,
     shortDescription: "",
+    seoTitle: "",
+    seoDescription: "",
     description: product.description,
     materials: [],
     careInstructions: [],

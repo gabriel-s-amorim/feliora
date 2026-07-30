@@ -28,6 +28,8 @@ const emptyForm = {
   name: "",
   slug: "",
   description: "",
+  seoTitle: "",
+  seoDescription: "",
   sortOrder: "0",
   isActive: true,
 };
@@ -67,6 +69,8 @@ export default function AdminCategoriesPage() {
       name: category.name,
       slug: category.slug,
       description: category.description,
+      seoTitle: category.seoTitle,
+      seoDescription: category.seoDescription,
       sortOrder: String(category.sortOrder),
       isActive: category.isActive,
     });
@@ -87,8 +91,8 @@ export default function AdminCategoriesPage() {
       name: form.name.trim(),
       slug: form.slug.trim() || slugify(form.name),
       description: form.description,
-      seoTitle: "",
-      seoDescription: "",
+      seoTitle: form.seoTitle,
+      seoDescription: form.seoDescription,
       sortOrder: Number(form.sortOrder) || 0,
       isActive: form.isActive,
     };
@@ -222,6 +226,33 @@ export default function AdminCategoriesPage() {
                   onChange={(e) =>
                     setForm((f) => ({ ...f, description: e.target.value }))
                   }
+                />
+              </AdminField>
+              <AdminField
+                label="SEO title"
+                hint={`${form.seoTitle.length}/120`}
+              >
+                <AdminInput
+                  value={form.seoTitle}
+                  maxLength={120}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, seoTitle: e.target.value }))
+                  }
+                  placeholder={`${form.name || "Categoria"} | Feliora`}
+                />
+              </AdminField>
+              <AdminField
+                label="SEO description"
+                hint={`${form.seoDescription.length}/300`}
+              >
+                <AdminTextarea
+                  rows={3}
+                  value={form.seoDescription}
+                  maxLength={300}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, seoDescription: e.target.value }))
+                  }
+                  placeholder="Meta description para Google e Bing"
                 />
               </AdminField>
               <AdminField label="Ordem">

@@ -6,10 +6,15 @@ import { SearchForm } from "@/components/store/SearchForm";
 import { listActiveCategoryNav } from "@/lib/categories";
 import { parseCatalogSearchParams } from "@/lib/catalogParams";
 import { extractFilterFacets, searchProducts } from "@/lib/products";
+import { buildPageMetadata } from "@/lib/seo/metadata";
 
 export const metadata: Metadata = {
-  title: "Busca",
-  description: "Busque peças na Feliora.",
+  ...buildPageMetadata({
+    title: "Busca",
+    description: "Busque peças de moda feminina na loja Feliora.",
+    path: "/busca",
+    noIndex: true,
+  }),
 };
 
 type PageProps = {

@@ -3,13 +3,18 @@ import { Cormorant_Garamond, Outfit } from "next/font/google";
 import {
   SITE_BG_COLOR,
   SITE_DESCRIPTION,
+  SITE_KEYWORDS,
+  SITE_LOCALE,
+  SITE_LOCALE_BCP47,
   SITE_NAME,
+  SITE_OG_IMAGE_ALT,
+  SITE_OG_IMAGE_HEIGHT,
   SITE_OG_IMAGE_PATH,
+  SITE_OG_IMAGE_WIDTH,
   SITE_ORIGIN,
   SITE_THEME_COLOR,
   SITE_TITLE,
 } from "@/shared/const/site";
-import { getSiteOrigin } from "@/lib/siteOrigin";
 import "./globals.css";
 
 const cormorant = Cormorant_Garamond({
@@ -26,16 +31,31 @@ const outfit = Outfit({
   display: "swap",
 });
 
-const siteOrigin = getSiteOrigin(SITE_ORIGIN);
-
 export const metadata: Metadata = {
-  metadataBase: new URL(siteOrigin),
+  metadataBase: new URL(SITE_ORIGIN),
   title: {
     default: SITE_TITLE,
-    template: `%s — ${SITE_NAME}`,
+    template: `%s | ${SITE_NAME}`,
   },
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,
+  keywords: [...SITE_KEYWORDS],
+  authors: [{ name: SITE_NAME, url: SITE_ORIGIN }],
+  creator: SITE_NAME,
+  publisher: SITE_NAME,
+  category: "shopping",
+  formatDetection: {
+    telephone: false,
+    email: false,
+    address: false,
+  },
+  alternates: {
+    canonical: SITE_ORIGIN,
+    languages: {
+      "pt-BR": SITE_ORIGIN,
+      "x-default": SITE_ORIGIN,
+    },
+  },
   icons: {
     icon: [
       { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
@@ -47,17 +67,40 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "website",
-    locale: "pt_BR",
+    locale: SITE_LOCALE,
+    url: SITE_ORIGIN,
     siteName: SITE_NAME,
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
-    images: [{ url: SITE_OG_IMAGE_PATH }],
+    images: [
+      {
+        url: SITE_OG_IMAGE_PATH,
+        width: SITE_OG_IMAGE_WIDTH,
+        height: SITE_OG_IMAGE_HEIGHT,
+        alt: SITE_OG_IMAGE_ALT,
+        type: "image/png",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
     images: [SITE_OG_IMAGE_PATH],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
+  other: {
+    "og:locale:alternate": SITE_LOCALE_BCP47,
   },
 };
 
@@ -76,7 +119,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="pt-BR"
+      lang={SITE_LOCALE_BCP47}
       className={`${cormorant.variable} ${outfit.variable} h-full antialiased`}
     >
       <body

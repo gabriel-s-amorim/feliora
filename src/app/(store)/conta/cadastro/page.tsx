@@ -1,10 +1,15 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { RegisterForm } from "@/components/store/auth/RegisterForm";
+import { buildPageMetadata } from "@/lib/seo/metadata";
 
 export const metadata: Metadata = {
-  title: "Criar conta",
-  description: "Cadastre-se na Feliora.",
+  ...buildPageMetadata({
+    title: "Criar conta",
+    description: "Cadastre-se na Feliora.",
+    path: "/conta/cadastro",
+    noIndex: true,
+  }),
 };
 
 export default function CadastroPage() {

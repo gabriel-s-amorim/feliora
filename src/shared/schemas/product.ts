@@ -38,6 +38,8 @@ export const productCreateSchema = z.object({
   featured: z.boolean().default(false),
   isNew: z.boolean().default(false),
   shortDescription: z.string().max(500).default(""),
+  seoTitle: z.string().max(70).default(""),
+  seoDescription: z.string().max(170).default(""),
   description: z.string().default(""),
   materials: z.array(z.string()).default([]),
   careInstructions: z.array(z.string()).default([]),

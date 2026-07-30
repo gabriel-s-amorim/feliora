@@ -1,13 +1,20 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ProductDetail } from "@/components/store/ProductDetail";
+import { JsonLd } from "@/components/seo/JsonLd";
 import { getProductBySlug, listRelatedProducts } from "@/lib/products";
-import { SITE_NAME, SITE_ORIGIN } from "@/shared/const/site";
+import { SITE_NAME } from "@/shared/const/site";
 import { formatPrice } from "@/lib/utils";
 import {
   productDescriptionText,
   sanitizeProductDescription,
 } from "@/lib/productDescription";
+import { buildPageMetadata, truncateMeta } from "@/lib/seo/metadata";
+import {
+  breadcrumbJsonLd,
+  faqJsonLd,
+  productJsonLd,
+} from "@/lib/seo/jsonld";
 
 export const revalidate = 60;
 
@@ -20,64 +27,25 @@ export async function generateMetadata({
 }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const product = await getProductBySlug(slug);
-  if (!product) return { title: "Produto" };
+  if (!product) return { title: "Produto", robots: { index: false } };
 
-  const title = product.name;
-  const description =
-    product.shortDescription ||
-    productDescriptionText(product.description) ||
-    `${product.name} — ${formatPrice(product.price)} na ${SITE_NAME}`;
+  const title =
+    product.seoTitle ||
+    `${product.name} | ${SITE_NAME}`;
+  const description = truncateMeta(
+    product.seoDescription ||
+      product.shortDescription ||
+      productDescriptionText(product.description) ||
+      `${product.name} — ${formatPrice(product.price)} na ${SITE_NAME}`
+  );
 
-  return {
+  return buildPageMetadata({
     title,
     description,
-    openGraph: {
-      title,
-      description,
-      type: "website",
-      url: `${SITE_ORIGIN}/produto/${product.slug}`,
-      images: product.image ? [{ url: product.image }] : undefined,
-    },
-    twitter: {
-      card: "summary_large_image",
-      title,
-      description,
-      images: product.image ? [product.image] : undefined,
-    },
-  };
-}
-
-function productJsonLd(
-  product: NonNullable<Awaited<ReturnType<typeof getProductBySlug>>>
-) {
-  return {
-    "@context": "https://schema.org",
-    "@type": "Product",
-    name: product.name,
-    description:
-      product.shortDescription || productDescriptionText(product.description),
-    image: [product.image, ...product.images].filter(Boolean),
-    sku: product.variants?.[0]?.sku,
-    brand: { "@type": "Brand", name: SITE_NAME },
-    offers: {
-      "@type": "Offer",
-      priceCurrency: "BRL",
-      price: product.price.toFixed(2),
-      availability: product.inStock
-        ? "https://schema.org/InStock"
-        : "https://schema.org/OutOfStock",
-      url: `${SITE_ORIGIN}/produto/${product.slug}`,
-    },
-    ...(product.reviewsCount > 0
-      ? {
-          aggregateRating: {
-            "@type": "AggregateRating",
-            ratingValue: product.ratingAvg,
-            reviewCount: product.reviewsCount,
-          },
-        }
-      : {}),
-  };
+    path: `/produto/${product.slug}`,
+    image: product.image || undefined,
+    imageAlt: product.name,
+  });
 }
 
 export default async function ProdutoPage({ params }: PageProps) {
@@ -86,14 +54,28 @@ export default async function ProdutoPage({ params }: PageProps) {
   if (!product) notFound();
 
   const related = await listRelatedProducts(product, 4);
+  const crumbs = [
+    { name: "Início", path: "/" },
+    { name: "Catálogo", path: "/catalogo" },
+    ...(product.category
+      ? [
+          {
+            name: product.category.name,
+            path: `/categoria/${product.category.slug}`,
+          },
+        ]
+      : []),
+    { name: product.name, path: `/produto/${product.slug}` },
+  ];
 
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(productJsonLd(product)),
-        }}
+      <JsonLd
+        data={[
+          productJsonLd(product),
+          breadcrumbJsonLd(crumbs),
+          faqJsonLd(product.faq),
+        ]}
       />
       <ProductDetail
         product={product}

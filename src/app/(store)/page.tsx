@@ -3,24 +3,52 @@ import { SITE_NAME } from "@/shared/const/site";
 import { ProductGrid } from "@/components/store/ProductGrid";
 import { HomeHero } from "@/components/store/HomeHero";
 import { GradientBlobBackground } from "@/components/store/GradientBlobBackground";
+import { JsonLd } from "@/components/seo/JsonLd";
 import { listActiveBanners } from "@/lib/banners";
 import { listFeaturedProducts, listActiveProducts } from "@/lib/products";
 import { listActiveCategoryNav } from "@/lib/categories";
+import { buildPageMetadata } from "@/lib/seo/metadata";
+import {
+  breadcrumbJsonLd,
+  organizationJsonLd,
+  websiteJsonLd,
+} from "@/lib/seo/jsonld";
+import { getPublicStoreSettings } from "@/lib/storeSettings";
 
 export const revalidate = 60;
 
+export const metadata = buildPageMetadata({
+  path: "/",
+});
+
 export default async function HomePage() {
-  const [featured, latest, categories, banners] = await Promise.all([
+  const [featured, latest, categories, banners, settings] = await Promise.all([
     listFeaturedProducts(8),
     listActiveProducts({ sort: "newest", limit: 8 }),
     listActiveCategoryNav(),
     listActiveBanners(),
+    getPublicStoreSettings(),
   ]);
 
   const showcase = featured.length > 0 ? featured : latest;
 
   return (
     <>
+      <JsonLd
+        data={[
+          organizationJsonLd({
+            contactEmail: settings.contactEmail,
+            whatsappNumber: settings.whatsappNumber,
+            addressLine: settings.addressLine,
+            instagramUrl: settings.instagramUrl,
+            facebookUrl: settings.facebookUrl,
+            tiktokUrl: settings.tiktokUrl,
+            twitterUrl: settings.twitterUrl,
+          }),
+          websiteJsonLd(),
+          breadcrumbJsonLd([{ name: "Início", path: "/" }]),
+        ]}
+      />
       <HomeHero banners={banners} />
 
       {categories.length > 0 ? (

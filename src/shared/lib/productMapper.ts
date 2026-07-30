@@ -31,6 +31,8 @@ export type ProductRow = {
   featured: boolean;
   is_new: boolean;
   short_description: string;
+  seo_title?: string;
+  seo_description?: string;
   description: string;
   materials: unknown;
   care_instructions: unknown;
@@ -129,6 +131,8 @@ export function mapProduct(row: ProductRow): Product {
     featured: row.featured,
     isNew: row.is_new,
     shortDescription: row.short_description,
+    seoTitle: row.seo_title ?? "",
+    seoDescription: row.seo_description ?? "",
     description: row.description,
     materials: asStringArray(row.materials),
     careInstructions: asStringArray(row.care_instructions),
@@ -167,6 +171,8 @@ export function productToRow(
     featured: boolean;
     isNew: boolean;
     shortDescription: string;
+    seoTitle: string;
+    seoDescription: string;
     description: string;
     materials: string[];
     careInstructions: string[];
@@ -194,6 +200,8 @@ export function productToRow(
   if (input.featured !== undefined) row.featured = input.featured;
   if (input.isNew !== undefined) row.is_new = input.isNew;
   if (input.shortDescription !== undefined) row.short_description = input.shortDescription;
+  if (input.seoTitle !== undefined) row.seo_title = input.seoTitle;
+  if (input.seoDescription !== undefined) row.seo_description = input.seoDescription;
   if (input.description !== undefined) row.description = input.description;
   if (input.materials !== undefined) row.materials = input.materials;
   if (input.careInstructions !== undefined) row.care_instructions = input.careInstructions;

@@ -66,6 +66,10 @@ export function ProductForm({ mode, initial }: Props) {
   const [shortDescription, setShortDescription] = useState(
     initial?.shortDescription ?? ""
   );
+  const [seoTitle, setSeoTitle] = useState(initial?.seoTitle ?? "");
+  const [seoDescription, setSeoDescription] = useState(
+    initial?.seoDescription ?? ""
+  );
   const [description, setDescription] = useState(initial?.description ?? "");
   const [sizesText, setSizesText] = useState(
     (initial?.sizes ?? []).map((s) => s.label).join(", ")
@@ -136,6 +140,8 @@ export function ProductForm({ mode, initial }: Props) {
         isNew,
         isActive,
         shortDescription,
+        seoTitle,
+        seoDescription,
         description,
         materials: [],
         careInstructions: [],
@@ -300,6 +306,37 @@ export function ProductForm({ mode, initial }: Props) {
               rows={5}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
+            />
+          </AdminField>
+        </div>
+      </AdminPanel>
+
+      <AdminPanel
+        title="SEO"
+        description="Title e meta description para Google, Bing e redes. Deixe vazio para gerar a partir do nome/resumo."
+      >
+        <div className="space-y-4">
+          <AdminField
+            label="SEO title"
+            hint={`${seoTitle.length}/70 — ideal ~50–60 caracteres`}
+          >
+            <AdminInput
+              value={seoTitle}
+              maxLength={70}
+              onChange={(e) => setSeoTitle(e.target.value)}
+              placeholder={`${name || "Nome do produto"} | Feliora`}
+            />
+          </AdminField>
+          <AdminField
+            label="SEO description"
+            hint={`${seoDescription.length}/170 — ideal ~140–155 caracteres`}
+          >
+            <AdminTextarea
+              rows={3}
+              value={seoDescription}
+              maxLength={170}
+              onChange={(e) => setSeoDescription(e.target.value)}
+              placeholder="Resumo persuasivo com benefício + marca + CTA suave."
             />
           </AdminField>
         </div>

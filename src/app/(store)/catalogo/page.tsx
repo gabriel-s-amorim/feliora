@@ -1,21 +1,25 @@
-import type { Metadata } from "next";
 import { Suspense } from "react";
 import { CatalogView } from "@/components/store/CatalogView";
 import { ProductGridSkeleton } from "@/components/store/ProductSkeleton";
+import { JsonLd } from "@/components/seo/JsonLd";
 import { listActiveCategoryNav } from "@/lib/categories";
 import { parseCatalogSearchParams } from "@/lib/catalogParams";
 import {
   extractFilterFacets,
   listActiveProducts,
 } from "@/lib/products";
-import { SITE_DESCRIPTION } from "@/shared/const/site";
+import { SITE_NAME } from "@/shared/const/site";
+import { buildPageMetadata } from "@/lib/seo/metadata";
+import { breadcrumbJsonLd } from "@/lib/seo/jsonld";
 
 export const revalidate = 60;
 
-export const metadata: Metadata = {
-  title: "Catálogo",
-  description: `Explore a coleção ${SITE_DESCRIPTION}`,
-};
+export const metadata = buildPageMetadata({
+  title: `Catálogo de Moda Feminina | ${SITE_NAME}`,
+  description:
+    "Explore o catálogo Feliora: vestidos, blusas e peças sofisticadas. Filtros por tamanho, cor e preço. Frete para todo o Brasil.",
+  path: "/catalogo",
+});
 
 type PageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -48,6 +52,12 @@ export default async function CatalogoPage({ searchParams }: PageProps) {
 
   return (
     <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8 lg:py-20">
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: "Início", path: "/" },
+          { name: "Catálogo", path: "/catalogo" },
+        ])}
+      />
       <header className="mb-12 text-center sm:mb-16">
         <p className="font-display text-[0.65rem] uppercase tracking-[0.42em] text-rose-gold sm:text-xs">
           Coleção

@@ -1,10 +1,15 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { LoginForm } from "@/components/store/auth/LoginForm";
+import { buildPageMetadata } from "@/lib/seo/metadata";
 
 export const metadata: Metadata = {
-  title: "Entrar",
-  description: "Acesse sua conta Feliora.",
+  ...buildPageMetadata({
+    title: "Entrar",
+    description: "Acesse sua conta Feliora.",
+    path: "/conta/entrar",
+    noIndex: true,
+  }),
 };
 
 export default function EntrarPage() {
