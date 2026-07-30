@@ -3,17 +3,31 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  ChevronRight,
+  CreditCard,
+  Package,
+  Star,
+  Truck,
+} from "lucide-react";
 import { useCustomerAuth } from "@/contexts/CustomerAuthContext";
 import { createClient } from "@/lib/supabase/client";
 import { formatPrice } from "@/lib/utils";
 import { normalizeCep } from "@/shared/schemas/address";
+import {
+  countCustomerOrderShortcuts,
+  customerOrderStatusLabel,
+  filterCustomerOrders,
+  type CustomerOrderFilter,
+} from "@/shared/lib/orderLabels";
 import {
   displayPhoneBr,
   formatPhoneBr,
   isValidPhoneBr,
   normalizePhoneBr,
 } from "@/shared/lib/phoneBr";
+import type { OrderSummary } from "@/shared/types/order";
 
 type Address = {
   id: string;
@@ -26,17 +40,6 @@ type Address = {
   cidade: string;
   estado: string;
   is_default: boolean;
-};
-
-type OrderRow = {
-  id: string;
-  status: string;
-  payment_status: string;
-  fulfillment_status: string;
-  tracking_code: string | null;
-  tracking_url: string | null;
-  total_amount: number | string;
-  created_at: string;
 };
 
 type Tab = "perfil" | "enderecos" | "seguranca" | "pedidos";
@@ -54,6 +57,17 @@ function initials(name: string) {
   return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
 }
 
+const ORDER_SHORTCUTS: {
+  id: Exclude<CustomerOrderFilter, "all">;
+  label: string;
+  icon: typeof CreditCard;
+}[] = [
+  { id: "to_pay", label: "A pagar", icon: CreditCard },
+  { id: "preparing", label: "Preparando", icon: Package },
+  { id: "shipping", label: "A caminho", icon: Truck },
+  { id: "review", label: "Avaliar", icon: Star },
+];
+
 export function AccountDashboard() {
   const {
     user,
@@ -64,14 +78,18 @@ export function AccountDashboard() {
     updatePassword,
   } = useCustomerAuth();
   const router = useRouter();
+  const ordersSectionRef = useRef<HTMLElement | null>(null);
   const [tab, setTab] = useState<Tab>("perfil");
+  const [orderFilter, setOrderFilter] = useState<CustomerOrderFilter>("all");
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
+  const [profileSeed, setProfileSeed] = useState<typeof profile>(null);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [addresses, setAddresses] = useState<Address[]>([]);
-  const [orders, setOrders] = useState<OrderRow[]>([]);
+  const [orders, setOrders] = useState<OrderSummary[]>([]);
+  const [ordersLoading, setOrdersLoading] = useState(true);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [savingPassword, setSavingPassword] = useState(false);
@@ -95,40 +113,61 @@ export function AccountDashboard() {
     return "";
   }, [newPassword]);
 
+  const shortcutCounts = useMemo(
+    () => countCustomerOrderShortcuts(orders),
+    [orders]
+  );
+  const filteredOrders = useMemo(
+    () => filterCustomerOrders(orders, orderFilter),
+    [orders, orderFilter]
+  );
+
   useEffect(() => {
     if (!loading && !user) router.replace("/conta/entrar");
   }, [loading, user, router]);
 
-  useEffect(() => {
+  if (profile !== profileSeed) {
+    setProfileSeed(profile);
     if (profile) {
       setFullName(profile.fullName);
       setPhone(displayPhoneBr(profile.phone));
     }
-  }, [profile]);
+  }
 
   useEffect(() => {
     if (!user) return;
     const supabase = createClient();
     void (async () => {
-      const [{ data: addr }, { data: ords }] = await Promise.all([
-        supabase
-          .from("customer_addresses")
-          .select("*")
-          .eq("customer_id", user.id)
-          .order("created_at", { ascending: false }),
-        supabase
-          .from("orders")
-          .select(
-            "id, status, payment_status, fulfillment_status, tracking_code, tracking_url, total_amount, created_at"
-          )
-          .eq("customer_id", user.id)
-          .order("created_at", { ascending: false })
-          .limit(20),
-      ]);
+      const { data: addr } = await supabase
+        .from("customer_addresses")
+        .select("*")
+        .eq("customer_id", user.id)
+        .order("created_at", { ascending: false });
       setAddresses((addr as Address[]) ?? []);
-      setOrders((ords as OrderRow[]) ?? []);
     })();
+
+    void fetch("/api/orders/me")
+      .then(async (res) => {
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error ?? "Erro ao carregar pedidos");
+        setOrders(Array.isArray(data) ? (data as OrderSummary[]) : []);
+      })
+      .catch(() => setOrders([]))
+      .finally(() => setOrdersLoading(false));
   }, [user]);
+
+  function openOrders(filter: CustomerOrderFilter = "all") {
+    setOrderFilter(filter);
+    setTab("pedidos");
+    setError(null);
+    setMessage(null);
+    requestAnimationFrame(() => {
+      ordersSectionRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    });
+  }
 
   async function lookupCep(cepRaw: string) {
     const cep = normalizeCep(cepRaw);
@@ -270,17 +309,27 @@ export function AccountDashboard() {
     { id: "pedidos", label: "Pedidos" },
   ];
 
+  const shortcutCountMap: Record<
+    Exclude<CustomerOrderFilter, "all">,
+    number
+  > = {
+    to_pay: shortcutCounts.toPay,
+    preparing: shortcutCounts.preparing,
+    shipping: shortcutCounts.shipping,
+    review: shortcutCounts.review,
+  };
+
   return (
-    <div className="mx-auto max-w-3xl space-y-8 px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
+    <div className="mx-auto max-w-3xl space-y-6 px-4 py-8 sm:px-6 sm:space-y-8 lg:px-8 lg:py-14">
       <header className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full border border-rose-gold/40 bg-ivory font-display text-lg tracking-wide text-rose-gold">
+          <div className="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full border border-rose-gold/40 bg-ivory font-display text-lg tracking-wide text-rose-gold">
             {googleAvatar ? (
               <Image
                 src={googleAvatar}
                 alt={`Foto de ${displayName}`}
                 fill
-                sizes="56px"
+                sizes="64px"
                 className="object-cover"
               />
             ) : (
@@ -289,7 +338,7 @@ export function AccountDashboard() {
           </div>
           <div>
             <p className="font-display text-xs uppercase tracking-[0.35em] text-rose-gold">
-              Conta
+              Eu
             </p>
             <h1 className="mt-1 font-display text-3xl font-light tracking-[0.06em] text-ink">
               Olá, {displayName.split(" ")[0]}
@@ -309,6 +358,54 @@ export function AccountDashboard() {
         </button>
       </header>
 
+      <section className="overflow-hidden border border-line bg-gradient-to-br from-cream via-cream to-rose-gold/10">
+        <button
+          type="button"
+          onClick={() => openOrders("all")}
+          className="flex w-full items-center justify-between gap-3 px-5 py-4 text-left transition-colors hover:bg-ivory/40"
+        >
+          <div>
+            <p className="font-display text-lg tracking-[0.04em] text-ink">
+              Minhas compras
+            </p>
+            <p className="mt-0.5 text-sm text-ink-muted">
+              {ordersLoading
+                ? "Carregando pedidos…"
+                : orders.length === 0
+                  ? "Você ainda não tem pedidos"
+                  : `${orders.length} pedido${orders.length === 1 ? "" : "s"}`}
+            </p>
+          </div>
+          <ChevronRight className="size-5 text-rose-gold" strokeWidth={1.5} />
+        </button>
+        <div className="grid grid-cols-4 border-t border-line">
+          {ORDER_SHORTCUTS.map((shortcut) => {
+            const Icon = shortcut.icon;
+            const count = shortcutCountMap[shortcut.id];
+            return (
+              <button
+                key={shortcut.id}
+                type="button"
+                onClick={() => openOrders(shortcut.id)}
+                className="flex flex-col items-center gap-1.5 px-1 py-4 text-center transition-colors hover:bg-ivory/50"
+              >
+                <span className="relative flex size-10 items-center justify-center rounded-full border border-rose-gold/25 bg-cream text-rose-gold">
+                  <Icon className="size-4" strokeWidth={1.5} />
+                  {count > 0 ? (
+                    <span className="absolute -right-1 -top-1 flex min-w-4 items-center justify-center rounded-full bg-rose-gold px-1 text-[9px] text-cream">
+                      {count > 9 ? "9+" : count}
+                    </span>
+                  ) : null}
+                </span>
+                <span className="text-[10px] leading-tight tracking-[0.04em] text-ink-muted sm:text-[11px]">
+                  {shortcut.label}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
       <nav className="flex flex-wrap gap-2 border-b border-line pb-3">
         {tabs.map((item) => (
           <button
@@ -316,6 +413,7 @@ export function AccountDashboard() {
             type="button"
             onClick={() => {
               setTab(item.id);
+              if (item.id === "pedidos") setOrderFilter("all");
               setError(null);
               setMessage(null);
             }}
@@ -621,54 +719,86 @@ export function AccountDashboard() {
       ) : null}
 
       {tab === "pedidos" ? (
-        <section className="border border-line bg-cream/40 p-5 sm:p-7">
-          <h2 className="font-display text-xl font-light tracking-[0.06em] text-ink">
-            Pedidos
-          </h2>
-          {orders.length === 0 ? (
-            <p className="mt-3 text-sm text-ink-muted">
-              Você ainda não tem pedidos.{" "}
-              <Link href="/catalogo" className="text-rose-gold">
-                Ver catálogo
-              </Link>
+        <section
+          ref={ordersSectionRef}
+          className="border border-line bg-cream/40 p-5 sm:p-7"
+        >
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h2 className="font-display text-xl font-light tracking-[0.06em] text-ink">
+                Pedidos
+              </h2>
+              <p className="mt-1 text-sm text-ink-muted">
+                {orderFilter === "all"
+                  ? "Todos os pedidos"
+                  : ORDER_SHORTCUTS.find((s) => s.id === orderFilter)?.label}
+              </p>
+            </div>
+            {orderFilter !== "all" ? (
+              <button
+                type="button"
+                onClick={() => setOrderFilter("all")}
+                className="text-xs tracking-[0.08em] text-rose-gold"
+              >
+                Ver todos
+              </button>
+            ) : null}
+          </div>
+
+          {ordersLoading ? (
+            <div className="mt-5 space-y-3 animate-pulse">
+              <div className="h-16 bg-ivory" />
+              <div className="h-16 bg-ivory" />
+            </div>
+          ) : filteredOrders.length === 0 ? (
+            <p className="mt-4 text-sm text-ink-muted">
+              {orders.length === 0 ? (
+                <>
+                  Você ainda não tem pedidos.{" "}
+                  <Link href="/catalogo" className="text-rose-gold">
+                    Ver catálogo
+                  </Link>
+                </>
+              ) : (
+                "Nenhum pedido neste filtro."
+              )}
             </p>
           ) : (
             <ul className="mt-4 divide-y divide-line">
-              {orders.map((o) => (
-                <li
-                  key={o.id}
-                  className="flex items-start justify-between gap-3 py-3 text-sm"
-                >
-                  <div>
-                    <p className="text-ink">
-                      #{o.id.slice(0, 8).toUpperCase()} ·{" "}
-                      {new Date(o.created_at).toLocaleDateString("pt-BR")}
-                    </p>
-                    <p className="text-xs text-ink-muted">
-                      Pagamento: {o.payment_status} · Envio:{" "}
-                      {o.fulfillment_status}
-                    </p>
-                    {o.tracking_code ? (
-                      <p className="mt-1 text-xs text-ink-muted">
-                        Rastreio:{" "}
-                        {o.tracking_url ? (
-                          <a
-                            href={o.tracking_url}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-rose-gold underline-offset-2 hover:underline"
-                          >
-                            {o.tracking_code}
-                          </a>
-                        ) : (
-                          o.tracking_code
-                        )}
+              {filteredOrders.map((o) => (
+                <li key={o.id}>
+                  <Link
+                    href={`/conta/pedidos/${o.id}`}
+                    className="flex items-start justify-between gap-3 py-3 text-sm transition-colors hover:bg-ivory/40"
+                  >
+                    <div className="min-w-0">
+                      <p className="text-ink">
+                        #{o.id.slice(0, 8).toUpperCase()} ·{" "}
+                        {new Date(o.createdAt).toLocaleDateString("pt-BR")}
                       </p>
-                    ) : null}
-                  </div>
-                  <p className="text-ink">
-                    {formatPrice(Number(o.total_amount))}
-                  </p>
+                      <p className="mt-0.5 text-xs text-ink-muted">
+                        {customerOrderStatusLabel(o)} · {o.itemCount}{" "}
+                        {o.itemCount === 1 ? "item" : "itens"}
+                      </p>
+                      {o.trackingCode ? (
+                        <p className="mt-1 text-xs text-ink-muted">
+                          Rastreio: {o.trackingCode}
+                        </p>
+                      ) : null}
+                      {orderFilter === "review" ? (
+                        <p className="mt-1 text-[11px] text-rose-gold">
+                          Toque para avaliar os produtos
+                        </p>
+                      ) : null}
+                    </div>
+                    <div className="flex shrink-0 items-center gap-2">
+                      <p className="text-ink">{formatPrice(o.totalAmount)}</p>
+                      <ChevronRight
+                        className="size-4 text-ink-muted"
+                        strokeWidth={1.5}
+                      />
+                    </div>
+                  </Link>
                 </li>
               ))}
             </ul>

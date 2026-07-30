@@ -43,7 +43,10 @@ export function ProductReviews({
         : 0;
 
   return (
-    <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:px-8 lg:py-20">
+    <section
+      id="avaliacoes"
+      className="mx-auto max-w-6xl scroll-mt-24 px-4 py-14 sm:px-6 lg:px-8 lg:py-20"
+    >
       <div className="mb-10 text-center sm:mb-12">
         <p className="font-display text-xs uppercase tracking-[0.42em] text-rose-gold">
           Avaliações

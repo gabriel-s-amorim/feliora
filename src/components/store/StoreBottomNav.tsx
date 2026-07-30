@@ -1,55 +1,31 @@
 "use client";
 
+import {
+  Bell,
+  Heart,
+  Home,
+  LayoutGrid,
+  UserRound,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { useCustomerAuth } from "@/contexts/CustomerAuthContext";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { cn } from "@/lib/utils";
 
-function IconHome({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
-      <path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-9.5z" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function IconGrid({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
-      <rect x="4" y="4" width="7" height="7" rx="1" />
-      <rect x="13" y="4" width="7" height="7" rx="1" />
-      <rect x="4" y="13" width="7" height="7" rx="1" />
-      <rect x="13" y="13" width="7" height="7" rx="1" />
-    </svg>
-  );
-}
-
-function IconHeart({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
-      <path
-        d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function IconUser({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
-      <circle cx="12" cy="8" r="3.5" />
-      <path d="M5 19a7 7 0 0 1 14 0" strokeLinecap="round" />
-    </svg>
-  );
-}
-
 const TABS = [
-  { href: "/", label: "Início", icon: IconHome, exact: true },
-  { href: "/catalogo", label: "Catálogo", icon: IconGrid },
-  { href: "/favoritos", label: "Favoritos", icon: IconHeart, badge: "wish" as const },
-  { href: "/conta", label: "Conta", icon: IconUser, account: true },
+  { href: "/", label: "Início", icon: Home, exact: true },
+  { href: "/catalogo", label: "Catálogo", icon: LayoutGrid },
+  { href: "/favoritos", label: "Favoritos", icon: Heart, badge: "wish" as const },
+  {
+    href: "/notificacoes",
+    label: "Notificações",
+    icon: Bell,
+    badge: "notif" as const,
+    auth: true,
+  },
+  { href: "/conta", label: "Eu", icon: UserRound, account: true },
 ] as const;
 
 function isActive(pathname: string, href: string, exact?: boolean) {
@@ -62,15 +38,46 @@ function hideTabBar(pathname: string) {
   if (pathname.startsWith("/checkout")) return true;
   if (pathname.startsWith("/produto/")) return true;
   if (pathname === "/carrinho") return true;
-  if (pathname.startsWith("/conta/entrar") || pathname.startsWith("/conta/criar"))
+  if (
+    pathname.startsWith("/conta/entrar") ||
+    pathname.startsWith("/conta/cadastro") ||
+    pathname.startsWith("/conta/criar")
+  ) {
     return true;
+  }
   return false;
 }
 
 export function StoreBottomNav() {
   const pathname = usePathname();
   const { count: wishCount } = useWishlist();
-  const { user } = useCustomerAuth();
+  const { user, loading } = useCustomerAuth();
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const notifBadge = user ? unreadNotifications : 0;
+
+  useEffect(() => {
+    if (loading || !user) return;
+
+    let cancelled = false;
+
+    void fetch("/api/notifications")
+      .then(async (res) => {
+        if (!res.ok || cancelled) return;
+        const data = (await res.json()) as { unreadCount?: number };
+        if (!cancelled) {
+          setUnreadNotifications(
+            typeof data.unreadCount === "number" ? data.unreadCount : 0
+          );
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setUnreadNotifications(0);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user, loading, pathname]);
 
   if (hideTabBar(pathname)) return null;
 
@@ -80,23 +87,31 @@ export function StoreBottomNav() {
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       aria-label="Navegação da loja"
     >
-      <div className="mx-auto flex max-w-lg items-stretch px-1 pt-1">
+      <div className="mx-auto flex max-w-lg items-stretch px-0.5 pt-1">
         {TABS.map((tab) => {
           const href =
             "account" in tab && tab.account
               ? user
                 ? "/conta"
                 : "/conta/entrar"
-              : tab.href;
+              : "auth" in tab && tab.auth
+                ? user
+                  ? tab.href
+                  : `/conta/entrar?next=${encodeURIComponent(tab.href)}`
+                : tab.href;
           const active =
             "account" in tab && tab.account
-              ? pathname.startsWith("/conta")
+              ? pathname.startsWith("/conta") &&
+                !pathname.startsWith("/conta/entrar") &&
+                !pathname.startsWith("/conta/cadastro")
               : isActive(pathname, tab.href, "exact" in tab ? tab.exact : false);
           const Icon = tab.icon;
-          const badge =
-            "badge" in tab && tab.badge === "wish" && wishCount > 0
-              ? wishCount
-              : 0;
+          let badge = 0;
+          if ("badge" in tab && tab.badge === "wish" && wishCount > 0) {
+            badge = wishCount;
+          } else if ("badge" in tab && tab.badge === "notif" && notifBadge > 0) {
+            badge = notifBadge;
+          }
 
           return (
             <Link
@@ -108,14 +123,14 @@ export function StoreBottomNav() {
               )}
             >
               <span className="relative">
-                <Icon className="size-5" />
+                <Icon className="size-[1.15rem]" strokeWidth={1.5} />
                 {badge > 0 ? (
                   <span className="absolute -right-2 -top-1.5 flex size-3.5 items-center justify-center rounded-full bg-rose-gold text-[8px] text-cream">
                     {badge > 9 ? "9+" : badge}
                   </span>
                 ) : null}
               </span>
-              <span className="text-[10px] tracking-[0.06em]">{tab.label}</span>
+              <span className="text-[9px] tracking-[0.04em]">{tab.label}</span>
             </Link>
           );
         })}

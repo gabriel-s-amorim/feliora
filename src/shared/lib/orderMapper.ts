@@ -145,6 +145,12 @@ export function mapOrderRowToSummary(
       "pending") as OrderSummary["paymentStatus"],
     fulfillmentStatus: (row.fulfillment_status ??
       "unfulfilled") as OrderSummary["fulfillmentStatus"],
+    trackingCode: row.tracking_code ?? null,
+    trackingUrl: row.tracking_url ?? null,
+    paidAt: row.paid_at ?? null,
+    processingAt: row.processing_at ?? null,
+    shippedAt: row.shipped_at ?? null,
+    deliveredAt: row.delivered_at ?? null,
     itemCount,
     createdAt: row.created_at,
   };

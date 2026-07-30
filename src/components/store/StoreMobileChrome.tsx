@@ -9,8 +9,13 @@ function hideTabBar(pathname: string) {
   if (pathname.startsWith("/checkout")) return true;
   if (pathname.startsWith("/produto/")) return true;
   if (pathname === "/carrinho") return true;
-  if (pathname.startsWith("/conta/entrar") || pathname.startsWith("/conta/criar"))
+  if (
+    pathname.startsWith("/conta/entrar") ||
+    pathname.startsWith("/conta/cadastro") ||
+    pathname.startsWith("/conta/criar")
+  ) {
     return true;
+  }
   return false;
 }
 

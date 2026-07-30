@@ -89,6 +89,12 @@ export interface OrderSummary {
   paymentMethod: PaymentMethod;
   paymentStatus: PaymentStatus;
   fulfillmentStatus: FulfillmentStatus;
+  trackingCode: string | null;
+  trackingUrl: string | null;
+  paidAt: string | null;
+  processingAt: string | null;
+  shippedAt: string | null;
+  deliveredAt: string | null;
   itemCount: number;
   createdAt: string;
 }

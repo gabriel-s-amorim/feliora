@@ -24,6 +24,7 @@ Execute os arquivos **na ordem numérica** no SQL Editor do projeto Supabase da 
 | `17_seo.sql` | SEO: `products.seo_title/seo_description`, FTS, seed categorias/páginas |
 | `18_order_admin_management.sql` | Cancelamento idempotente, reposição de estoque e exclusão controlada de pedidos |
 | `19_site_analytics.sql` | Analytics first-party: pageviews, presença ao vivo e métricas do dashboard admin |
+| `20_order_notifications_messages.sql` | Notificações in-app de pedidos + mensagens cliente/admin (triggers em status/rastreio/cancelamento) |
 
 ## Categorias
 

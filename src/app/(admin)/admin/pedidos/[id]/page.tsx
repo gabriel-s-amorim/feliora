@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { AdminShell, RequireAdmin } from "@/components/admin/AdminShell";
 import { AdminButton, AdminSpinner } from "@/components/admin/ui";
+import { OrderChatPanel } from "@/components/store/orders/OrderChatPanel";
 import { formatPrice } from "@/lib/utils";
 import type {
   AdminOrderDetail,
@@ -73,7 +74,9 @@ export default function AdminOrderDetailPage() {
       setFulfillmentStatus(data.fulfillmentStatus);
       setTrackingCode(data.trackingCode ?? "");
       setTrackingUrl(data.trackingUrl ?? "");
-      setFulfillmentMessage("Fulfillment atualizado. E-mail disparado se aplicável.");
+      setFulfillmentMessage(
+        "Fulfillment atualizado. E-mail disparado se aplicável."
+      );
     } catch (err) {
       setFulfillmentMessage(
         err instanceof Error ? err.message : "Erro ao salvar"
@@ -127,7 +130,7 @@ export default function AdminOrderDetailPage() {
             ? `Pedido #${order.id.slice(0, 8).toUpperCase()}`
             : "Pedido"
         }
-        description="Detalhes, fulfillment e rastreio do pedido do site"
+        description="Detalhes, fulfillment, rastreio e mensagens com o cliente"
         actions={
           <Link
             href="/admin/pedidos"
@@ -295,7 +298,9 @@ export default function AdminOrderDetailPage() {
                 (order.stockDecrementedAt && !order.stockRestoredAt) ? (
                   <AdminButton
                     variant="danger"
-                    disabled={canceling || order.fulfillmentStatus === "delivered"}
+                    disabled={
+                      canceling || order.fulfillmentStatus === "delivered"
+                    }
                     onClick={() => void cancelOrder()}
                   >
                     {canceling
@@ -310,6 +315,24 @@ export default function AdminOrderDetailPage() {
                 O cancelamento devolve o estoque, mas não estorna o pagamento no
                 Mercado Pago.
               </p>
+            </section>
+
+            <section className="rounded-xl border border-zinc-200 bg-white p-5 lg:col-span-2">
+              <h2 className="text-sm font-semibold text-zinc-900">
+                Conversa com o cliente
+              </h2>
+              <p className="mt-1 text-sm text-zinc-500">
+                Suas respostas aparecem no detalhe do pedido do cliente e geram
+                notificação in-app.
+              </p>
+              <div className="mt-4">
+                <OrderChatPanel
+                  apiPath={`/api/admin/orders/${order.id}/messages`}
+                  viewerRole="admin"
+                  footerNote="A resposta é enviada ao cliente e registrada nas notificações do pedido."
+                  pollMs={15000}
+                />
+              </div>
             </section>
           </div>
         )}
