@@ -12,6 +12,7 @@ import {
   Store,
   Tags,
   TicketPercent,
+  Users,
   X,
 } from "lucide-react";
 import Image from "next/image";
@@ -34,6 +35,7 @@ const SIDEBAR_NAV = [
   { href: "/admin/produtos", label: "Produtos", icon: Package },
   { href: "/admin/canais", label: "Canais", icon: Store },
   { href: "/admin/pedidos", label: "Pedidos", icon: ShoppingBag },
+  { href: "/admin/clientes", label: "Clientes", icon: Users },
   { href: "/admin/categorias", label: "Categorias", icon: Tags },
   { href: "/admin/cupons", label: "Cupons", icon: TicketPercent },
   { href: "/admin/banners", label: "Banners", icon: ImageIcon },
@@ -53,6 +55,7 @@ const BOTTOM_TABS = [
 ] as const;
 
 const MORE_LINKS = [
+  { href: "/admin/clientes", label: "Clientes", icon: Users },
   { href: "/admin/canais", label: "Canais", icon: Store },
   { href: "/admin/categorias", label: "Categorias", icon: Tags },
   { href: "/admin/cupons", label: "Cupons", icon: TicketPercent },
@@ -75,6 +78,7 @@ function hideBottomNav(pathname: string) {
   if (pathname === "/admin/produtos/novo") return true;
   if (/^\/admin\/produtos\/[^/]+$/.test(pathname)) return true;
   if (/^\/admin\/pedidos\/[^/]+$/.test(pathname)) return true;
+  if (/^\/admin\/clientes\/[^/]+$/.test(pathname)) return true;
   return false;
 }
 

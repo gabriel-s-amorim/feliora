@@ -31,6 +31,9 @@ export interface OrderRow {
   processing_at?: string | null;
   shipped_at?: string | null;
   delivered_at?: string | null;
+  canceled_at?: string | null;
+  stock_decremented_at?: string | null;
+  stock_restored_at?: string | null;
   created_at: string;
 }
 
@@ -118,6 +121,9 @@ export function mapOrderRowToOrder(row: OrderRow, items: OrderItem[]): Order {
     processingAt: row.processing_at ?? null,
     shippedAt: row.shipped_at ?? null,
     deliveredAt: row.delivered_at ?? null,
+    canceledAt: row.canceled_at ?? null,
+    stockDecrementedAt: row.stock_decremented_at ?? null,
+    stockRestoredAt: row.stock_restored_at ?? null,
     items,
     createdAt: row.created_at,
   };

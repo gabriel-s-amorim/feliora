@@ -61,6 +61,13 @@ export const orderStatusUpdateSchema = z.object({
   status: z.enum(["pending", "paid", "canceled"]),
 });
 
+export const deleteOrdersSchema = z.object({
+  orderIds: z
+    .array(z.string().uuid("Pedido inválido"))
+    .min(1, "Selecione ao menos um pedido")
+    .max(100, "Selecione no máximo 100 pedidos"),
+});
+
 export const fulfillmentUpdateSchema = z
   .object({
     status: z.enum([

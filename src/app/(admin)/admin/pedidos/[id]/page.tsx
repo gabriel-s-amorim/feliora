@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { AdminShell, RequireAdmin } from "@/components/admin/AdminShell";
-import { AdminSpinner } from "@/components/admin/ui";
+import { AdminButton, AdminSpinner } from "@/components/admin/ui";
 import { formatPrice } from "@/lib/utils";
 import type {
   AdminOrderDetail,
@@ -16,7 +16,6 @@ const FULFILLMENT_OPTIONS: { value: FulfillmentStatus; label: string }[] = [
   { value: "processing", label: "Em preparação" },
   { value: "shipped", label: "Enviado" },
   { value: "delivered", label: "Entregue" },
-  { value: "canceled", label: "Cancelado" },
 ];
 
 export default function AdminOrderDetailPage() {
@@ -29,6 +28,7 @@ export default function AdminOrderDetailPage() {
   const [trackingCode, setTrackingCode] = useState("");
   const [trackingUrl, setTrackingUrl] = useState("");
   const [savingFulfillment, setSavingFulfillment] = useState(false);
+  const [canceling, setCanceling] = useState(false);
   const [fulfillmentMessage, setFulfillmentMessage] = useState<string | null>(
     null
   );
@@ -83,6 +83,42 @@ export default function AdminOrderDetailPage() {
     }
   }
 
+  async function cancelOrder() {
+    if (!params.id || !order) return;
+    if (
+      !window.confirm(
+        order.status === "canceled"
+          ? "Devolver ao estoque os itens deste pedido cancelado?"
+          : "Cancelar este pedido? O estoque baixado será devolvido. O pagamento não será estornado automaticamente."
+      )
+    ) {
+      return;
+    }
+
+    setCanceling(true);
+    setFulfillmentMessage(null);
+    try {
+      const res = await fetch(`/api/admin/orders/${params.id}/cancel`, {
+        method: "POST",
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Erro ao cancelar pedido");
+      setOrder(data);
+      setFulfillmentStatus(data.fulfillmentStatus);
+      setFulfillmentMessage(
+        data.stockRestoredAt
+          ? "Pedido cancelado e estoque devolvido."
+          : "Pedido cancelado. Não havia baixa de estoque para devolver."
+      );
+    } catch (err) {
+      setFulfillmentMessage(
+        err instanceof Error ? err.message : "Erro ao cancelar pedido"
+      );
+    } finally {
+      setCanceling(false);
+    }
+  }
+
   return (
     <RequireAdmin>
       <AdminShell
@@ -115,6 +151,9 @@ export default function AdminOrderDetailPage() {
                 <div>{order.customerName || "—"}</div>
                 <div>{order.customerEmail || "—"}</div>
                 <div>{order.customerPhone || "—"}</div>
+                {order.shippingRecipient?.document ? (
+                  <div>CPF: {order.shippingRecipient.document}</div>
+                ) : null}
               </dl>
               <h2 className="mt-6 text-sm font-semibold text-zinc-900">
                 Entrega
@@ -189,6 +228,9 @@ export default function AdminOrderDetailPage() {
                     }
                     className="mt-1 w-full rounded-lg border border-zinc-200 px-3 py-2"
                   >
+                    {fulfillmentStatus === "canceled" ? (
+                      <option value="canceled">Cancelado</option>
+                    ) : null}
                     {FULFILLMENT_OPTIONS.map((opt) => (
                       <option key={opt.value} value={opt.value}>
                         {opt.label}
@@ -240,14 +282,34 @@ export default function AdminOrderDetailPage() {
               {fulfillmentMessage ? (
                 <p className="mt-3 text-sm text-zinc-600">{fulfillmentMessage}</p>
               ) : null}
-              <button
-                type="button"
-                disabled={savingFulfillment}
-                onClick={() => void saveFulfillment()}
-                className="mt-4 rounded-lg bg-zinc-900 px-4 py-2 text-sm text-white hover:bg-zinc-800 disabled:opacity-50"
-              >
-                {savingFulfillment ? "Salvando…" : "Atualizar fulfillment"}
-              </button>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <AdminButton
+                  disabled={
+                    savingFulfillment || order.status === "canceled"
+                  }
+                  onClick={() => void saveFulfillment()}
+                >
+                  {savingFulfillment ? "Salvando…" : "Atualizar fulfillment"}
+                </AdminButton>
+                {order.status !== "canceled" ||
+                (order.stockDecrementedAt && !order.stockRestoredAt) ? (
+                  <AdminButton
+                    variant="danger"
+                    disabled={canceling || order.fulfillmentStatus === "delivered"}
+                    onClick={() => void cancelOrder()}
+                  >
+                    {canceling
+                      ? "Processando…"
+                      : order.status === "canceled"
+                        ? "Devolver estoque"
+                        : "Cancelar pedido"}
+                  </AdminButton>
+                ) : null}
+              </div>
+              <p className="mt-2 text-xs text-zinc-500">
+                O cancelamento devolve o estoque, mas não estorna o pagamento no
+                Mercado Pago.
+              </p>
             </section>
           </div>
         )}

@@ -557,6 +557,18 @@ async function fetchCustomerInfo(customerId: string | null): Promise<{
   };
 }
 
+function resolveOrderCustomer(
+  row: OrderRow,
+  profile: { name: string | null; email: string | null; phone?: string | null }
+) {
+  const recipient = row.shipping_recipient;
+  return {
+    name: recipient?.name?.trim() || profile.name,
+    email: recipient?.email?.trim() || profile.email,
+    phone: recipient?.phone?.trim() || profile.phone || null,
+  };
+}
+
 async function buildItemCountMap(
   orderIds: string[]
 ): Promise<Map<string, number>> {
@@ -615,11 +627,18 @@ export async function listAllOrders(): Promise<AdminOrderSummary[]> {
       ? customerInfoMap.get(row.customer_id)
       : undefined;
 
+    const customer = resolveOrderCustomer(row as OrderRow, {
+      name: customerInfo?.name ?? null,
+      email: customerInfo?.email ?? null,
+    });
+
     return {
       ...summary,
       customerId: row.customer_id,
-      customerName: customerInfo?.name ?? null,
-      customerEmail: customerInfo?.email ?? null,
+      customerName: customer.name,
+      customerEmail: customer.email,
+      stockDecrementedAt: row.stock_decremented_at ?? null,
+      stockRestoredAt: row.stock_restored_at ?? null,
     };
   });
 }
@@ -638,11 +657,19 @@ export async function getOrderById(orderId: string): Promise<AdminOrderDetail> {
   ]);
   if (shipmentResult.error) throw new Error(shipmentResult.error.message);
 
+  const customer = resolveOrderCustomer(
+    {
+      ...(order as unknown as OrderRow),
+      shipping_recipient: order.shippingRecipient,
+    },
+    customerInfo
+  );
+
   return {
     ...order,
-    customerName: customerInfo.name,
-    customerEmail: customerInfo.email,
-    customerPhone: customerInfo.phone,
+    customerName: customer.name,
+    customerEmail: customer.email,
+    customerPhone: customer.phone,
     shipments: (shipmentResult.data ?? []).map((shipment) => ({
       id: shipment.id,
       volumeIndex: shipment.volume_index,
@@ -698,4 +725,21 @@ export async function updateOrderFulfillment(
   }
 
   return getOrderById(orderId);
+}
+
+export async function cancelOrder(orderId: string): Promise<AdminOrderDetail> {
+  const { error } = await createAdminClient().rpc("admin_cancel_order", {
+    p_order_id: orderId,
+  });
+  if (error) throw new Error(error.message);
+  return getOrderById(orderId);
+}
+
+export async function deleteCanceledOrders(orderIds: string[]): Promise<number> {
+  const { data, error } = await createAdminClient().rpc(
+    "admin_delete_canceled_orders",
+    { p_order_ids: orderIds }
+  );
+  if (error) throw new Error(error.message);
+  return Number(data ?? 0);
 }

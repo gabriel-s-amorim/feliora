@@ -66,6 +66,9 @@ export interface Order {
   processingAt: string | null;
   shippedAt: string | null;
   deliveredAt: string | null;
+  canceledAt: string | null;
+  stockDecrementedAt: string | null;
+  stockRestoredAt: string | null;
   items: OrderItem[];
   createdAt: string;
 }
@@ -94,6 +97,8 @@ export interface AdminOrderSummary extends OrderSummary {
   customerId: string | null;
   customerName: string | null;
   customerEmail: string | null;
+  stockDecrementedAt: string | null;
+  stockRestoredAt: string | null;
 }
 
 export interface AdminOrderDetail extends Order {

@@ -1,10 +1,15 @@
 "use client";
 
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AdminShell, RequireAdmin } from "@/components/admin/AdminShell";
-import { AdminBadge, AdminEmpty, AdminSpinner } from "@/components/admin/ui";
+import {
+  AdminBadge,
+  AdminButton,
+  AdminEmpty,
+  AdminSpinner,
+} from "@/components/admin/ui";
 import { formatPrice } from "@/lib/utils";
 import type { AdminOrderSummary } from "@/shared/types/order";
 
@@ -29,6 +34,8 @@ export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<AdminOrderSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     void fetch("/api/admin/orders")
@@ -43,11 +50,69 @@ export default function AdminOrdersPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  const deletableIds = orders
+    .filter(
+      (order) =>
+        order.status === "canceled" &&
+        (!order.stockDecrementedAt || order.stockRestoredAt)
+    )
+    .map((order) => order.id);
+
+  function toggleSelected(id: string) {
+    setSelected((current) => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  async function deleteSelected() {
+    if (!selected.size) return;
+    if (
+      !window.confirm(
+        `Excluir permanentemente ${selected.size} pedido(s) cancelado(s)?`
+      )
+    ) {
+      return;
+    }
+
+    setDeleting(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/orders", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderIds: Array.from(selected) }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Erro ao excluir pedidos");
+      setOrders((current) => current.filter((order) => !selected.has(order.id)));
+      setSelected(new Set());
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao excluir pedidos");
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   return (
     <RequireAdmin>
       <AdminShell
         title="Pedidos"
         description="Pedidos do site (Mercado Pago)."
+        actions={
+          selected.size ? (
+            <AdminButton
+              variant="danger"
+              disabled={deleting}
+              onClick={() => void deleteSelected()}
+            >
+              <Trash2 className="size-4" />
+              {deleting ? "Excluindo…" : `Excluir (${selected.size})`}
+            </AdminButton>
+          ) : undefined
+        }
       >
         {loading ? (
           <div className="flex items-center gap-2 text-sm text-zinc-500">
@@ -65,10 +130,21 @@ export default function AdminOrdersPage() {
             {/* Mobile cards */}
             <ul className="space-y-2.5 md:hidden">
               {orders.map((order) => (
-                <li key={order.id}>
+                <li
+                  key={order.id}
+                  className="flex items-center gap-2 rounded-[1.1rem] border border-zinc-200 bg-white p-3 shadow-[var(--admin-shadow)]"
+                >
+                  <input
+                    type="checkbox"
+                    aria-label={`Selecionar pedido ${order.id}`}
+                    checked={selected.has(order.id)}
+                    disabled={!deletableIds.includes(order.id)}
+                    onChange={() => toggleSelected(order.id)}
+                    className="size-4 accent-zinc-950 disabled:opacity-30"
+                  />
                   <Link
                     href={`/admin/pedidos/${order.id}`}
-                    className="flex items-center gap-3 rounded-[1.1rem] border border-zinc-200 bg-white p-3.5 shadow-[var(--admin-shadow)] active:bg-zinc-50"
+                    className="flex min-w-0 flex-1 items-center gap-3 p-0.5 active:bg-zinc-50"
                   >
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
@@ -110,6 +186,27 @@ export default function AdminOrdersPage() {
               <table className="admin-table min-w-full">
                 <thead>
                   <tr>
+                    <th className="w-10">
+                      <input
+                        type="checkbox"
+                        aria-label="Selecionar todos os pedidos cancelados"
+                        checked={
+                          deletableIds.length > 0 &&
+                          deletableIds.every((id) => selected.has(id))
+                        }
+                        onChange={() =>
+                          setSelected((current) => {
+                            const allSelected = deletableIds.every((id) =>
+                              current.has(id)
+                            );
+                            return allSelected
+                              ? new Set()
+                              : new Set(deletableIds);
+                          })
+                        }
+                        className="size-4 accent-zinc-950"
+                      />
+                    </th>
                     <th>Pedido</th>
                     <th>Cliente</th>
                     <th>Pagamento</th>
@@ -121,6 +218,16 @@ export default function AdminOrdersPage() {
                 <tbody>
                   {orders.map((order) => (
                     <tr key={order.id}>
+                      <td>
+                        <input
+                          type="checkbox"
+                          aria-label={`Selecionar pedido ${order.id}`}
+                          checked={selected.has(order.id)}
+                          disabled={!deletableIds.includes(order.id)}
+                          onChange={() => toggleSelected(order.id)}
+                          className="size-4 accent-zinc-950 disabled:opacity-30"
+                        />
+                      </td>
                       <td>
                         <Link
                           href={`/admin/pedidos/${order.id}`}
