@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
+import { TrustBadges } from "@/components/store/TrustBadges";
 import { openCookiePreferences } from "@/shared/const/cookies";
 import {
   CATALOG_NAV,
@@ -222,6 +223,8 @@ export function Footer({ categories }: FooterProps) {
           </form>
         </div>
       </div>
+
+      <TrustBadges />
 
       <div className="border-t border-line">
         <p className="mx-auto max-w-6xl px-4 py-5 text-center text-xs text-ink-muted sm:px-6 lg:px-8">
