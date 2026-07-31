@@ -102,10 +102,37 @@ export function LookbookProductTile({
         {wished ? "♥" : "♡"}
       </button>
 
-      {/* Só o preço, no hover — sem nome longo poluindo */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 px-3 pb-3 opacity-0 transition-opacity duration-300 group-hover:opacity-100 max-md:hidden">
-        <p className="text-[10px] tracking-[0.16em] text-cream">
+      {/* Desktop: nome médio; no hover, só o preço */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 hidden bg-gradient-to-t from-ink/50 via-ink/15 to-transparent px-3.5 pb-3.5 pt-12 md:block">
+        <div className="relative min-h-[2.5rem]">
+          <p className="line-clamp-2 font-display text-[0.9rem] font-light leading-snug tracking-[0.03em] text-cream transition-opacity duration-300 group-hover:opacity-0">
+            {product.name}
+          </p>
+          <p className="absolute inset-x-0 bottom-0 text-[11px] tracking-[0.14em] text-cream opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+            {formatPrice(product.price)}
+            {product.originalPrice != null &&
+            product.originalPrice > product.price ? (
+              <span className="ml-2 text-[10px] text-cream/55 line-through">
+                {formatPrice(product.originalPrice)}
+              </span>
+            ) : null}
+          </p>
+        </div>
+      </div>
+
+      {/* Mobile: nome + preço, sem exagero */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-ink/55 via-ink/20 to-transparent px-2.5 pb-2.5 pt-10 md:hidden">
+        <p className="line-clamp-2 font-display text-[0.7rem] font-light leading-snug tracking-[0.02em] text-cream">
+          {product.name}
+        </p>
+        <p className="mt-0.5 text-[10px] tracking-[0.1em] text-cream/80">
           {formatPrice(product.price)}
+          {product.originalPrice != null &&
+          product.originalPrice > product.price ? (
+            <span className="ml-1.5 text-[9px] text-cream/50 line-through">
+              {formatPrice(product.originalPrice)}
+            </span>
+          ) : null}
         </p>
       </div>
     </article>
