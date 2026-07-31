@@ -17,14 +17,14 @@ export function HomeLookbook({ products, title }: Props) {
 
   return (
     <section aria-labelledby="home-lookbook-heading" className="relative">
-      <div className="mx-auto max-w-[90rem] px-3 pt-10 sm:px-5 sm:pt-14 lg:px-8 lg:pt-16">
-        <header className="mb-8 text-center sm:mb-10 md:mb-12">
+      <div className="mx-auto max-w-[90rem] px-3 pt-6 sm:px-5 sm:pt-8 lg:px-8 lg:pt-10">
+        <header className="mb-6 text-center sm:mb-8">
           <p className="font-display text-[0.65rem] uppercase tracking-[0.42em] text-rose-gold">
             Lookbook
           </p>
           <h2
             id="home-lookbook-heading"
-            className="mt-3 font-display text-3xl font-light tracking-[0.08em] text-ink sm:text-4xl"
+            className="mt-2 font-display text-3xl font-light tracking-[0.08em] text-ink sm:text-4xl"
           >
             {title}
           </h2>
