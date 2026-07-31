@@ -87,7 +87,7 @@ export function HomeLookbook({ products, title }: Props) {
             <LookbookProductTile
               product={hero}
               priority
-              className="col-span-2 row-span-2 min-h-[24rem] md:col-span-7 md:row-span-2 md:min-h-[38rem]"
+              className="col-span-2 row-span-2 min-h-[28rem] md:col-span-7 md:row-span-2 md:min-h-[42rem]"
               sizes="(max-width: 768px) 100vw, 58vw"
             />
           ) : null}
@@ -101,30 +101,30 @@ export function HomeLookbook({ products, title }: Props) {
               align: "center",
               tone: "cream",
             }}
-            className="col-span-2 min-h-[10rem] md:col-span-5 md:min-h-[18rem]"
+            className="col-span-2 min-h-[10rem] md:col-span-5 md:min-h-[20rem]"
           />
 
           {second ? (
             <LookbookProductTile
               product={second}
               priority
-              className="col-span-2 min-h-[20rem] md:col-span-5 md:min-h-[18.5rem]"
+              className="col-span-2 min-h-[22rem] md:col-span-5 md:min-h-[20.5rem]"
               sizes="(max-width: 768px) 100vw, 42vw"
             />
           ) : null}
 
-          {/* Faixa irregular do meio */}
+          {/* Faixa irregular do meio — proporções mais verticais */}
           {rest[0] ? (
             <LookbookProductTile
               product={rest[0]}
-              className="col-span-1 min-h-[17rem] md:col-span-4 md:min-h-[26rem]"
+              className="col-span-1 min-h-[20rem] md:col-span-4 md:min-h-[30rem]"
               sizes="(max-width: 768px) 50vw, 33vw"
             />
           ) : null}
           {rest[1] ? (
             <LookbookProductTile
               product={rest[1]}
-              className="col-span-1 min-h-[17rem] md:col-span-4 md:min-h-[26rem]"
+              className="col-span-1 min-h-[20rem] md:col-span-4 md:min-h-[30rem]"
               sizes="(max-width: 768px) 50vw, 33vw"
             />
           ) : null}
@@ -137,16 +137,16 @@ export function HomeLookbook({ products, title }: Props) {
               tone: "ink",
             }}
             className={cn(
-              "col-span-2 min-h-[11rem] md:col-span-4 md:min-h-[26rem]",
+              "col-span-2 min-h-[11rem] md:col-span-4 md:min-h-[30rem]",
               !rest[0] && !rest[1] && "md:col-span-12"
             )}
           />
 
-          {/* Bloco inferior: peça alta + frase + peças largas */}
+          {/* Bloco inferior */}
           {rest[2] ? (
             <LookbookProductTile
               product={rest[2]}
-              className="col-span-2 row-span-2 min-h-[22rem] md:col-span-5 md:row-span-2 md:min-h-[34rem]"
+              className="col-span-2 row-span-2 min-h-[26rem] md:col-span-5 md:row-span-2 md:min-h-[40rem]"
               sizes="(max-width: 768px) 100vw, 42vw"
             />
           ) : null}
@@ -159,7 +159,7 @@ export function HomeLookbook({ products, title }: Props) {
               tone: "blush",
             }}
             className={cn(
-              "col-span-2 min-h-[10rem] md:col-span-7 md:min-h-[15rem]",
+              "col-span-2 min-h-[10rem] md:col-span-7 md:min-h-[18rem]",
               !rest[2] && "hidden"
             )}
           />
@@ -167,7 +167,7 @@ export function HomeLookbook({ products, title }: Props) {
           {rest[3] ? (
             <LookbookProductTile
               product={rest[3]}
-              className="col-span-1 min-h-[16rem] md:col-span-7 md:min-h-[17.5rem]"
+              className="col-span-1 min-h-[20rem] md:col-span-7 md:min-h-[20.5rem]"
               sizes="(max-width: 768px) 50vw, 58vw"
             />
           ) : null}
@@ -175,14 +175,14 @@ export function HomeLookbook({ products, title }: Props) {
           {rest[4] ? (
             <LookbookProductTile
               product={rest[4]}
-              className="col-span-1 min-h-[16rem] md:col-span-6 md:min-h-[22rem]"
+              className="col-span-1 min-h-[20rem] md:col-span-6 md:min-h-[28rem]"
               sizes="(max-width: 768px) 50vw, 50vw"
             />
           ) : null}
           {rest[5] ? (
             <LookbookProductTile
               product={rest[5]}
-              className="col-span-2 min-h-[18rem] md:col-span-6 md:min-h-[22rem]"
+              className="col-span-2 min-h-[22rem] md:col-span-6 md:min-h-[28rem]"
               sizes="(max-width: 768px) 100vw, 50vw"
             />
           ) : null}
