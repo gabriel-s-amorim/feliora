@@ -2,6 +2,7 @@ import Link from "next/link";
 import { SITE_NAME } from "@/shared/const/site";
 import { ProductGrid } from "@/components/store/ProductGrid";
 import { HomeHero } from "@/components/store/HomeHero";
+import { HomeExploreNav } from "@/components/store/HomeExploreNav";
 import { GradientBlobBackground } from "@/components/store/GradientBlobBackground";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { listActiveBanners } from "@/lib/banners";
@@ -52,25 +53,7 @@ export default async function HomePage() {
       <HomeHero banners={banners} />
 
       {categories.length > 0 ? (
-        <section>
-          <div className="mx-auto max-w-4xl px-4 py-10 text-center sm:px-6 sm:py-12 lg:px-8 lg:py-14">
-            <p className="font-display text-[0.65rem] uppercase tracking-[0.42em] text-rose-gold">
-              Explorar
-            </p>
-            <ul className="mt-6 flex flex-wrap justify-center gap-x-6 gap-y-4 sm:mt-7 sm:gap-x-10">
-              {categories.map((c) => (
-                <li key={c.id}>
-                  <Link
-                    href={c.href}
-                    className="font-display text-sm tracking-[0.14em] text-ink transition-colors hover:text-rose-gold sm:text-base"
-                  >
-                    {c.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </section>
+        <HomeExploreNav categories={categories} />
       ) : null}
 
       {showcase.length > 0 ? (
