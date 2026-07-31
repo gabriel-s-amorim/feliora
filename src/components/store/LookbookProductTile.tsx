@@ -49,23 +49,23 @@ export function LookbookProductTile({
               fill
               sizes={sizes}
               priority={priority}
-              className={cn(
-                "object-cover object-top transition-[transform,opacity] duration-700 ease-out group-hover:scale-[1.03]",
-                showSecondary ? "opacity-0" : "opacity-100"
-              )}
-            />
-            {secondary ? (
-              <Image
-                src={secondary}
-                alt=""
-                fill
-                sizes={sizes}
                 className={cn(
-                  "object-cover object-top transition-opacity duration-500",
-                  showSecondary ? "opacity-100" : "opacity-0"
+                  "object-cover object-center transition-[transform,opacity] duration-700 ease-out group-hover:scale-[1.02]",
+                  showSecondary ? "opacity-0" : "opacity-100"
                 )}
               />
-            ) : null}
+              {secondary ? (
+                <Image
+                  src={secondary}
+                  alt=""
+                  fill
+                  sizes={sizes}
+                  className={cn(
+                    "object-cover object-center transition-opacity duration-500",
+                    showSecondary ? "opacity-100" : "opacity-0"
+                  )}
+                />
+              ) : null}
           </>
         ) : (
           <div className="flex h-full items-center justify-center bg-cream">

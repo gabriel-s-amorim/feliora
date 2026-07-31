@@ -136,7 +136,7 @@ export function HomeExploreNav({ categories }: Props) {
         <VineAccent className="h-48 w-full lg:h-56" />
       </div>
 
-      <div className="relative mx-auto max-w-5xl px-4 py-7 text-center sm:px-6 sm:py-8 lg:px-8 lg:py-9">
+      <div className="relative mx-auto max-w-5xl px-4 py-12 text-center sm:px-6 sm:py-14 lg:px-8 lg:py-16">
         <div className="flex items-center justify-center gap-3" style={y(-14)}>
           <LeafMark className="h-5 w-9 opacity-80" />
           <h2
@@ -149,13 +149,13 @@ export function HomeExploreNav({ categories }: Props) {
         </div>
 
         <p
-          className="mx-auto mt-2.5 max-w-md text-[0.8rem] leading-relaxed text-ink-muted sm:mt-3 sm:text-sm"
+          className="mx-auto mt-4 max-w-md text-[0.8rem] leading-relaxed text-ink-muted sm:mt-5 sm:text-sm"
           style={y(-8)}
         >
           Escolha o ritmo da peça — do vestido ao detalhe.
         </p>
 
-        <nav className="mt-5 sm:mt-6" aria-label="Categorias" style={y(10)}>
+        <nav className="mt-8 sm:mt-10" aria-label="Categorias" style={y(10)}>
           <ul className="flex flex-wrap items-baseline justify-center gap-x-1 gap-y-3 sm:gap-x-0">
             {categories.map((c, i) => (
               <li key={c.id} className="flex items-baseline">

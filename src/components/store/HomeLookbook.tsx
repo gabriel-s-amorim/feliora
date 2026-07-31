@@ -8,119 +8,50 @@ type Props = {
   title: string;
 };
 
-type Phrase = {
+function PhraseBlock({
+  eyebrow,
+  line,
+  tone,
+  align = "center",
+  className,
+}: {
   eyebrow: string;
   line: string;
   tone: "cream" | "ink" | "blush";
   align?: "center" | "start";
-};
-
-const PHRASES: Phrase[] = [
-  {
-    eyebrow: "Lookbook",
-    line: "O olhar demora.",
-    tone: "cream",
-    align: "center",
-  },
-  {
-    eyebrow: "Atelier",
-    line: "Do toque ao gesto.",
-    tone: "ink",
-    align: "start",
-  },
-  {
-    eyebrow: "Ritmo",
-    line: "Vista o que ecoa.",
-    tone: "blush",
-    align: "center",
-  },
-  {
-    eyebrow: "Presença",
-    line: "Silhueta que permanece.",
-    tone: "cream",
-    align: "center",
-  },
-];
-
-/** Irregular: mobile 6 cols · desktop 12 cols */
-const PRODUCT_SPANS = [
-  "col-span-4 row-span-2 min-h-[19rem] md:col-span-7 md:min-h-[36rem]",
-  "col-span-2 min-h-[9rem] md:col-span-5 md:min-h-[17rem]",
-  "col-span-3 min-h-[15rem] md:col-span-4 md:min-h-[26rem]",
-  "col-span-3 min-h-[15rem] md:col-span-4 md:min-h-[26rem]",
-  "col-span-4 row-span-2 min-h-[18rem] md:col-span-5 md:row-span-2 md:min-h-[34rem]",
-  "col-span-2 min-h-[8.5rem] md:col-span-7 md:min-h-[16rem]",
-  "col-span-3 min-h-[14rem] md:col-span-6 md:min-h-[24rem]",
-  "col-span-3 min-h-[14rem] md:col-span-6 md:min-h-[24rem]",
-] as const;
-
-const PHRASE_PLACEMENTS: {
-  after: number;
-  phrase: number;
-  className: string;
-}[] = [
-  {
-    after: 0,
-    phrase: 0,
-    className: "col-span-2 min-h-[9rem] md:col-span-5 md:min-h-[17rem]",
-  },
-  {
-    after: 3,
-    phrase: 1,
-    className: "col-span-6 min-h-[7rem] md:col-span-4 md:min-h-[26rem]",
-  },
-  {
-    after: 4,
-    phrase: 2,
-    className: "col-span-2 min-h-[8.5rem] md:col-span-7 md:min-h-[16rem]",
-  },
-  {
-    after: 5,
-    phrase: 3,
-    className: "col-span-6 min-h-[7rem] md:col-span-12 md:min-h-[9rem]",
-  },
-];
-
-function PhraseCell({
-  phrase,
-  className,
-}: {
-  phrase: Phrase;
   className?: string;
 }) {
-  const tone =
-    phrase.tone === "ink"
+  const toneCls =
+    tone === "ink"
       ? "bg-ink text-cream"
-      : phrase.tone === "blush"
+      : tone === "blush"
         ? "bg-[#f3e6df] text-ink"
         : "bg-ivory text-ink";
 
   return (
     <div
       className={cn(
-        "flex flex-col justify-center gap-2 px-4 py-5 sm:px-6",
-        tone,
-        phrase.align === "start"
-          ? "items-start text-left"
-          : "items-center text-center",
+        "flex flex-col justify-center gap-2 px-5 py-6 sm:px-7",
+        toneCls,
+        align === "start" ? "items-start text-left" : "items-center text-center",
         className
       )}
     >
       <p
         className={cn(
           "font-display text-[0.6rem] uppercase tracking-[0.36em]",
-          phrase.tone === "ink" ? "text-rose-gold-light" : "text-rose-gold"
+          tone === "ink" ? "text-rose-gold-light" : "text-rose-gold"
         )}
       >
-        {phrase.eyebrow}
+        {eyebrow}
       </p>
       <p
         className={cn(
-          "max-w-[13rem] font-display text-lg font-light leading-snug tracking-[0.03em] sm:text-xl md:text-[1.4rem]",
-          phrase.align !== "start" && "mx-auto"
+          "max-w-[14rem] font-display text-xl font-light leading-snug tracking-[0.03em] sm:text-2xl",
+          align !== "start" && "mx-auto"
         )}
       >
-        {phrase.line}
+        {line}
       </p>
     </div>
   );
@@ -129,37 +60,15 @@ function PhraseCell({
 export function HomeLookbook({ products, title }: Props) {
   if (products.length === 0) return null;
 
-  type Cell =
-    | { kind: "product"; product: Product; span: string; priority: boolean }
-    | { kind: "phrase"; phrase: Phrase; span: string };
-
-  const cells: Cell[] = [];
-  const used = new Set<number>();
-
-  products.forEach((product, i) => {
-    cells.push({
-      kind: "product",
-      product,
-      span: PRODUCT_SPANS[i % PRODUCT_SPANS.length]!,
-      priority: i < 2,
-    });
-
-    for (const slot of PHRASE_PLACEMENTS) {
-      if (slot.after === i && !used.has(slot.phrase)) {
-        used.add(slot.phrase);
-        cells.push({
-          kind: "phrase",
-          phrase: PHRASES[slot.phrase]!,
-          span: slot.className,
-        });
-      }
-    }
-  });
+  const [a, b, c, d, e, f, g, h] = products;
 
   return (
-    <section aria-labelledby="home-lookbook-heading" className="relative">
-      <div className="px-2 pt-4 sm:px-3 sm:pt-6 lg:px-4">
-        <header className="mb-3 flex items-baseline justify-between gap-4 px-1 sm:mb-4">
+    <section
+      aria-labelledby="home-lookbook-heading"
+      className="relative pb-20 sm:pb-24 lg:pb-28"
+    >
+      <div className="px-2 pt-6 sm:px-3 sm:pt-8 lg:px-4">
+        <header className="mb-5 flex items-baseline justify-between gap-4 px-1 sm:mb-6">
           <div className="flex items-baseline gap-3">
             <p className="font-display text-[0.6rem] uppercase tracking-[0.4em] text-rose-gold">
               Lookbook
@@ -179,29 +88,127 @@ export function HomeLookbook({ products, title }: Props) {
           </Link>
         </header>
 
-        <div className="grid grid-cols-6 gap-2 md:grid-cols-12 md:gap-3">
-          {cells.map((cell, i) =>
-            cell.kind === "phrase" ? (
-              <PhraseCell
-                key={`phrase-${i}`}
-                phrase={cell.phrase}
-                className={cell.span}
-              />
-            ) : (
+        <div className="flex flex-col gap-2 md:gap-3">
+          {/* Faixa 1: peça grande + frase + peça */}
+          {a ? (
+            <div className="grid grid-cols-2 gap-2 md:grid-cols-12 md:gap-3">
               <LookbookProductTile
-                key={cell.product.id}
-                product={cell.product}
-                priority={cell.priority}
-                className={cell.span}
-                sizes={
-                  cell.span.includes("col-span-4") ||
-                  cell.span.includes("md:col-span-7")
-                    ? "(max-width: 768px) 70vw, 55vw"
-                    : "(max-width: 768px) 40vw, 35vw"
-                }
+                product={a}
+                priority
+                className="col-span-2 aspect-[3/4] md:col-span-7 md:aspect-[3/4]"
+                sizes="(max-width: 768px) 100vw, 58vw"
               />
+              <div className="col-span-2 grid grid-cols-2 gap-2 md:col-span-5 md:grid-cols-1 md:grid-rows-2 md:gap-3">
+                <PhraseBlock
+                  eyebrow="Lookbook"
+                  line="O olhar demora."
+                  tone="cream"
+                  className="min-h-[10rem] md:min-h-0"
+                />
+                {b ? (
+                  <LookbookProductTile
+                    product={b}
+                    priority
+                    className="aspect-[3/4] md:aspect-auto md:min-h-0 md:h-full"
+                    sizes="(max-width: 768px) 50vw, 42vw"
+                  />
+                ) : (
+                  <PhraseBlock
+                    eyebrow="Ritmo"
+                    line="Vista o que ecoa."
+                    tone="blush"
+                    className="min-h-[10rem] md:min-h-0"
+                  />
+                )}
+              </div>
+            </div>
+          ) : null}
+
+          {/* Faixa 2: três peças (ou menos) */}
+          {c || d ? (
+            <div className="grid grid-cols-2 gap-2 md:grid-cols-12 md:gap-3">
+              {c ? (
+                <LookbookProductTile
+                  product={c}
+                  className="aspect-[3/4] md:col-span-4"
+                  sizes="(max-width: 768px) 50vw, 33vw"
+                />
+              ) : null}
+              {d ? (
+                <LookbookProductTile
+                  product={d}
+                  className="aspect-[3/4] md:col-span-4"
+                  sizes="(max-width: 768px) 50vw, 33vw"
+                />
+              ) : null}
+              <PhraseBlock
+                eyebrow="Atelier"
+                line="Do toque ao gesto."
+                tone="ink"
+                align="start"
+                className={cn(
+                  "col-span-2 min-h-[9rem] md:col-span-4 md:min-h-0 md:aspect-[3/4]"
+                )}
+              />
+            </div>
+          ) : null}
+
+          {/* Faixa 3: peça em destaque + lateral */}
+          {e ? (
+            f ? (
+              <div className="grid grid-cols-2 gap-2 md:grid-cols-12 md:gap-3">
+                <div className="col-span-2 grid grid-cols-2 gap-2 md:col-span-5 md:grid-cols-1 md:grid-rows-2 md:gap-3">
+                  <PhraseBlock
+                    eyebrow="Ritmo"
+                    line="Vista o que ecoa."
+                    tone="blush"
+                    className="min-h-[10rem] md:min-h-0"
+                  />
+                  <LookbookProductTile
+                    product={f}
+                    className="aspect-[3/4] md:aspect-auto md:min-h-0 md:h-full"
+                    sizes="(max-width: 768px) 50vw, 42vw"
+                  />
+                </div>
+                <LookbookProductTile
+                  product={e}
+                  className="col-span-2 aspect-[3/4] md:col-span-7"
+                  sizes="(max-width: 768px) 100vw, 58vw"
+                />
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-2 md:grid-cols-12 md:gap-3">
+                <LookbookProductTile
+                  product={e}
+                  className="col-span-2 aspect-[3/4] md:col-span-8 md:col-start-3"
+                  sizes="(max-width: 768px) 100vw, 66vw"
+                />
+              </div>
             )
-          )}
+          ) : null}
+
+          {/* Faixa 4: par final */}
+          {g || h ? (
+            <div className="grid grid-cols-2 gap-2 md:grid-cols-12 md:gap-3">
+              {g ? (
+                <LookbookProductTile
+                  product={g}
+                  className={cn(
+                    "aspect-[3/4]",
+                    h ? "md:col-span-6" : "col-span-2 md:col-span-6 md:col-start-4"
+                  )}
+                  sizes="(max-width: 768px) 50vw, 50vw"
+                />
+              ) : null}
+              {h ? (
+                <LookbookProductTile
+                  product={h}
+                  className="aspect-[3/4] md:col-span-6"
+                  sizes="(max-width: 768px) 50vw, 50vw"
+                />
+              ) : null}
+            </div>
+          ) : null}
         </div>
       </div>
     </section>
