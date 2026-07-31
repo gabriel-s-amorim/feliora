@@ -52,23 +52,39 @@ export default async function HomePage() {
       <HomeHero banners={banners} />
 
       {categories.length > 0 ? (
-        <section>
-          <div className="mx-auto max-w-4xl px-4 py-10 text-center sm:px-6 sm:py-12 lg:px-8 lg:py-14">
-            <p className="font-display text-[0.65rem] uppercase tracking-[0.42em] text-rose-gold">
+        <section aria-label="Explorar categorias">
+          <div className="mx-auto max-w-5xl px-4 py-14 text-center sm:px-6 sm:py-16 lg:px-8 lg:py-20">
+            <p className="font-display text-[0.7rem] uppercase tracking-[0.42em] text-rose-gold">
               Explorar
             </p>
-            <ul className="mt-6 flex flex-wrap justify-center gap-x-6 gap-y-4 sm:mt-7 sm:gap-x-10">
-              {categories.map((c) => (
-                <li key={c.id}>
-                  <Link
-                    href={c.href}
-                    className="font-display text-sm tracking-[0.14em] text-ink transition-colors hover:text-rose-gold sm:text-base"
-                  >
-                    {c.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+            <div
+              className="mx-auto mt-4 h-px w-10 bg-rose-gold/45"
+              aria-hidden
+            />
+            <nav className="mt-9 sm:mt-11" aria-label="Categorias">
+              <ul className="flex flex-col items-center gap-6 sm:flex-row sm:flex-wrap sm:justify-center sm:gap-0">
+                {categories.map((c, i) => (
+                  <li key={c.id} className="flex items-center">
+                    {i > 0 ? (
+                      <span
+                        className="mx-5 hidden h-7 w-px shrink-0 bg-line sm:mx-7 sm:block md:mx-9 md:h-8"
+                        aria-hidden
+                      />
+                    ) : null}
+                    <Link
+                      href={c.href}
+                      className="group relative inline-block font-display text-[1.65rem] font-light leading-none tracking-[0.06em] text-ink transition-colors duration-300 hover:text-rose-gold sm:text-[1.85rem] md:text-[2.15rem] lg:text-[2.35rem]"
+                    >
+                      {c.name}
+                      <span
+                        className="absolute -bottom-2 left-1/2 h-px w-0 -translate-x-1/2 bg-rose-gold transition-[width] duration-300 ease-out group-hover:w-full group-focus-visible:w-full"
+                        aria-hidden
+                      />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
           </div>
         </section>
       ) : null}
