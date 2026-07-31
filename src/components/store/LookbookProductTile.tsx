@@ -14,11 +14,12 @@ type Props = {
   sizes?: string;
 };
 
+/** Tile de lookbook: imagem em primeiro plano, quase sem texto. */
 export function LookbookProductTile({
   product,
   priority = false,
   className,
-  sizes = "(max-width: 768px) 50vw, 25vw",
+  sizes = "(max-width: 768px) 50vw, 33vw",
 }: Props) {
   const [hovered, setHovered] = useState(false);
   const { has, toggle } = useWishlist();
@@ -74,7 +75,7 @@ export function LookbookProductTile({
           </div>
         )}
         <div
-          className="absolute inset-0 bg-ink/0 transition-colors duration-500 group-hover:bg-ink/20"
+          className="absolute inset-0 bg-ink/0 transition-colors duration-500 group-hover:bg-ink/25"
           aria-hidden
         />
       </Link>
@@ -92,31 +93,18 @@ export function LookbookProductTile({
           })
         }
         className={cn(
-          "absolute right-3 top-3 z-10 flex size-8 items-center justify-center text-sm transition-all duration-300",
+          "absolute right-2.5 top-2.5 z-10 flex size-8 items-center justify-center text-sm transition-all duration-300",
           wished
             ? "text-rose-gold opacity-100"
-            : "text-cream opacity-0 group-hover:opacity-100"
+            : "text-cream/90 opacity-70 md:opacity-0 md:group-hover:opacity-100"
         )}
       >
         {wished ? "♥" : "♡"}
       </button>
 
-      {/* Legenda só no hover — desktop clean */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 translate-y-2 px-4 pb-4 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 max-md:hidden">
-        <p className="line-clamp-1 font-display text-[0.8rem] font-light tracking-[0.04em] text-cream">
-          {product.name}
-        </p>
-        <p className="mt-0.5 text-[10px] tracking-[0.14em] text-cream/75">
-          {formatPrice(product.price)}
-        </p>
-      </div>
-
-      {/* Mobile: faixa mínima sob a foto, sem competir com a imagem */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-ink/50 to-transparent px-2.5 pb-2.5 pt-8 md:hidden">
-        <p className="line-clamp-1 font-display text-[0.65rem] tracking-[0.03em] text-cream">
-          {product.name}
-        </p>
-        <p className="mt-0.5 text-[9px] tracking-[0.1em] text-cream/70">
+      {/* Só o preço, no hover — sem nome longo poluindo */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 px-3 pb-3 opacity-0 transition-opacity duration-300 group-hover:opacity-100 max-md:hidden">
+        <p className="text-[10px] tracking-[0.16em] text-cream">
           {formatPrice(product.price)}
         </p>
       </div>
