@@ -8,7 +8,8 @@ create table if not exists public.admin_notifications (
       'customer_registered',
       'order_created',
       'payment_approved',
-      'customer_message'
+      'customer_message',
+      'review_submitted'
     )),
   title text not null
     check (char_length(title) between 1 and 160),

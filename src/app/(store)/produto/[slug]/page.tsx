@@ -102,6 +102,8 @@ export default async function ProdutoPage({ params }: PageProps) {
         descriptionHtml={sanitizeProductDescription(product.description)}
         reviewsSlot={
           <ProductReviews
+            productId={product.id}
+            productSlug={product.slug}
             productName={product.name}
             ratingAvg={product.ratingAvg}
             reviewsCount={product.reviewsCount}

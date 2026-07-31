@@ -173,6 +173,25 @@ export function adminReorderBanners(orderedIds: string[]) {
   });
 }
 
+export function adminListReviews(status: "pending" | "approved" | "all" = "pending") {
+  return adminFetch<import("@/shared/types/review").AdminProductReview[]>(
+    `/api/admin/reviews?status=${status}`
+  );
+}
+
+export function adminReviewAction(
+  reviewId: string,
+  action: "approve" | "reject"
+) {
+  return adminFetch<import("@/shared/types/review").AdminProductReview | void>(
+    "/api/admin/reviews",
+    {
+      method: "PATCH",
+      body: JSON.stringify({ reviewId, action }),
+    }
+  );
+}
+
 export function adminGetSettings() {
   return adminFetch<StoreSettings>("/api/admin/settings");
 }

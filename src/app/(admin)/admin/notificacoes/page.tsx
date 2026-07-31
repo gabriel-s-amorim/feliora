@@ -6,6 +6,7 @@ import {
   CreditCard,
   MessageCircle,
   ShoppingBag,
+  Star,
   UserPlus,
 } from "lucide-react";
 import Link from "next/link";
@@ -29,6 +30,8 @@ function kindIcon(kind: AdminNotificationKind) {
       return CreditCard;
     case "customer_message":
       return MessageCircle;
+    case "review_submitted":
+      return Star;
     default:
       return Bell;
   }

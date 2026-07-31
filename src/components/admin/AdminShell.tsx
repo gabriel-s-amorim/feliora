@@ -10,6 +10,7 @@ import {
   Plug,
   Settings2,
   ShoppingBag,
+  Star,
   Store,
   Tags,
   TicketPercent,
@@ -36,6 +37,7 @@ const SIDEBAR_NAV = [
   },
   { href: "/admin/notificacoes", label: "Notificações", icon: Bell },
   { href: "/admin/produtos", label: "Produtos", icon: Package },
+  { href: "/admin/avaliacoes", label: "Avaliações", icon: Star },
   { href: "/admin/canais", label: "Canais", icon: Store },
   { href: "/admin/pedidos", label: "Pedidos", icon: ShoppingBag },
   { href: "/admin/clientes", label: "Clientes", icon: Users },
@@ -59,6 +61,7 @@ const BOTTOM_TABS = [
 
 const MORE_LINKS = [
   { href: "/admin/produtos", label: "Produtos", icon: Package },
+  { href: "/admin/avaliacoes", label: "Avaliações", icon: Star },
   { href: "/admin/clientes", label: "Clientes", icon: Users },
   { href: "/admin/canais", label: "Canais", icon: Store },
   { href: "/admin/categorias", label: "Categorias", icon: Tags },

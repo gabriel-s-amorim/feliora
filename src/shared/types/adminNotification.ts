@@ -2,7 +2,8 @@ export type AdminNotificationKind =
   | "customer_registered"
   | "order_created"
   | "payment_approved"
-  | "customer_message";
+  | "customer_message"
+  | "review_submitted";
 
 export interface AdminNotification {
   id: string;
