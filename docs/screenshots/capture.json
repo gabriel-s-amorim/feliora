@@ -1,0 +1,12 @@
+{
+  "baseUrl": "https://www.feliora.com.br",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "mobileViewport": {
+    "width": 390,
+    "height": 844
+  },
+  "capturedAt": "2026-07-31T17:57:16.910Z"
+}

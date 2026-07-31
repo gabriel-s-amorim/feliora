@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "capture:install-browsers": "playwright install chromium",
+    "capture:screenshots": "tsx scripts/capture-screenshots.ts"
   },
   "dependencies": {
     "@fancyapps/ui": "^6.1.14",
@@ -35,7 +37,9 @@
     "@types/sanitize-html": "^2.16.1",
     "eslint": "^9",
     "eslint-config-next": "16.2.12",
+    "playwright": "^1.62.1",
     "tailwindcss": "^4",
+    "tsx": "^4.23.1",
     "typescript": "^5"
   }
 }
