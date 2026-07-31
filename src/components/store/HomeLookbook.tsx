@@ -8,187 +8,78 @@ type Props = {
   title: string;
 };
 
-type Phrase = {
-  eyebrow: string;
-  line: string;
-  align?: "center" | "start";
-  tone?: "cream" | "ink" | "blush";
-};
-
-function PhraseCell({
-  phrase,
-  className,
-}: {
-  phrase: Phrase;
-  className?: string;
-}) {
-  const tone =
-    phrase.tone === "ink"
-      ? "bg-ink text-cream"
-      : phrase.tone === "blush"
-        ? "bg-[#f3e6df] text-ink"
-        : "bg-ivory text-ink";
-
-  const align =
-    phrase.align === "start" ? "items-start text-left" : "items-center text-center";
-
-  return (
-    <div
-      className={cn(
-        "flex flex-col justify-center gap-3 px-6 py-8 sm:px-8 md:px-10",
-        tone,
-        align,
-        className
-      )}
-    >
-      <p
-        className={cn(
-          "font-display text-[0.65rem] uppercase tracking-[0.4em]",
-          phrase.tone === "ink" ? "text-rose-gold-light" : "text-rose-gold"
-        )}
-      >
-        {phrase.eyebrow}
-      </p>
-      <p
-        className={cn(
-          "max-w-[17rem] font-display text-2xl font-light leading-snug tracking-[0.04em] sm:text-[1.85rem]",
-          phrase.align !== "start" && "mx-auto"
-        )}
-      >
-        {phrase.line}
-      </p>
-    </div>
-  );
-}
-
 export function HomeLookbook({ products, title }: Props) {
   if (products.length === 0) return null;
 
-  const [hero, second, ...rest] = products;
+  const mid = Math.min(5, products.length);
+  const first = products.slice(0, mid);
+  const second = products.slice(mid);
 
   return (
     <section aria-labelledby="home-lookbook-heading" className="relative">
-      <div className="px-2 pt-4 sm:px-3 sm:pt-6 lg:px-4">
-        <div className="mb-2 px-3 py-8 text-center md:hidden">
+      <div className="mx-auto max-w-[90rem] px-3 pt-10 sm:px-5 sm:pt-14 lg:px-8 lg:pt-16">
+        <header className="mb-8 text-center sm:mb-10 md:mb-12">
           <p className="font-display text-[0.65rem] uppercase tracking-[0.42em] text-rose-gold">
             Lookbook
           </p>
-          <h2 className="mt-3 font-display text-3xl font-light tracking-[0.08em] text-ink">
+          <h2
+            id="home-lookbook-heading"
+            className="mt-3 font-display text-3xl font-light tracking-[0.08em] text-ink sm:text-4xl"
+          >
             {title}
           </h2>
-        </div>
-        <h2 id="home-lookbook-heading" className="sr-only">
-          {title}
-        </h2>
+        </header>
 
-        <div className="grid grid-cols-2 gap-2 md:grid-cols-12 md:gap-3">
-          {/* Bloco herói: peça grande + frase + segunda peça */}
-          {hero ? (
-            <LookbookProductTile
-              product={hero}
-              priority
-              className="col-span-2 row-span-2 min-h-[28rem] md:col-span-7 md:row-span-2 md:min-h-[42rem]"
-              sizes="(max-width: 768px) 100vw, 58vw"
-            />
-          ) : null}
-
-          <PhraseCell
-            phrase={{
-              eyebrow: "Lookbook",
-              line: title === "Em destaque"
-                ? "Peças com presença — o olhar demora."
-                : "Novidades com silhueta que permanece.",
-              align: "center",
-              tone: "cream",
-            }}
-            className="col-span-2 min-h-[10rem] md:col-span-5 md:min-h-[20rem]"
-          />
-
-          {second ? (
-            <LookbookProductTile
-              product={second}
-              priority
-              className="col-span-2 min-h-[22rem] md:col-span-5 md:min-h-[20.5rem]"
-              sizes="(max-width: 768px) 100vw, 42vw"
-            />
-          ) : null}
-
-          {/* Faixa irregular do meio — proporções mais verticais */}
-          {rest[0] ? (
-            <LookbookProductTile
-              product={rest[0]}
-              className="col-span-1 min-h-[20rem] md:col-span-4 md:min-h-[30rem]"
-              sizes="(max-width: 768px) 50vw, 33vw"
-            />
-          ) : null}
-          {rest[1] ? (
-            <LookbookProductTile
-              product={rest[1]}
-              className="col-span-1 min-h-[20rem] md:col-span-4 md:min-h-[30rem]"
-              sizes="(max-width: 768px) 50vw, 33vw"
-            />
-          ) : null}
-
-          <PhraseCell
-            phrase={{
-              eyebrow: "Atelier",
-              line: "Do toque ao gesto.",
-              align: "start",
-              tone: "ink",
-            }}
-            className={cn(
-              "col-span-2 min-h-[11rem] md:col-span-4 md:min-h-[30rem]",
-              !rest[0] && !rest[1] && "md:col-span-12"
-            )}
-          />
-
-          {/* Bloco inferior */}
-          {rest[2] ? (
-            <LookbookProductTile
-              product={rest[2]}
-              className="col-span-2 row-span-2 min-h-[26rem] md:col-span-5 md:row-span-2 md:min-h-[40rem]"
-              sizes="(max-width: 768px) 100vw, 42vw"
-            />
-          ) : null}
-
-          <PhraseCell
-            phrase={{
-              eyebrow: "Ritmo",
-              line: "Vista o que ecoa em você.",
-              align: "center",
-              tone: "blush",
-            }}
-            className={cn(
-              "col-span-2 min-h-[10rem] md:col-span-7 md:min-h-[18rem]",
-              !rest[2] && "hidden"
-            )}
-          />
-
-          {rest[3] ? (
-            <LookbookProductTile
-              product={rest[3]}
-              className="col-span-1 min-h-[20rem] md:col-span-7 md:min-h-[20.5rem]"
-              sizes="(max-width: 768px) 50vw, 58vw"
-            />
-          ) : null}
-
-          {rest[4] ? (
-            <LookbookProductTile
-              product={rest[4]}
-              className="col-span-1 min-h-[20rem] md:col-span-6 md:min-h-[28rem]"
-              sizes="(max-width: 768px) 50vw, 50vw"
-            />
-          ) : null}
-          {rest[5] ? (
-            <LookbookProductTile
-              product={rest[5]}
-              className="col-span-2 min-h-[22rem] md:col-span-6 md:min-h-[28rem]"
-              sizes="(max-width: 768px) 100vw, 50vw"
-            />
-          ) : null}
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4 lg:gap-5">
+          {first.map((product, i) => {
+            const featured = i === 0;
+            return (
+              <LookbookProductTile
+                key={product.id}
+                product={product}
+                priority={i < 2}
+                className={cn(
+                  "aspect-[3/4]",
+                  featured &&
+                    "md:col-span-2 md:row-span-2 md:aspect-auto md:h-full md:min-h-0"
+                )}
+                sizes={
+                  featured
+                    ? "(max-width: 768px) 50vw, 50vw"
+                    : "(max-width: 768px) 50vw, 25vw"
+                }
+              />
+            );
+          })}
         </div>
 
-        <div className="flex justify-center py-12 sm:py-16">
+        {second.length > 0 ? (
+          <>
+            <p className="mx-auto max-w-md py-12 text-center font-display text-xl font-light leading-snug tracking-[0.04em] text-ink-muted sm:py-14 sm:text-2xl">
+              Peças com presença — silhueta que permanece.
+            </p>
+
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4 lg:gap-5">
+              {second.map((product, i) => (
+                <LookbookProductTile
+                  key={product.id}
+                  product={product}
+                  className={cn(
+                    "aspect-[3/4]",
+                    i === 0 && second.length >= 3 && "md:col-span-2"
+                  )}
+                  sizes={
+                    i === 0 && second.length >= 3
+                      ? "(max-width: 768px) 50vw, 50vw"
+                      : "(max-width: 768px) 50vw, 25vw"
+                  }
+                />
+              ))}
+            </div>
+          </>
+        ) : null}
+
+        <div className="flex justify-center py-14 sm:py-16">
           <Link
             href="/catalogo"
             className="inline-flex min-h-11 items-center border border-ink px-8 text-[11px] tracking-[0.22em] text-ink transition-colors hover:border-rose-gold hover:text-rose-gold"
