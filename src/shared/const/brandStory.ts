@@ -11,6 +11,8 @@ export type BrandStoryMedia = {
   type: "image" | "video";
   path: string;
   alt: string;
+  /** Clipe sem faixa de áudio — nunca oferecer unmute. */
+  silent?: boolean;
 };
 
 /** Bastidores do atelier — colagem / varal nas laterais. */
@@ -29,6 +31,7 @@ export const BRAND_STORY_ATELIER_MEDIA: BrandStoryMedia[] = [
     type: "video",
     path: `${BRAND_STORY_ATELIER_FOLDER}/atelier-clip-a.mp4`,
     alt: "Bastidores do processo criativo",
+    silent: true,
   },
   {
     type: "image",
@@ -44,6 +47,7 @@ export const BRAND_STORY_ATELIER_MEDIA: BrandStoryMedia[] = [
     type: "video",
     path: `${BRAND_STORY_ATELIER_FOLDER}/atelier-clip-b.mp4`,
     alt: "Momento de criação no atelier",
+    silent: true,
   },
   {
     type: "image",

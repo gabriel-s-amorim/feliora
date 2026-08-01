@@ -18,6 +18,7 @@ export type BrandStoryCollageItem = {
   type: "image" | "video";
   src: string;
   alt: string;
+  silent?: boolean;
 };
 
 type Props = {
@@ -238,6 +239,8 @@ export function HomeBrandStory({ videoUrl, collage }: Props) {
 
   const showingVideo = !active || active.type === "video";
   const mainVideoSrc = active?.type === "video" ? active.src : videoUrl;
+  const mainIsSilent = Boolean(active?.type === "video" && active.silent);
+  const effectiveMuted = mainIsSilent ? true : muted;
   const mainCaption = active
     ? active.alt
     : `A origem da ${SITE_NAME} — moda com delicadeza e intenção.`;
@@ -276,8 +279,8 @@ export function HomeBrandStory({ videoUrl, collage }: Props) {
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
-    video.muted = muted;
-  }, [muted, mainVideoSrc]);
+    video.muted = effectiveMuted;
+  }, [effectiveMuted, mainVideoSrc]);
 
   function selectItem(item: BrandStoryCollageItem) {
     setHasPicked(true);
@@ -289,6 +292,7 @@ export function HomeBrandStory({ videoUrl, collage }: Props) {
   }
 
   function toggleMute() {
+    if (mainIsSilent) return;
     setMuted((m) => !m);
   }
 
@@ -400,7 +404,7 @@ export function HomeBrandStory({ videoUrl, collage }: Props) {
                   src={mainVideoSrc}
                   playsInline
                   loop
-                  muted={muted}
+                  muted={effectiveMuted}
                   preload="metadata"
                   onLoadedData={() => setReady(true)}
                   onCanPlay={() => setReady(true)}
@@ -474,7 +478,7 @@ export function HomeBrandStory({ videoUrl, collage }: Props) {
                 ) : null}
               </div>
 
-              {showingVideo && !failed ? (
+              {showingVideo && !failed && !mainIsSilent ? (
                 <button
                   type="button"
                   onClick={toggleMute}
