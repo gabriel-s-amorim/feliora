@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import {
   Bookmark,
@@ -12,8 +13,15 @@ import {
 import { SITE_NAME } from "@/shared/const/site";
 import { cn } from "@/lib/utils";
 
+export type BrandStoryCollageItem = {
+  type: "image" | "video";
+  src: string;
+  alt: string;
+};
+
 type Props = {
   videoUrl: string;
+  collage: BrandStoryCollageItem[];
 };
 
 const FAKE_STATS = [
@@ -23,7 +31,129 @@ const FAKE_STATS = [
   { icon: Share2, label: "Compartilhamentos", value: "642" },
 ] as const;
 
-export function HomeBrandStory({ videoUrl }: Props) {
+const TILTS = [-7, 4, -3, 6, -5, 3, -4] as const;
+
+function CollageTile({
+  item,
+  tilt,
+  className,
+}: {
+  item: BrandStoryCollageItem;
+  tilt: number;
+  className?: string;
+}) {
+  return (
+    <figure
+      className={cn(
+        "relative mx-auto w-[7.5rem] shrink-0 bg-cream p-1.5 pb-5 shadow-[0_12px_28px_-10px_rgba(44,36,27,0.45)] sm:w-[8.75rem] lg:w-[9.25rem]",
+        "ring-1 ring-ink/8",
+        className
+      )}
+      style={{ transform: `rotate(${tilt}deg)` }}
+    >
+      {/* Pregador */}
+      <span
+        aria-hidden
+        className="absolute -top-2 left-1/2 z-10 h-3.5 w-3.5 -translate-x-1/2 rounded-full bg-gradient-to-b from-rose-gold-light to-rose-gold shadow-sm ring-1 ring-ink/10"
+      />
+      <div className="relative aspect-[3/4] overflow-hidden bg-ivory">
+        {item.type === "image" ? (
+          <Image
+            src={item.src}
+            alt={item.alt}
+            fill
+            sizes="160px"
+            className="object-cover"
+          />
+        ) : (
+          <video
+            src={item.src}
+            className="absolute inset-0 h-full w-full object-cover"
+            muted
+            playsInline
+            loop
+            autoPlay
+            preload="metadata"
+            aria-label={item.alt}
+          />
+        )}
+      </div>
+    </figure>
+  );
+}
+
+function ClotheslineRail({
+  items,
+  direction,
+  className,
+}: {
+  items: BrandStoryCollageItem[];
+  direction: "up" | "down";
+  className?: string;
+}) {
+  const loop = [...items, ...items];
+
+  return (
+    <div
+      aria-hidden
+      className={cn(
+        "relative hidden h-[min(36rem,72svh)] overflow-hidden lg:block",
+        className
+      )}
+    >
+      {/* Corda do varal */}
+      <div className="pointer-events-none absolute inset-y-3 left-1/2 w-px -translate-x-1/2 bg-gradient-to-b from-transparent via-rose-gold/35 to-transparent" />
+
+      <div
+        className={cn(
+          "flex flex-col gap-10 py-6 will-change-transform",
+          direction === "up"
+            ? "animate-clothesline-up"
+            : "animate-clothesline-down"
+        )}
+      >
+        {loop.map((item, i) => (
+          <CollageTile
+            key={`${item.src}-${i}`}
+            item={item}
+            tilt={TILTS[i % TILTS.length]}
+          />
+        ))}
+      </div>
+
+      {/* Máscaras de fade */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-16 bg-gradient-to-b from-[#f6ebe3] to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-16 bg-gradient-to-t from-ivory to-transparent" />
+    </div>
+  );
+}
+
+function ClotheslineStrip({ items }: { items: BrandStoryCollageItem[] }) {
+  const loop = [...items, ...items];
+
+  return (
+    <div
+      aria-hidden
+      className="relative mt-10 overflow-hidden lg:hidden"
+    >
+      <div className="pointer-events-none absolute inset-x-6 top-[0.85rem] h-px bg-gradient-to-r from-transparent via-rose-gold/40 to-transparent" />
+      <div className="flex w-max gap-5 px-4 py-4 will-change-transform animate-clothesline-x">
+        {loop.map((item, i) => (
+          <CollageTile
+            key={`strip-${item.src}-${i}`}
+            item={item}
+            tilt={TILTS[i % TILTS.length]}
+            className="w-[6.75rem] sm:w-[7.5rem]"
+          />
+        ))}
+      </div>
+      <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r from-[#f6ebe3] to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-ivory to-transparent" />
+    </div>
+  );
+}
+
+export function HomeBrandStory({ videoUrl, collage }: Props) {
   const sectionRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [inView, setInView] = useState(false);
@@ -32,11 +162,18 @@ export function HomeBrandStory({ videoUrl }: Props) {
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
 
+  const leftItems = collage.filter((_, i) => i % 2 === 0);
+  const rightItems = collage.filter((_, i) => i % 2 === 1);
+  const leftRail = leftItems.length > 0 ? leftItems : collage;
+  const rightRail =
+    rightItems.length > 0 ? rightItems : [...collage].reverse();
+
   useEffect(() => {
     const el = sectionRef.current;
     if (!el) return;
     const io = new IntersectionObserver(
-      ([entry]) => setInView(entry.isIntersecting && entry.intersectionRatio > 0.35),
+      ([entry]) =>
+        setInView(entry.isIntersecting && entry.intersectionRatio > 0.35),
       { threshold: [0, 0.35, 0.6] }
     );
     io.observe(el);
@@ -95,7 +232,7 @@ export function HomeBrandStory({ videoUrl }: Props) {
         className="pointer-events-none absolute -right-20 bottom-1/4 h-64 w-64 rounded-full bg-blush/20 blur-3xl"
       />
 
-      <div className="relative mx-auto max-w-5xl px-5 sm:px-8">
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <header className="mx-auto mb-10 max-w-lg text-center sm:mb-12">
           <p className="animate-fade-up font-display text-[0.6rem] uppercase tracking-[0.4em] text-rose-gold">
             {SITE_NAME}
@@ -107,14 +244,19 @@ export function HomeBrandStory({ videoUrl }: Props) {
             Nossa história
           </h2>
           <p className="animate-fade-up animate-delay-2 mx-auto mt-4 max-w-sm text-sm leading-relaxed text-ink-muted sm:text-[0.95rem]">
-            A criadora apresenta o propósito da marca — delicadeza, presença e
-            o olhar por trás de cada peça.
+            Do molde à peça — o atelier por trás da marca, contado pela
+            criadora.
           </p>
         </header>
 
-        <div className="animate-fade-up animate-delay-3 flex justify-center">
-          <div className="relative w-full max-w-[320px] sm:max-w-[340px]">
-            {/* Frame vertical */}
+        <div className="animate-fade-up animate-delay-3 grid items-center gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(280px,340px)_minmax(0,1fr)] lg:gap-6 xl:gap-10">
+          {collage.length > 0 ? (
+            <ClotheslineRail items={leftRail} direction="up" />
+          ) : (
+            <div className="hidden lg:block" />
+          )}
+
+          <div className="relative mx-auto w-full max-w-[320px] sm:max-w-[340px]">
             <div
               className={cn(
                 "relative aspect-[9/16] overflow-hidden rounded-[1.75rem]",
@@ -131,7 +273,6 @@ export function HomeBrandStory({ videoUrl }: Props) {
                   loop
                   muted={muted}
                   preload="metadata"
-                  poster={undefined}
                   onLoadedData={() => setReady(true)}
                   onCanPlay={() => setReady(true)}
                   onError={() => setFailed(true)}
@@ -149,7 +290,6 @@ export function HomeBrandStory({ videoUrl }: Props) {
                 </div>
               )}
 
-              {/* Gradientes de leitura */}
               <div
                 aria-hidden
                 className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-ink/45 to-transparent"
@@ -159,7 +299,6 @@ export function HomeBrandStory({ videoUrl }: Props) {
                 className="pointer-events-none absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-ink/75 via-ink/35 to-transparent"
               />
 
-              {/* Ícones de engajamento (decorativos) */}
               <ul
                 aria-hidden
                 className="absolute bottom-28 right-3 z-10 flex flex-col items-center gap-4 sm:bottom-32 sm:right-3.5 sm:gap-5"
@@ -167,7 +306,10 @@ export function HomeBrandStory({ videoUrl }: Props) {
                 {FAKE_STATS.map(({ icon: Icon, value }) => (
                   <li key={value} className="flex flex-col items-center gap-1">
                     <span className="flex h-11 w-11 items-center justify-center rounded-full bg-cream/10 text-cream backdrop-blur-sm ring-1 ring-cream/20">
-                      <Icon className="h-[1.15rem] w-[1.15rem]" strokeWidth={1.6} />
+                      <Icon
+                        className="h-[1.15rem] w-[1.15rem]"
+                        strokeWidth={1.6}
+                      />
                     </span>
                     <span className="text-[0.65rem] font-medium tracking-wide text-cream/90">
                       {value}
@@ -176,7 +318,6 @@ export function HomeBrandStory({ videoUrl }: Props) {
                 ))}
               </ul>
 
-              {/* Caption inferior */}
               <div className="absolute inset-x-0 bottom-0 z-10 px-4 pb-5 pt-8 sm:px-5 sm:pb-6">
                 <p className="font-display text-[0.7rem] uppercase tracking-[0.28em] text-rose-gold-light">
                   @{SITE_NAME.toLowerCase()}
@@ -185,13 +326,12 @@ export function HomeBrandStory({ videoUrl }: Props) {
                   A origem da {SITE_NAME} — moda com delicadeza e intenção.
                 </p>
                 {!playing && ready && !failed ? (
-                  <p className="mt-3 text-[0.65rem] tracking-[0.16em] text-cream/55 uppercase">
+                  <p className="mt-3 text-[0.65rem] uppercase tracking-[0.16em] text-cream/55">
                     Toque para pausar
                   </p>
                 ) : null}
               </div>
 
-              {/* Som */}
               {!failed ? (
                 <button
                   type="button"
@@ -207,7 +347,6 @@ export function HomeBrandStory({ videoUrl }: Props) {
                 </button>
               ) : null}
 
-              {/* Indicador de loading sutil */}
               {!ready && !failed ? (
                 <div
                   aria-hidden
@@ -222,7 +361,15 @@ export function HomeBrandStory({ videoUrl }: Props) {
               Apresentação
             </p>
           </div>
+
+          {collage.length > 0 ? (
+            <ClotheslineRail items={rightRail} direction="down" />
+          ) : (
+            <div className="hidden lg:block" />
+          )}
         </div>
+
+        {collage.length > 0 ? <ClotheslineStrip items={collage} /> : null}
       </div>
     </section>
   );

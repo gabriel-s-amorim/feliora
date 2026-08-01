@@ -14,7 +14,10 @@ import {
   websiteJsonLd,
 } from "@/lib/seo/jsonld";
 import { getPublicStoreSettings } from "@/lib/storeSettings";
-import { brandStoryPublicUrl } from "@/shared/const/brandStory";
+import {
+  brandStoryAtelierItems,
+  brandStoryPublicUrl,
+} from "@/shared/const/brandStory";
 
 export const revalidate = 60;
 
@@ -37,6 +40,9 @@ export default async function HomePage() {
   const brandStoryUrl = supabaseUrl
     ? brandStoryPublicUrl(supabaseUrl)
     : null;
+  const brandStoryCollage = supabaseUrl
+    ? brandStoryAtelierItems(supabaseUrl)
+    : [];
 
   return (
     <>
@@ -65,7 +71,12 @@ export default async function HomePage() {
         <HomeLookbook products={showcase} title={lookbookTitle} />
       ) : null}
 
-      {brandStoryUrl ? <HomeBrandStory videoUrl={brandStoryUrl} /> : null}
+      {brandStoryUrl ? (
+        <HomeBrandStory
+          videoUrl={brandStoryUrl}
+          collage={brandStoryCollage}
+        />
+      ) : null}
 
       {!showcase.length && !categories.length ? (
         <p className="sr-only">{SITE_NAME}</p>

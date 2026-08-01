@@ -149,3 +149,51 @@ body::before {
     animation: none !important;
   }
 }
+
+/* Varal / colagem — seção Nossa história */
+@keyframes clothesline-scroll-up {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-50%);
+  }
+}
+
+@keyframes clothesline-scroll-down {
+  from {
+    transform: translateY(-50%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes clothesline-scroll-x {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-clothesline-up {
+  animation: clothesline-scroll-up 48s linear infinite;
+}
+
+.animate-clothesline-down {
+  animation: clothesline-scroll-down 54s linear infinite;
+}
+
+.animate-clothesline-x {
+  animation: clothesline-scroll-x 42s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-clothesline-up,
+  .animate-clothesline-down,
+  .animate-clothesline-x {
+    animation: none !important;
+  }
+}
