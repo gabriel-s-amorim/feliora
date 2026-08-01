@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type PointerEvent } from "react";
 import {
   Bookmark,
   Heart,
@@ -188,34 +188,96 @@ function ClotheslineStrip({
   inviting: boolean;
   onSelect: (item: BrandStoryCollageItem) => void;
 }) {
-  const loop = [...items, ...items];
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const dragRef = useRef<{
+    pointerId: number;
+    startX: number;
+    startScroll: number;
+    moved: boolean;
+  } | null>(null);
+
+  function handleSelect(item: BrandStoryCollageItem) {
+    if (dragRef.current?.moved) return;
+    onSelect(item);
+  }
+
+  function onPointerDown(event: PointerEvent<HTMLDivElement>) {
+    // Touch: scroll nativo do overflow. Mouse/pen: arraste manual.
+    if (event.pointerType === "touch" || !event.isPrimary) return;
+    const el = scrollerRef.current;
+    if (!el) return;
+    dragRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startScroll: el.scrollLeft,
+      moved: false,
+    };
+    el.setPointerCapture(event.pointerId);
+  }
+
+  function onPointerMove(event: PointerEvent<HTMLDivElement>) {
+    const drag = dragRef.current;
+    const el = scrollerRef.current;
+    if (!drag || !el || drag.pointerId !== event.pointerId) return;
+    const delta = event.clientX - drag.startX;
+    if (Math.abs(delta) > 6) drag.moved = true;
+    el.scrollLeft = drag.startScroll - delta;
+  }
+
+  function endDrag(event: PointerEvent<HTMLDivElement>) {
+    const drag = dragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    const el = scrollerRef.current;
+    if (el?.hasPointerCapture(event.pointerId)) {
+      el.releasePointerCapture(event.pointerId);
+    }
+    // Mantém `moved` até o click sintético do botão; limpa no próximo tick.
+    window.setTimeout(() => {
+      if (dragRef.current === drag) dragRef.current = null;
+    }, 0);
+  }
 
   return (
-    <div className="group/strip relative mt-8 overflow-hidden lg:hidden">
+    <div className="relative mt-8 lg:hidden">
       <p className="mb-3 text-center font-display text-[0.6rem] uppercase tracking-[0.28em] text-rose-gold/80">
-        Toque para abrir no centro
+        Deslize o varal · toque para abrir
       </p>
-      <div className="pointer-events-none absolute inset-x-6 top-[2.35rem] h-px bg-gradient-to-r from-transparent via-rose-gold/40 to-transparent" />
+      <div className="pointer-events-none absolute inset-x-6 top-[2.35rem] z-10 h-px bg-gradient-to-r from-transparent via-rose-gold/40 to-transparent" />
+
       <div
+        ref={scrollerRef}
+        role="region"
+        aria-label="Varal de bastidores"
         className={cn(
-          "flex w-max gap-5 px-4 py-4 will-change-transform animate-clothesline-x",
-          "group-hover/strip:[animation-play-state:paused] group-active/strip:[animation-play-state:paused]"
+          "flex gap-5 overflow-x-auto overscroll-x-contain px-5 py-4",
+          "snap-x snap-mandatory touch-pan-x",
+          "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+          "cursor-grab active:cursor-grabbing"
         )}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={endDrag}
+        onPointerCancel={endDrag}
       >
-        {loop.map((item, i) => (
-          <CollageTile
-            key={`strip-${item.src}-${i}`}
-            item={item}
-            tilt={TILTS[i % TILTS.length]}
-            active={activeSrc === item.src}
-            inviting={inviting}
-            onSelect={onSelect}
-            className="w-[6.75rem] sm:w-[7.5rem]"
-          />
+        {items.map((item, i) => (
+          <div
+            key={`strip-${item.src}`}
+            className="snap-center shrink-0 first:ml-1 last:mr-1"
+          >
+            <CollageTile
+              item={item}
+              tilt={TILTS[i % TILTS.length]}
+              active={activeSrc === item.src}
+              inviting={inviting}
+              onSelect={handleSelect}
+              className="w-[6.75rem] sm:w-[7.5rem]"
+            />
+          </div>
         ))}
       </div>
-      <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r from-[#f6ebe3] to-transparent" />
-      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-ivory to-transparent" />
+
+      <div className="pointer-events-none absolute inset-y-8 left-0 z-10 w-8 bg-gradient-to-r from-[#f6ebe3] to-transparent" />
+      <div className="pointer-events-none absolute inset-y-8 right-0 z-10 w-8 bg-gradient-to-l from-ivory to-transparent" />
     </div>
   );
 }
