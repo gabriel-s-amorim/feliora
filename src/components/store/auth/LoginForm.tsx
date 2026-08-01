@@ -78,9 +78,17 @@ export function LoginForm() {
           />
         </div>
         <div>
-          <label className="text-xs uppercase tracking-[0.14em] text-earth">
-            Senha
-          </label>
+          <div className="flex items-baseline justify-between gap-3">
+            <label className="text-xs uppercase tracking-[0.14em] text-earth">
+              Senha
+            </label>
+            <Link
+              href="/conta/recuperar-senha"
+              className="text-xs text-rose-gold hover:underline"
+            >
+              Esqueceu a senha?
+            </Link>
+          </div>
           <input
             type="password"
             required

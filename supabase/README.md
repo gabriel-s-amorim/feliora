@@ -73,7 +73,13 @@ Scopes necessários (Data Access): `openid`, `.../auth/userinfo.email`, `.../aut
    - **Redirect URLs** (allow list), adicione:
      - `http://localhost:3000/auth/callback`
      - `https://seu-dominio.com/auth/callback`
+     - `http://localhost:3000/conta/redefinir-senha`
+     - `https://seu-dominio.com/conta/redefinir-senha`
      - (opcional) `http://localhost:3000/auth/callback?**` se usar wildcards no projeto
+
+### Recuperar senha (Brevo)
+
+O fluxo “Esqueceu a senha?” em `/conta/entrar` gera o link no Supabase Auth (`generateLink` recovery) e dispara o e-mail pelo Brevo já configurado em Integrações. Certifique-se de que Brevo está habilitado com remetente válido.
 
 ### 4. Testar
 
