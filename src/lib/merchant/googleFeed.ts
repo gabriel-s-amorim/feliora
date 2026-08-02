@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { productDescriptionText } from "@/lib/productDescription";
 import { absoluteUrl } from "@/lib/seo/metadata";
 import { SITE_NAME } from "@/shared/const/site";
@@ -5,6 +6,9 @@ import type { Product, ProductVariant } from "@/shared/types/product";
 
 /** Categoria Google: Apparel & Accessories > Clothing */
 const GOOGLE_PRODUCT_CATEGORY = "1604";
+
+/** Limite oficial do atributo id no Merchant Center. */
+const MERCHANT_ID_MAX = 50;
 
 const FEED_HEADERS = [
   "id",
@@ -109,6 +113,37 @@ function additionalImages(product: Product, primary: string): string {
   return [...new Set(urls)].slice(0, 10).join(",");
 }
 
+/** ASCII seguro para id; Merchant recomenda alfanumérico, _ e -. */
+function sanitizeMerchantId(value: string): string {
+  return value
+    .replace(/[^a-zA-Z0-9_-]/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+/**
+ * id ≤ 50 chars e estável: SKU curto como está; SKU longo vira
+ * `p{productId}-{hash}` (determinístico a partir do SKU/variant).
+ */
+export function merchantOfferId(
+  product: Product,
+  variant: ProductVariant | null
+): string {
+  const raw =
+    variant?.sku?.trim() ||
+    (variant ? `${product.id}-${variant.id}` : String(product.id));
+  const cleaned = sanitizeMerchantId(escapeTsv(raw));
+
+  if (cleaned.length > 0 && cleaned.length <= MERCHANT_ID_MAX) {
+    return cleaned;
+  }
+
+  const basis =
+    variant?.sku?.trim() || variant?.id || `product-${product.id}`;
+  const hash = createHash("sha256").update(basis).digest("hex").slice(0, 10);
+  return `p${product.id}-${hash}`.slice(0, MERCHANT_ID_MAX);
+}
+
 function rowForVariant(
   product: Product,
   variant: ProductVariant | null,
@@ -125,10 +160,7 @@ function rowForVariant(
     ? variant.isActive && variant.stockCount > 0
     : product.inStock && product.stockCount > 0;
 
-  const id = escapeTsv(
-    variant?.sku?.trim() ||
-      (variant ? `${product.id}-${variant.id}` : String(product.id))
-  );
+  const id = merchantOfferId(product, variant);
 
   const listPrice = product.originalPrice && product.originalPrice > product.price
     ? product.originalPrice
