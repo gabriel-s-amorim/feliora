@@ -199,6 +199,45 @@ export async function searchProducts(
   return listActiveProducts({ query: q, sort: "newest", limit });
 }
 
+/** Catálogo completo para feed do Google Merchant Center (paginado). */
+export async function listAllActiveProductsForFeed(): Promise<Product[]> {
+  if (!hasSupabasePublicEnv()) return [];
+
+  try {
+    const supabase = createPublicClient();
+    const pageSize = 200;
+    const products: Product[] = [];
+    let from = 0;
+
+    for (;;) {
+      const to = from + pageSize - 1;
+      const { data, error } = await supabase
+        .from("products")
+        .select(PRODUCT_SELECT)
+        .eq("is_active", true)
+        .order("id", { ascending: true })
+        .range(from, to);
+
+      if (error) {
+        console.error("[products] listAllActiveProductsForFeed", error.message);
+        break;
+      }
+
+      const batch = (data as unknown as ProductRow[] | null) ?? [];
+      if (!batch.length) break;
+
+      products.push(...batch.map(mapProduct));
+      if (batch.length < pageSize) break;
+      from += pageSize;
+    }
+
+    return products;
+  } catch (err) {
+    console.error("[products] listAllActiveProductsForFeed", err);
+    return [];
+  }
+}
+
 /** Facetas úteis para filtros a partir do conjunto atual */
 export function extractFilterFacets(products: Product[]) {
   const sizes = new Set<string>();

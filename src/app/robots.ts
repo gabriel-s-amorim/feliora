@@ -7,6 +7,7 @@ export default function robots(): MetadataRoute.Robots {
   const disallowPrivate = [
     "/admin/",
     "/api/",
+    "/busca",
     "/carrinho",
     "/checkout",
     "/conta",
@@ -19,12 +20,12 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: "*",
-        allow: "/",
+        allow: ["/", "/feeds/"],
         disallow: disallowPrivate,
       },
       {
         userAgent: "Googlebot",
-        allow: "/",
+        allow: ["/", "/feeds/"],
         disallow: disallowPrivate,
       },
       {
@@ -33,12 +34,12 @@ export default function robots(): MetadataRoute.Robots {
       },
       {
         userAgent: "bingbot",
-        allow: "/",
+        allow: ["/", "/feeds/"],
         disallow: disallowPrivate,
       },
       {
         userAgent: "BingPreview",
-        allow: "/",
+        allow: ["/", "/feeds/"],
         disallow: disallowPrivate,
       },
     ],
