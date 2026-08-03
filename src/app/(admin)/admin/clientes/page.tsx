@@ -47,16 +47,14 @@ export default function AdminCustomersPage() {
         title="Clientes"
         description="Consulte compras e gerencie os dados de perfil dos clientes."
       >
-        <div className="mb-4 max-w-md">
-          <label className="relative block">
-            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-zinc-400" />
-            <AdminInput
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Buscar por nome, e-mail ou telefone"
-              className="pl-9"
-            />
-          </label>
+        <div className="relative mb-4 max-w-md">
+          <Search className="admin-input-icon" aria-hidden />
+          <AdminInput
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Buscar por nome, e-mail ou telefone"
+            className="admin-input-icon-left"
+          />
         </div>
 
         {loading ? (

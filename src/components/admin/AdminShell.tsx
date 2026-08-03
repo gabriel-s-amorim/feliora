@@ -157,7 +157,7 @@ function SidebarFooter({
   onLogout: () => void;
 }) {
   return (
-    <div className="mt-auto space-y-2 border-t border-white/10 pt-4">
+    <div className="mt-auto shrink-0 space-y-2 border-t border-white/10 pt-4">
       <a
         href="/"
         target="_blank"
@@ -325,8 +325,8 @@ export function AdminShell({
     <div className="admin-app">
       <div className="flex min-h-dvh w-full">
         {/* Desktop sidebar */}
-        <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col bg-zinc-950 px-3 py-5 text-zinc-100 lg:flex xl:w-64">
-          <Link href="/admin" className="mb-8 flex items-center gap-3 px-2">
+        <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col overflow-hidden bg-zinc-950 px-3 py-5 text-zinc-100 lg:flex xl:w-64">
+          <Link href="/admin" className="mb-6 flex shrink-0 items-center gap-3 px-2">
             <Image
               src="/apple-icon.png"
               alt={SITE_NAME}
@@ -342,10 +342,12 @@ export function AdminShell({
             </div>
           </Link>
 
-          <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-600">
+          <p className="mb-2 shrink-0 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-600">
             Menu
           </p>
-          <NavLinks pathname={pathname} />
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            <NavLinks pathname={pathname} />
+          </div>
           <SidebarFooter
             admin={admin ? { name: admin.name, email: admin.email } : null}
             onLogout={handleLogout}
