@@ -345,7 +345,7 @@ export function AdminShell({
           <p className="mb-2 shrink-0 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-600">
             Menu
           </p>
-          <div className="min-h-0 flex-1 overflow-y-auto">
+          <div className="admin-sidebar-scroll min-h-0 flex-1 overflow-y-auto">
             <NavLinks pathname={pathname} />
           </div>
           <SidebarFooter
